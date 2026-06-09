@@ -1,36 +1,15 @@
-import { Geist_Mono, Inter } from "next/font/google"
-import { ThemeProvider } from "@/shared/components/theme-provider"
-import { TooltipProvider } from "@/shared/components/ui/tooltip"
-import { cn } from "@/shared/lib/utils"
-import "./globals.css"
+// src/app/layout.tsx
+import type { ReactNode } from "react"
+import UserNav from "@/features/auth/components/user-nav"
 
-const inter = Inter({ subsets: ["latin"], variable: "--font-sans" })
-
-const fontMono = Geist_Mono({
-  subsets: ["latin"],
-  variable: "--font-mono",
-})
-
-export default function RootLayout({
-  children,
-}: Readonly<{
-  children: React.ReactNode
-}>) {
+export default function RootLayout({ children }: { children: ReactNode }) {
   return (
-    <html
-      lang="en"
-      suppressHydrationWarning
-      className={cn(
-        "antialiased",
-        fontMono.variable,
-        "font-sans",
-        inter.variable
-      )}
-    >
+    <html lang="ko">
       <body>
-        <ThemeProvider>
-          <TooltipProvider>{children}</TooltipProvider>
-        </ThemeProvider>
+        <div style={{ padding: 16, borderBottom: "1px solid #eee" }}>
+          <UserNav />
+        </div>
+        <div style={{ padding: 16 }}>{children}</div>
       </body>
     </html>
   )

@@ -18,3 +18,10 @@
 - **ESLint**: 비동기 `floating-promises` 경고, 인라인 `type-imports` 권장
 - **Prettier**: Tailwind CSS 클래스 자동 정렬 및 상단 `import` 구문 순서 자동 정렬 적용
 - **공통**: `src/shared/components/ui` 폴더 내 shadcn 컴포넌트들은 린트/포맷팅 대상에서 제외
+
+## better auth
+
+https://console.cloud.google.com/auth/clients 에서 해당되는 곳에
+
+http://localhost:3000 를 승인된 원본
+http://localhost:3000/api/auth/callback/google 를 승인된 리다이렉트 uri
