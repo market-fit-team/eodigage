@@ -32,7 +32,7 @@ services:
       - echo-service
 
   profile-service:
-    build: ./backend/services/service/profile-service
+    build: ./backend/services/profile-service
     container_name: profile-service
     environment:
       PORT: "3001"
@@ -44,7 +44,7 @@ services:
       - "3001"
 
   echo-service:
-    build: ./backend/services/service/echo-service
+    build: ./backend/services/echo-service
     container_name: echo-service
     environment:
       PORT: "3002"
