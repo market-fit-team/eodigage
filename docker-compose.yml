@@ -1,6 +1,6 @@
 services:
   db:
-    image: postgres:17-alpine # 필요하면 17-alpine 등으로 올려도 됨
+    image: postgres:17-alpine
     container_name: frontend-db
     restart: unless-stopped
     ports:
@@ -30,6 +30,7 @@ services:
     depends_on:
       - profile-service
       - echo-service
+      - community-service
 
   profile-service:
     build: ./backend/services/profile-service
@@ -52,5 +53,88 @@ services:
     expose:
       - "3002"
 
+  community-db:
+    image: postgres:17-alpine
+    container_name: community-db
+    ports:
+      - "5663:5432"
+    environment:
+      POSTGRES_DB: demo
+      POSTGRES_USER: demo
+      POSTGRES_PASSWORD: demo
+    volumes:
+      - community_postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U demo -d demo"]
+      interval: 3s
+      timeout: 3s
+      retries: 20
+
+  redis:
+    image: redis:latest
+    container_name: community-redis
+    ports:
+      - "6379:6379"
+    command: redis-server --appendonly yes
+    volumes:
+      - redis_data:/data
+
+  rabbitmq:
+    image: rabbitmq:4-management
+    container_name: community-rabbitmq
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    environment:
+      RABBITMQ_DEFAULT_USER: guest
+      RABBITMQ_DEFAULT_PASS: guest
+
+  minio:
+    image: quay.io/minio/minio:latest
+    container_name: community-minio
+    ports:
+      - "8900:8900"
+      - "8901:8901"
+    environment:
+      MINIO_ROOT_USER: demo
+      MINIO_ROOT_PASSWORD: demo12345
+    command: server /data --address ":8900" --console-address ":8901"
+    volumes:
+      - minio_data:/data
+
+  minio-init:
+    image: quay.io/minio/mc:latest
+    container_name: community-minio-init
+    depends_on:
+      - minio
+    entrypoint: >
+      /bin/sh -c "
+      until mc alias set local http://minio:8900 demo demo12345; do
+        echo 'waiting for minio...';
+        sleep 2;
+      done;
+      mc mb --ignore-existing local/pickle-post-images;
+      exit 0;
+      "
+
+  community-service:
+    build: ./backend/services/community-service
+    container_name: community-service
+    depends_on:
+      - community-db
+      - redis
+      - rabbitmq
+      - minio-init
+    environment:
+      - DB_HOST=community-db
+      - REDIS_HOST=redis
+      - S3_ENDPOINT=http://minio:8900
+      - JWKS_URL=http://host.docker.internal:3000/api/auth/jwks
+    expose:
+      - "8080"
+
 volumes:
   postgres_data:
+  community_postgres_data:
+  redis_data:
+  minio_data:

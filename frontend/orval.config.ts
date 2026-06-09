@@ -62,6 +62,11 @@ export default defineConfig((): Config => {
       inputPath: "/api/profile/v3/api-docs",
       runtimeBasePath: "/api/proxy/profile",
     }),
+    "community-api": createProject({
+      name: "community",
+      inputPath: "/api/community/v3/api-docs",
+      runtimeBasePath: "/api/proxy/community",
+    }),
 
     "echo-api": createProject({
       name: "echo",

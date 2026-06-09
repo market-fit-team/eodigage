@@ -1,0 +1,59 @@
+spring:
+  application:
+    name: demo-test
+
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    show-sql: false
+    properties:
+      hibernate:
+        format_sql: true
+
+  flyway:
+    enabled: true
+    locations: classpath:db/migration
+    validate-on-migrate: true
+
+  cache:
+    type: redis
+    redis:
+      time-to-live: 10m
+      cache-null-values: false
+
+  session:
+    redis:
+      namespace: demo:test:session
+
+  security:
+    oauth2:
+      client:
+        registration:
+          google:
+            client-id: test-client-id
+            client-secret: test-client-secret
+            scope:
+              - openid
+              - profile
+              - email
+
+server:
+  servlet:
+    session:
+      cookie:
+        http-only: true
+        same-site: lax
+        secure: false
+
+llm:
+  gateway:
+    base-url: http://localhost:18000
+    api-key:
+    semantic-timeout: 5s
+
+app:
+  post:
+    semantic:
+      related-default-limit: 10
+      related-max-limit: 20
+      related-cache-ttl: P3D
