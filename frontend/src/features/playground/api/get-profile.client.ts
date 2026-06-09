@@ -1,27 +1,39 @@
+import { z } from "zod"
 import { useSuspenseQuery } from "@tanstack/react-query"
 
-type JsonObject = Record<string, unknown>
-type GatewayResult = { ok: boolean; status: number; data: unknown }
+export const profileResponseSchema = z.object({
+  ok: z.boolean(),
+  status: z.number(),
+  data: z.unknown(),
+})
+
+export type ProfileResponse = z.infer<typeof profileResponseSchema>
 
 const parseJsonSafe = (text: string): unknown => {
   try {
-    return JSON.parse(text) as unknown
+    return JSON.parse(text)
   } catch {
-    return { raw: text } satisfies JsonObject
+    return { raw: text }
   }
 }
 
 export const getProfileClient = async (
   gatewayBase: string,
   jwt: string
-): Promise<GatewayResult> => {
+): Promise<ProfileResponse> => {
   const res = await fetch(`${gatewayBase}/api/profile/me`, {
     method: "GET",
     headers: { Authorization: `Bearer ${jwt}` },
     cache: "no-store",
   })
   const text = await res.text()
-  return { ok: res.ok, status: res.status, data: parseJsonSafe(text) }
+
+  // Zod를 통한 런타임 검증
+  return profileResponseSchema.parse({
+    ok: res.ok,
+    status: res.status,
+    data: parseJsonSafe(text),
+  })
 }
 
 export const profileQueryKey = (gatewayBase: string) =>
