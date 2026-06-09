@@ -15,7 +15,6 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.jwt.Jwt;
@@ -36,10 +35,7 @@ public class ScheduledPostCommandController {
     private final ScheduledPostCommandService scheduledPostCommandService;
     private final CurrentUserService currentUserService;
 
-    @PostMapping(
-            consumes = MediaType.APPLICATION_JSON_VALUE,
-            produces = MediaType.APPLICATION_JSON_VALUE
-    )
+    @PostMapping
     @Operation(operationId = "createScheduledPost", summary = "예약 게시글 생성")
     public ResponseEntity<ScheduledPostResponse> create(
             @Parameter(hidden = true) @AuthenticationPrincipal Jwt jwt,
@@ -57,11 +53,7 @@ public class ScheduledPostCommandController {
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
-    @PutMapping(
-            value = "/{id}",
-            consumes = MediaType.APPLICATION_JSON_VALUE,
-            produces = MediaType.APPLICATION_JSON_VALUE
-    )
+    @PutMapping("/{id}")
     @Operation(operationId = "updateScheduledPost", summary = "예약 게시글 수정")
     public ScheduledPostResponse update(
             @Parameter(hidden = true) @AuthenticationPrincipal Jwt jwt,

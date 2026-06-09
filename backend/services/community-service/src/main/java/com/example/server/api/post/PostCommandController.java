@@ -1,7 +1,6 @@
 package com.example.server.api.post;
 
 import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -40,10 +39,7 @@ public class PostCommandController {
     private final PostQueryService postQueryService;
     private final CurrentUserService currentUserService;
 
-    @PostMapping(
-            consumes = MediaType.APPLICATION_JSON_VALUE,
-            produces = MediaType.APPLICATION_JSON_VALUE
-    )
+    @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
     @Operation(operationId = "createPost", summary = "게시글 생성")
     public PostResponse create(
@@ -58,11 +54,7 @@ public class PostCommandController {
         return postQueryService.findById(post.getId(), currentUser);
     }
 
-    @PostMapping(
-            value = "/{parentId}/replies",
-            consumes = MediaType.APPLICATION_JSON_VALUE,
-            produces = MediaType.APPLICATION_JSON_VALUE
-    )
+    @PostMapping("/{parentId}/replies")
     @ResponseStatus(HttpStatus.CREATED)
     @Operation(operationId = "createPostReply", summary = "게시글 답글 생성")
     public PostResponse createReply(
@@ -79,11 +71,7 @@ public class PostCommandController {
         return postQueryService.findById(post.getId(), currentUser);
     }
 
-    @PutMapping(
-            value = "/{id}",
-            consumes = MediaType.APPLICATION_JSON_VALUE,
-            produces = MediaType.APPLICATION_JSON_VALUE
-    )
+    @PutMapping("/{id}")
     @Operation(operationId = "updatePost", summary = "게시글 수정")
     public PostResponse update(
             @PathVariable Long id,

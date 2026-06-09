@@ -40,10 +40,7 @@ public class MediaAttachmentController {
     private final MediaAttachmentApplicationService mediaAttachmentApplicationService;
     private final MediaQueryService mediaQueryService;
 
-    @PostMapping(
-            consumes = MediaType.MULTIPART_FORM_DATA_VALUE,
-            produces = MediaType.APPLICATION_JSON_VALUE
-    )
+    @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     @ResponseStatus(HttpStatus.CREATED)
     @Operation(operationId = "uploadMediaAttachment", summary = "미디어 첨부파일 업로드")
     public MediaAttachmentResponse upload(
@@ -57,7 +54,7 @@ public class MediaAttachmentController {
         return mediaAttachmentApplicationService.upload(currentUser, file, altText);
     }
 
-    @GetMapping(value = "/{id}", produces = MediaType.APPLICATION_JSON_VALUE)
+    @GetMapping("/{id}")
     @Operation(operationId = "getMediaAttachment", summary = "미디어 첨부파일 조회")
     public MediaAttachmentResponse get(
             @PathVariable Long id,
@@ -67,11 +64,7 @@ public class MediaAttachmentController {
         return mediaQueryService.getOwnedResponse(currentUser, id);
     }
 
-    @PatchMapping(
-            value = "/{id}",
-            consumes = MediaType.APPLICATION_JSON_VALUE,
-            produces = MediaType.APPLICATION_JSON_VALUE
-    )
+    @PatchMapping("/{id}")
     @Operation(operationId = "updateMediaAttachment", summary = "미디어 첨부파일 수정")
     public MediaAttachmentResponse update(
             @PathVariable Long id,

@@ -1,7 +1,6 @@
 package com.example.server.api.notification;
 
 import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.jwt.Jwt;
@@ -36,7 +35,7 @@ public class NotificationController {
     private final NotificationQueryService notificationQueryService;
     private final NotificationReadCommandService notificationReadCommandService;
 
-    @GetMapping(produces = MediaType.APPLICATION_JSON_VALUE)
+    @GetMapping
     @Operation(operationId = "getNotifications", summary = "알림 목록 조회")
     public NotificationCursorPageResponse<NotificationResponse> findNotifications(
             @RequestParam(defaultValue = "20") int size,
@@ -47,7 +46,7 @@ public class NotificationController {
         return notificationQueryService.findNotifications(currentUser, size, cursor);
     }
 
-    @GetMapping(value = "/unread-count", produces = MediaType.APPLICATION_JSON_VALUE)
+    @GetMapping("/unread-count")
     @Operation(operationId = "getUnreadNotificationCount", summary = "읽지 않은 알림 개수 조회")
     public UnreadNotificationCountResponse unreadCount(@Parameter(hidden = true) @AuthenticationPrincipal Jwt jwt) {
         User currentUser = currentUserService.getRequiredUser(jwt);

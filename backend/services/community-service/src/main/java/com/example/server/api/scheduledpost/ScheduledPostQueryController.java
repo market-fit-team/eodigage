@@ -2,7 +2,6 @@ package com.example.server.api.scheduledpost;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-import org.springframework.http.MediaType;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -28,7 +27,7 @@ public class ScheduledPostQueryController {
     private final ScheduledPostQueryService scheduledPostQueryService;
     private final CurrentUserService currentUserService;
 
-    @GetMapping(produces = MediaType.APPLICATION_JSON_VALUE)
+    @GetMapping
     @Operation(operationId = "getScheduledPosts", summary = "내 예약 게시글 목록 조회")
     public Page<ScheduledPostResponse> list(
             @Parameter(hidden = true) @AuthenticationPrincipal Jwt jwt,

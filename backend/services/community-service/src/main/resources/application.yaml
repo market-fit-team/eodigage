@@ -60,6 +60,11 @@ spring:
         jwt:
           jwk-set-uri: ${JWKS_URL:http://host.docker.internal:3000/api/auth/jwks}
 
+springdoc:
+  # Source: https://springdoc.org/core-properties.html
+  # Source: https://github.com/springdoc/springdoc-openapi/issues/659
+  default-produces-media-type: application/json
+
 storage:
   s3:
     endpoint: ${S3_ENDPOINT:http://localhost:8900}
@@ -73,6 +78,3 @@ storage:
 server:
   port: 8080
   forward-headers-strategy: framework # NOTE: 프록시 서버(Nginx 등) 뒤에 있을 때 헤더 처리를 위함
-
-
-
