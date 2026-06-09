@@ -21,6 +21,9 @@ export default async function HomePage() {
           <a href="/dashboard">/dashboard</a>
         </li>
         <li>
+          <a href="/playground">/playground</a>
+        </li>
+        <li>
           <a href="/api/session">/api/session</a>
         </li>
         <li>

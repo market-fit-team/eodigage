@@ -1,0 +1,56 @@
+services:
+  db:
+    image: postgres:17-alpine # 필요하면 17-alpine 등으로 올려도 됨
+    container_name: frontend-db
+    restart: unless-stopped
+    ports:
+      - "5662:5432"
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: frontend_db
+      TZ: Asia/Seoul
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d frontend_db"]
+      interval: 3s
+      timeout: 3s
+      retries: 20
+
+  nginx:
+    image: nginx:1.27-alpine
+    container_name: msa-nginx
+    ports:
+      - "8080:80"
+    volumes:
+      - ./backend/nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    depends_on:
+      - profile-service
+      - echo-service
+
+  profile-service:
+    build: ./backend/services/service/profile-service
+    container_name: profile-service
+    environment:
+      PORT: "3001"
+      JWKS_URL: "http://host.docker.internal:3000/api/auth/jwks"
+      JWT_ISSUER: "http://localhost:3000"
+      JWT_AUDIENCE: "frontend-api"
+      JWT_ALGS: "EdDSA"
+    expose:
+      - "3001"
+
+  echo-service:
+    build: ./backend/services/service/echo-service
+    container_name: echo-service
+    environment:
+      PORT: "3002"
+      PROFILE_BASE_URL: "http://profile-service:3001"
+    expose:
+      - "3002"
+
+volumes:
+  postgres_data:
