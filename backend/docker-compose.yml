@@ -1,0 +1,34 @@
+services:
+  nginx:
+    image: nginx:1.27-alpine
+    container_name: msa-nginx
+    ports:
+      - "8080:80"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    depends_on:
+      - profile-service
+      - echo-service
+
+  profile-service:
+    build: ./services/service/profile-service
+    container_name: profile-service
+    environment:
+      PORT: "3001"
+      JWKS_URL: "http://host.docker.internal:3000/api/auth/jwks"
+      JWT_ISSUER: "http://localhost:3000"
+      JWT_AUDIENCE: "frontend-api"
+      JWT_ALGS: "EdDSA"
+    expose:
+      - "3001"
+
+  echo-service:
+    build: ./services/service/echo-service
+    container_name: echo-service
+    environment:
+      PORT: "3002"
+      PROFILE_BASE_URL: "http://profile-service:3001"
+    expose:
+      - "3002"
