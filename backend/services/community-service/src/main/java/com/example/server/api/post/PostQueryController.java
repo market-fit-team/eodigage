@@ -1,6 +1,7 @@
 package com.example.server.api.post;
 
 import org.springframework.data.domain.Page;
+import org.springframework.http.MediaType;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -31,7 +32,7 @@ public class PostQueryController {
     private final PostQueryService postQueryService;
     private final CurrentUserService currentUserService;
 
-    @GetMapping
+    @GetMapping(produces = MediaType.APPLICATION_JSON_VALUE)
     @Operation(operationId = "getPosts", summary = "게시글 페이지 조회")
     public Page<PostSummaryResponse> findOffsetPage(
             @RequestParam(defaultValue = "0") int page,
@@ -42,7 +43,7 @@ public class PostQueryController {
         return postQueryService.findOffsetPage(page, size, currentUser);
     }
 
-    @GetMapping("/cursor")
+    @GetMapping(value = "/cursor", produces = MediaType.APPLICATION_JSON_VALUE)
     @Operation(operationId = "getPostsByCursor", summary = "게시글 커서 페이지 조회")
     public CursorPageResponse<PostSummaryResponse> findCursorPage(
             @RequestParam(required = false) String cursor,
@@ -53,7 +54,7 @@ public class PostQueryController {
         return postQueryService.findCursorPage(cursor, size, currentUser);
     }
 
-    @GetMapping("/{id}")
+    @GetMapping(value = "/{id}", produces = MediaType.APPLICATION_JSON_VALUE)
     @Operation(operationId = "getPost", summary = "게시글 단건 조회")
     public PostResponse findById(
             @PathVariable Long id,
@@ -63,7 +64,7 @@ public class PostQueryController {
         return postQueryService.findById(id, currentUser);
     }
 
-    @GetMapping("/{postId}/replies")
+    @GetMapping(value = "/{postId}/replies", produces = MediaType.APPLICATION_JSON_VALUE)
     @Operation(operationId = "getPostReplies", summary = "게시글 답글 목록 조회")
     public CursorPageResponse<PostSummaryResponse> findReplies(
             @PathVariable Long postId,
@@ -75,7 +76,7 @@ public class PostQueryController {
         return postQueryService.findRepliesCursorPage(postId, cursor, size, currentUser);
     }
 
-    @GetMapping("/{postId}/thread")
+    @GetMapping(value = "/{postId}/thread", produces = MediaType.APPLICATION_JSON_VALUE)
     @Operation(operationId = "getPostThread", summary = "게시글 스레드 조회")
     public PostThreadResponse findThread(
             @PathVariable Long postId,
