@@ -14,6 +14,74 @@ if (!PROFILE_BASE_URL) {
   process.exit(1)
 }
 
+const echoOpenApiDocument = {
+  openapi: "3.0.3",
+  info: {
+    title: "echo-service",
+    version: "1.0.0",
+  },
+  tags: [{ name: "echo" }],
+  paths: {
+    "/echo": {
+      get: {
+        operationId: "getEcho",
+        tags: ["echo"],
+        summary: "Echo profile response",
+        security: [{ bearerAuth: [] }],
+        responses: {
+          200: {
+            description: "Echo response",
+            content: {
+              "application/json": {
+                schema: {
+                  type: "object",
+                  required: ["from", "profile"],
+                  properties: {
+                    from: { type: "string" },
+                    profile: {},
+                  },
+                },
+              },
+            },
+          },
+          401: {
+            description: "Unauthorized",
+            content: {
+              "application/json": {
+                schema: { $ref: "#/components/schemas/ErrorResponse" },
+              },
+            },
+          },
+        },
+      },
+    },
+  },
+  components: {
+    securitySchemes: {
+      bearerAuth: {
+        type: "http",
+        scheme: "bearer",
+        bearerFormat: "JWT",
+      },
+    },
+    schemas: {
+      ErrorResponse: {
+        type: "object",
+        required: ["error"],
+        properties: {
+          error: { type: "string" },
+          detail: { type: "string" },
+        },
+        additionalProperties: true,
+      },
+    },
+  },
+}
+
+app.get("/v3/api-docs", (_req, res) => {
+  res.json(echoOpenApiDocument)
+})
+
 app.get("/health", (_req, res) => res.json({ ok: true }))
 
 app.get("/echo", async (req, res) => {

@@ -34,6 +34,95 @@ function getBearer(req) {
   return m?.[1]
 }
 
+const profileOpenApiDocument = {
+  openapi: "3.0.3",
+  info: {
+    title: "profile-service",
+    version: "1.0.0",
+  },
+  tags: [{ name: "profile" }],
+  paths: {
+    "/me": {
+      get: {
+        operationId: "getMe",
+        tags: ["profile"],
+        summary: "Get current user profile",
+        security: [{ bearerAuth: [] }],
+        responses: {
+          200: {
+            description: "Current user profile",
+            content: {
+              "application/json": {
+                schema: {
+                  type: "object",
+                  required: ["email"],
+                  properties: {
+                    email: { type: "string" },
+                    sub: { type: "string", nullable: true },
+                    iss: { type: "string", nullable: true },
+                    aud: {
+                      oneOf: [
+                        { type: "string" },
+                        {
+                          type: "array",
+                          items: { type: "string" },
+                        },
+                      ],
+                      nullable: true,
+                    },
+                    alg: { type: "string", nullable: true },
+                    kid: { type: "string", nullable: true },
+                  },
+                },
+              },
+            },
+          },
+          400: {
+            description: "Invalid token payload",
+            content: {
+              "application/json": {
+                schema: { $ref: "#/components/schemas/ErrorResponse" },
+              },
+            },
+          },
+          401: {
+            description: "Unauthorized",
+            content: {
+              "application/json": {
+                schema: { $ref: "#/components/schemas/ErrorResponse" },
+              },
+            },
+          },
+        },
+      },
+    },
+  },
+  components: {
+    securitySchemes: {
+      bearerAuth: {
+        type: "http",
+        scheme: "bearer",
+        bearerFormat: "JWT",
+      },
+    },
+    schemas: {
+      ErrorResponse: {
+        type: "object",
+        required: ["error"],
+        properties: {
+          error: { type: "string" },
+          detail: { type: "string" },
+        },
+        additionalProperties: true,
+      },
+    },
+  },
+}
+
+app.get("/v3/api-docs", (_req, res) => {
+  res.json(profileOpenApiDocument)
+})
+
 app.get("/health", (_req, res) => res.json({ ok: true }))
 
 app.get("/me", async (req, res) => {
