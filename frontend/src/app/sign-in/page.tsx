@@ -1,11 +1,7 @@
 // src/app/sign-in/page.tsx
 import SignInClient from "@/features/auth/components/sign-in-client"
 
-export default function SignInPage({
-  searchParams,
-}: {
-  searchParams?: Promise<{ callbackURL?: string; error?: string }>
-}) {
+export default function SignInPage({ searchParams }: PageProps<"/sign-in">) {
   return (
     <main>
       <h1>Sign in</h1>
@@ -17,13 +13,13 @@ export default function SignInPage({
 async function SignInClientWrapper({
   searchParams,
 }: {
-  searchParams?: Promise<{ callbackURL?: string; error?: string }>
+  searchParams: PageProps<"/sign-in">["searchParams"]
 }) {
   const params = await searchParams
   return (
     <SignInClient
-      callbackURL={params?.callbackURL ?? "/dashboard"}
-      error={params?.error}
+      callbackURL={String(params?.callbackURL || "/dashboard")}
+      error={String(params?.error || "")}
     />
   )
 }

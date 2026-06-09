@@ -21,7 +21,7 @@ type JsonObject = Record<string, unknown>
 type GatewayResult = { ok: boolean; status: number; data: unknown }
 type Result = GatewayResult | null
 
-function parseJsonSafe(text: string): unknown {
+const parseJsonSafe = (text: string): unknown => {
   try {
     return JSON.parse(text) as unknown
   } catch {
@@ -29,22 +29,7 @@ function parseJsonSafe(text: string): unknown {
   }
 }
 
-function getTokenFromUnknown(input: unknown): string | null {
-  if (!input || typeof input !== "object") return null
-  const obj = input as JsonObject
-
-  if (typeof obj.token === "string") return obj.token
-
-  const data = obj.data
-  if (data && typeof data === "object") {
-    const dataObj = data as JsonObject
-    if (typeof dataObj.token === "string") return dataObj.token
-  }
-
-  return null
-}
-
-async function callGateway(url: string, jwt: string): Promise<GatewayResult> {
+const callGateway = async (url: string, jwt: string): Promise<GatewayResult> => {
   const res = await fetch(url, {
     method: "GET",
     headers: { Authorization: `Bearer ${jwt}` },
@@ -65,13 +50,9 @@ export default function PlaygroundClient({
   const [echo, setEcho] = useState<Result>(null)
   const [error, setError] = useState<string>("")
 
-  async function issueJwtClient(): Promise<string | null> {
+  const issueJwtClient = async (): Promise<string | null> => {
     const tokenResult = await authClient.token()
-    // tokenResult.data 타입이 라이브러리 버전에 따라 달라져서 안전하게 unknown로 처리
-    const token = getTokenFromUnknown(
-      (tokenResult as unknown as { data?: unknown }).data
-    )
-    return token
+    return tokenResult.data?.token || null
   }
 
   return (

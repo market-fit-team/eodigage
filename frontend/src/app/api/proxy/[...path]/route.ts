@@ -7,7 +7,7 @@
 //
 // 세션 검증은 auth.api.getSession({ headers }) 패턴.
 // https://better-auth.com/docs/integrations/next :contentReference[oaicite:34]{index=34}
-import { NextRequest } from "next/server"
+import { type NextRequest } from "next/server"
 import { auth } from "@/features/auth/lib/auth"
 import { env } from "@/shared/config/env"
 

@@ -21,7 +21,7 @@ const GATEWAY_BASE =
 
 const AUTH_BASE = process.env.BETTER_AUTH_URL ?? "http://localhost:3000"
 
-function parseJsonSafe(text: string): unknown {
+const parseJsonSafe = (text: string): unknown => {
   try {
     return JSON.parse(text) as unknown
   } catch {
@@ -29,7 +29,7 @@ function parseJsonSafe(text: string): unknown {
   }
 }
 
-function getTokenFromUnknown(input: unknown): string | null {
+const getTokenFromUnknown = (input: unknown): string | null => {
   if (!input || typeof input !== "object") return null
   const obj = input as JsonObject
 
@@ -44,7 +44,7 @@ function getTokenFromUnknown(input: unknown): string | null {
   return null
 }
 
-async function issueJwtFromCookie(): Promise<string | null> {
+const issueJwtFromCookie = async (): Promise<string | null> => {
   const h = await headers()
   const cookie = h.get("cookie") ?? ""
   if (!cookie) return null
@@ -62,7 +62,7 @@ async function issueJwtFromCookie(): Promise<string | null> {
   return getTokenFromUnknown(json)
 }
 
-async function fetchGateway(path: string, jwt: string): Promise<GatewayResult> {
+const fetchGateway = async (path: string, jwt: string): Promise<GatewayResult> => {
   const res = await fetch(`${GATEWAY_BASE}${path}`, {
     method: "GET",
     headers: {
