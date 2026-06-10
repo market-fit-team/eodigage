@@ -7,6 +7,7 @@ import { Textarea } from "@/shared/components/ui/textarea";
 import { Input } from "@/shared/components/ui/input";
 import { useQueryClient } from "@tanstack/react-query";
 import { ImageUpload } from "@/features/media/components/image-upload";
+import { toast } from "sonner";
 
 export function CreateScheduledPost() {
   const [content, setContent] = useState("");
@@ -20,14 +21,14 @@ export function CreateScheduledPost() {
         setContent("");
         setScheduledAt("");
         setMediaAttachmentIds([]);
-        queryClient.invalidateQueries({
+        void queryClient.invalidateQueries({
           predicate: (query) => query.queryKey.includes("/api/v1/scheduled-posts"),
         });
-        alert("예약게시글 작성 완료");
+        toast.success("예약게시글 작성 완료");
       },
       onError: (error) => {
         console.error("Create scheduled post failed", error);
-        alert("예약게시글 작성 실패");
+        toast.error("예약게시글 작성 실패");
       },
     },
   });
@@ -40,7 +41,7 @@ export function CreateScheduledPost() {
     e.preventDefault();
     if (!content.trim() && mediaAttachmentIds.length === 0) return;
     if (!scheduledAt) {
-      alert("예약 시간을 설정해주세요");
+      toast.warning("예약 시간을 설정해주세요");
       return;
     }
 

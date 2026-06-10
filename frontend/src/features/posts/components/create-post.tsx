@@ -6,6 +6,7 @@ import { Button } from "@/shared/components/ui/button";
 import { Textarea } from "@/shared/components/ui/textarea";
 import { ImageUpload } from "@/features/media/components/image-upload";
 import { useQueryClient } from "@tanstack/react-query";
+import { toast } from "sonner";
 
 export function CreatePost() {
   const [content, setContent] = useState("");
@@ -18,14 +19,14 @@ export function CreatePost() {
         setContent("");
         setMediaAttachmentIds([]);
         // invalidate post list
-        queryClient.invalidateQueries({
+        void queryClient.invalidateQueries({
           predicate: (query) => query.queryKey.includes("/api/v1/posts"),
         });
-        alert("게시글 작성 완료");
+        toast.success("게시글 작성 완료");
       },
       onError: (error) => {
         console.error("Create post failed", error);
-        alert("게시글 작성 실패");
+        toast.error("게시글 작성 실패");
       },
     },
   });

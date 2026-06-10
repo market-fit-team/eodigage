@@ -4,6 +4,7 @@ import { useRef } from "react";
 import { useUploadMediaAttachment } from "@/shared/api/generated/community/endpoints/media/media";
 import { Button } from "@/shared/components/ui/button";
 import { Input } from "@/shared/components/ui/input";
+import { toast } from "sonner";
 
 type ImageUploadProps = {
   onUploadSuccess: (mediaId: number) => void;
@@ -22,7 +23,7 @@ export function ImageUpload({ onUploadSuccess }: ImageUploadProps) {
       },
       onError: (error) => {
         console.error("Upload failed:", error);
-        alert("업로드 실패");
+        toast.error("업로드 실패");
       },
     },
   });

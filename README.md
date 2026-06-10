@@ -1,5 +1,7 @@
 # 프로젝트 설명
 
+![Architecture](docs/assets/architecture-low-quality.jpg)
+
 better-auth를 이용한 JWT 발급 및 nginx를 이용한 MSA 프로젝트입니다.
 
 - **프론트엔드**

@@ -4,7 +4,7 @@ dev:
 	@echo "Starting Docker Compose services..."
 	@docker compose up -d --build
 	@echo "Waiting for database and openapi to be ready..."
-	@sleep 10
+	@sleep 5
 	@echo "restarting nginx..."
 	@docker compose restart nginx
 	@echo "Running database migrations..."
