@@ -40,7 +40,7 @@ dev = [
 addopts = "-p no:cacheprovider"
 testpaths = ["tests"]
 asyncio_mode = "auto"
-pythonpath = ["src"]
+pythonpath = ["src", "."]
 filterwarnings = [
     "ignore:.*_UnionGenericAlias.*:DeprecationWarning:google.genai.types",
 ]

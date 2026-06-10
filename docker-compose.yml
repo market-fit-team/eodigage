@@ -145,8 +145,6 @@ services:
     env_file:
       - ./backend/services/agent-service/.env
     environment:
-      - PYTHONPATH=/app
-      - PATCH_LANGGRAPH_STREAM_MODES=true
       - LANGGRAPH_CLI_NO_ANALYTICS=1
       - JWKS_URL=http://host.docker.internal:3000/api/auth/jwks
       - JWT_ISSUER=http://localhost:3000

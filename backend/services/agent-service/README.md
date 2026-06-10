@@ -1,5 +1,12 @@
 # Pickle Agent Service
 
+> 중요: 현재 langgraph-api 0.9.0은 `tools/lifecycle` StreamMode를 런타임 타입에는 포함하지만 bundled `openapi.json` validator enum에서 누락한다.
+> 그래서 `useStream().toolProgress`를 쓰려면 `uv sync` 이후 `scripts/patch_langgraph_api_openapi_stream_modes.py`를 반드시 한 번 실행해야 한다.
+> Docker image는 Dockerfile에서 이 vendor schema patch를 빌드 시점에 자동 실행한다.
+> 로컬 개발에서는 `uv sync && uv run python scripts/patch_langgraph_api_openapi_stream_modes.py` 순서를 지킨다.
+> 이 패치는 런타임 monkey patch가 아니라 설치된 `langgraph_api/openapi.json`만 보정하는 임시 호환 패치다.
+> upstream stable에서 validator가 수정되면 이 스크립트와 Dockerfile RUN 라인을 삭제한다.
+
 LangGraph native Agent Server로 실행되는 chat graph 서비스입니다. 기존 `tracked_files`의 graph/model/tool/eval/RAG 코드는 `src/agent/**`로 이식했고, FastAPI 기반 LangGraph 호환 adapter는 제거했습니다.
 
 ## 실행
