@@ -39,6 +39,7 @@ const createProject = ({
           useInfiniteQueryParam: "cursor",
           usePrefetch: true,
           useInvalidate: true,
+          // useMutation: true, // mutaion이 없어도 post 요청은 자동 생성됨. patch, delete는 수동 생성 요망
           useSetQueryData: true,
           useGetQueryData: true,
           signal: true,
