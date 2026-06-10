@@ -1,4 +1,0 @@
-docs/STREAM_EVENTS_V2_PATCH_HANDOFF.md
-frontend/src/features/llm-chat/lib/langgraph/stream-modes.ts
-backend/services/agent-service/scripts/patch_langgraph_api_openapi_stream_modes.py
-backend/services/agent-service/tests/unit_tests/test_stream_mode_contract.py
