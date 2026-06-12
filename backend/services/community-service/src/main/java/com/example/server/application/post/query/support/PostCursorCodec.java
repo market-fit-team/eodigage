@@ -4,7 +4,9 @@ import java.nio.charset.StandardCharsets;
 import java.time.Instant;
 import java.util.Base64;
 
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
+import org.springframework.web.server.ResponseStatusException;
 
 @Component // NOTE: [Spring] 빈 등록을 위해 컴포넌트 선언
 public class PostCursorCodec {
@@ -47,7 +49,7 @@ public class PostCursorCodec {
             // NOTE: 구분자 기호인 "|" 기준으로 문자열을 분할
             String[] parts = raw.split("\\|", 2);
             if (parts.length != 2) {
-                throw new IllegalArgumentException("잘못된 cursor 형식입니다.");
+                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "잘못된 cursor 형식입니다.");
             }
 
             // NOTE: 복원된 정보 바탕으로 인스턴스 반환
@@ -57,7 +59,7 @@ public class PostCursorCodec {
             );
         } catch (RuntimeException ex) {
             // NOTE: 클라이언트가 변조된 인코딩 값을 주입하는 상황 등에 대응하여 유효하지 않음을 명시적으로 알림
-            throw new IllegalArgumentException("유효하지 않은 cursor입니다.", ex);
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "유효하지 않은 cursor입니다.", ex);
         }
     }
 

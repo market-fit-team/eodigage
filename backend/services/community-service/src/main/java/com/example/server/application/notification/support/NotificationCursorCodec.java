@@ -4,7 +4,9 @@ import java.nio.charset.StandardCharsets;
 import java.time.Instant;
 import java.util.Base64;
 
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
+import org.springframework.web.server.ResponseStatusException;
 
 @Component
 public class NotificationCursorCodec {
@@ -27,12 +29,12 @@ public class NotificationCursorCodec {
             String raw = new String(Base64.getUrlDecoder().decode(cursor), StandardCharsets.UTF_8);
             String[] parts = raw.split("\\|", 2);
             if (parts.length != 2) {
-                throw new IllegalArgumentException("잘못된 cursor 형식입니다.");
+                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "잘못된 cursor 형식입니다.");
             }
 
             return new CursorToken(Instant.parse(parts[0]), Long.valueOf(parts[1]));
         } catch (RuntimeException ex) {
-            throw new IllegalArgumentException("유효하지 않은 cursor입니다.", ex);
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "유효하지 않은 cursor입니다.", ex);
         }
     }
 

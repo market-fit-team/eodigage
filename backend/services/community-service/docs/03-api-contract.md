@@ -16,7 +16,7 @@
 
 ## 공통 에러 응답
 
-`GlobalExceptionHandler`와 `SecurityConfig`에서 RFC 7807 `ProblemDetail` JSON 에러 응답을 반환한다.
+Spring Boot Problem Details와 `SecurityConfig`에서 RFC 7807 `ProblemDetail` JSON 에러 응답을 반환한다.
 
 예시:
 

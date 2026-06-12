@@ -1,7 +1,10 @@
 package com.example.server.core.media;
 
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.server.ResponseStatusException;
+
 import com.example.server.core.user.User;
 import com.example.server.infrastructure.persistence.media.MediaAttachmentRepository;
 
@@ -39,7 +42,7 @@ public class MediaCommandService {
                         mediaId,
                         currentUser.getId()
                 )
-                .orElseThrow(() -> new IllegalArgumentException("미디어를 찾을 수 없습니다."));
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "미디어를 찾을 수 없습니다."));
 
         attachment.updateAltText(normalizeAltText(altText));
         return attachment;
@@ -51,10 +54,10 @@ public class MediaCommandService {
                         mediaId,
                         currentUser.getId()
                 )
-                .orElseThrow(() -> new IllegalArgumentException("미디어를 찾을 수 없습니다."));
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "미디어를 찾을 수 없습니다."));
 
         if (attachment.isAttached()) {
-            throw new IllegalStateException("이미 게시글에 연결된 미디어는 이 API로 삭제할 수 없습니다.");
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "이미 게시글에 연결된 미디어는 이 API로 삭제할 수 없습니다.");
         }
 
         attachment.markDeleted();
@@ -67,7 +70,7 @@ public class MediaCommandService {
         }
         String normalized = altText.trim();
         if (normalized.length() > 1500) {
-            throw new IllegalArgumentException("이미지 설명은 1500자를 초과할 수 없습니다.");
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "이미지 설명은 1500자를 초과할 수 없습니다.");
         }
         return normalized;
     }

@@ -7,7 +7,6 @@ import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Caching;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.http.HttpStatus;
-import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
@@ -135,7 +134,7 @@ public class PostCommandService {
 
     private void validateOwner(Post post, User currentUser) {
         if (!post.isWrittenBy(currentUser.getId())) {
-            throw new AccessDeniedException("자신의 게시글만 수정하거나 삭제할 수 있습니다.");
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "자신의 게시글만 수정하거나 삭제할 수 있습니다.");
         }
     }
 
@@ -145,7 +144,7 @@ public class PostCommandService {
         }
 
         if (mediaAttachmentIds.size() > PostDraft.MAX_MEDIA_ATTACHMENTS_PER_POST) {
-            throw new IllegalArgumentException("게시글 하나에는 이미지를 최대 4개까지 첨부할 수 있습니다.");
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "게시글 하나에는 이미지를 최대 4개까지 첨부할 수 있습니다.");
         }
 
         List<com.example.server.core.media.MediaAttachment> attachments = mediaRepository.findOwnedUploadableAttachments(
@@ -155,7 +154,7 @@ public class PostCommandService {
         );
 
         if (attachments.size() != mediaAttachmentIds.size()) {
-            throw new IllegalArgumentException("첨부할 수 없는 이미지가 포함되어 있습니다.");
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "첨부할 수 없는 이미지가 포함되어 있습니다.");
         }
 
         Map<Long, com.example.server.core.media.MediaAttachment> byId = attachments.stream()
@@ -165,7 +164,7 @@ public class PostCommandService {
             Long mediaId = mediaAttachmentIds.get(i);
             com.example.server.core.media.MediaAttachment attachment = byId.get(mediaId);
             if (attachment == null) {
-                throw new IllegalArgumentException("첨부할 수 없는 이미지가 포함되어 있습니다.");
+                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "첨부할 수 없는 이미지가 포함되어 있습니다.");
             }
             attachment.attachTo(post, i);
         }

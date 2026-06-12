@@ -5,6 +5,9 @@ import java.time.ZoneOffset;
 import java.util.Locale;
 import java.util.UUID;
 
+import org.springframework.http.HttpStatus;
+import org.springframework.web.server.ResponseStatusException;
+
 public final class MediaObjectKeyGenerator {
 
     private MediaObjectKeyGenerator() {
@@ -30,7 +33,7 @@ public final class MediaObjectKeyGenerator {
             case "image/png" -> "png";
             case "image/webp" -> "webp";
             case "image/gif" -> "gif";
-            default -> throw new IllegalArgumentException("지원하지 않는 이미지 타입입니다.");
+            default -> throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "지원하지 않는 이미지 타입입니다.");
         };
     }
 }

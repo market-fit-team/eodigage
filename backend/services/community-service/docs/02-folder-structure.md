@@ -16,7 +16,7 @@ com.example.server
 
 | 레이어           | 책임                                                                                         | 예시                                                                                   |
 | ---------------- | -------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------- |
-| `api`            | HTTP Controller, HTTP request/response DTO, API error response                               | `PostCommandController`, `CreatePostRequest`, `GlobalExceptionHandler`                 |
+| `api`            | HTTP Controller, HTTP request/response DTO, API error response                               | `PostCommandController`, `CreatePostRequest`                                            |
 | `application`    | 조회 조합, QueryService, CursorCodec, SSE orchestration, 외부 이벤트 listener orchestration  | `PostQueryService`, `ScheduledPostQueryService`, `RelatedPostsQueryService`             |
 | `core`           | Entity, command service, business rule, domain event, command value object                   | `Post`, `PostDraft`, `PostCommandService`, `ScheduledPostCommandService`                |
 | `infrastructure` | Repository, JPA query projection, Redis, RabbitMQ, S3, external HTTP client, security/config | `PostRepository`, `ScheduledPostPublishConsumer`, `S3StorageService`, `SecurityConfig` |
@@ -31,7 +31,7 @@ com.example.server
 
 - `@RestController`, `@RequestMapping` 같은 Spring MVC 어노테이션은 이 레이어에서만 쓴다.
 - Request/Response DTO는 이 레이어 소유다. `core`의 엔티티를 직접 응답으로 내보내지 않는다.
-- 예외 처리(`GlobalExceptionHandler`)도 여기서 끝낸다. `core`가 던진 도메인 예외를 HTTP 상태 코드로 번역하는 역할이다.
+- 예외 응답은 가능한 한 Spring Boot Problem Details 기본 동작을 사용하고, 보안 예외만 `SecurityConfig`에서 처리한다.
 
 ```
 api/post/
