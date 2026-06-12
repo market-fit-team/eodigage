@@ -79,8 +79,8 @@ public class ScheduledPostCommandService {
     }
 
     private void validateScheduledAt(Instant scheduledAt) {
-        if (!scheduledAt.isAfter(Instant.now().plusSeconds(60))) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "예약 시각은 현재 시각보다 1분 이후여야 합니다.");
+        if (!scheduledAt.isAfter(Instant.now().plusSeconds(5))) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "예약 시각은 현재 시각보다 5초 이후여야 합니다.");
         }
     }
 }

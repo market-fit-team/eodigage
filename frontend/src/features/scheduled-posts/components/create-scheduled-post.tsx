@@ -8,6 +8,7 @@ import { Input } from "@/shared/components/ui/input";
 import { useQueryClient } from "@tanstack/react-query";
 import { ImageUpload } from "@/features/media/components/image-upload";
 import { toast } from "sonner";
+import { apiErrorSchema } from "@/shared/api/api-error-schema";
 
 export function CreateScheduledPost() {
   const [content, setContent] = useState("");
@@ -29,7 +30,8 @@ export function CreateScheduledPost() {
       },
       onError: (error) => {
         console.error("Create scheduled post failed", error);
-        toast.error("예약게시글 작성 실패");
+        const parsedError = apiErrorSchema.safeParse(error);
+        toast.error(parsedError.data?.info.message ?? "예약게시글 작성 실패");
       },
     },
   });
@@ -38,7 +40,7 @@ export function CreateScheduledPost() {
     setMediaAttachmentIds((prev) => [...prev, mediaId]);
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = (e: React.SubmitEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (!content.trim() && mediaAttachmentIds.length === 0) return;
     if (!scheduledAt) {
