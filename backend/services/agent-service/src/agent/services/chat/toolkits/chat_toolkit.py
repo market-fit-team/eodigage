@@ -2,6 +2,7 @@ from typing import Final
 
 from langchain_core.tools import BaseTool
 
+from agent.schemas.chat import ChatToolInfo
 from agent.services.chat.approvals.schemas import ApprovalDecisionType
 from agent.services.chat.tools.calculator_tool import CALCULATOR_TOOL_SPECS
 from agent.services.chat.tools.tool_spec import ToolSpec, validate_tool_specs
@@ -31,16 +32,16 @@ def default_allowed_decisions() -> list[ApprovalDecisionType]:
     return decisions
 
 
-def list_chat_tools() -> list[dict[str, object]]:
+def list_chat_tools() -> list[ChatToolInfo]:
     """API client와 정책 UI가 사용할 등록된 chat tool metadata를 반환합니다."""
 
     return [
-        {
-            "name": spec.name,
-            "description": spec.description,
-            "category": spec.category,
-            "default_allowed": spec.default_allowed,
-            "allowed_decisions": list(spec.allowed_decisions),
-        }
+        ChatToolInfo(
+            name=spec.name,
+            description=spec.description,
+            category=spec.category,
+            default_allowed=spec.default_allowed,
+            allowed_decisions=list(spec.allowed_decisions),
+        )
         for spec in CHAT_TOOL_SPECS
     ]

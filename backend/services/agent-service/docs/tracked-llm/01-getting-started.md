@@ -69,7 +69,7 @@ Qdrant가 떠 있지 않아도 앱 process 자체는 시작될 수 있지만, RA
 
 ```bash
 uv run pytest
-uv run pyrefly check
+uv run pyright src tests evals
 ```
 
 테스트는 외부 Gemini, Qdrant, Ollama 호출에 직접 의존하지 않도록 fake client/store와 monkeypatch를 사용한다.

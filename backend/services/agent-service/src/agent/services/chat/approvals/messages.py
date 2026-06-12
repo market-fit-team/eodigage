@@ -2,6 +2,7 @@ from collections.abc import Mapping
 from typing import Any
 
 from langchain_core.messages import AIMessage, ToolMessage
+from langchain_core.messages.tool import ToolCall
 
 from agent.services.chat.approvals.schemas import ApprovalDecision
 
@@ -28,7 +29,7 @@ def decision_for_tool_call(
     return None
 
 
-def edited_tool_call(*, tool_call: Mapping[str, Any], decision: ApprovalDecision) -> dict[str, Any]:
+def edited_tool_call(*, tool_call: ToolCall, decision: ApprovalDecision) -> ToolCall:
     """원래 tool_call_id를 유지하면서 edit 결정을 적용합니다."""
 
     edited_payload = decision.get("editedAction") or {}
@@ -40,9 +41,7 @@ def edited_tool_call(*, tool_call: Mapping[str, Any], decision: ApprovalDecision
     }
 
 
-def rejected_tool_message(
-    *, tool_call: Mapping[str, Any], message: str | None = None
-) -> ToolMessage:
+def rejected_tool_message(*, tool_call: ToolCall, message: str | None = None) -> ToolMessage:
     """사용자가 tool call을 거절했음을 model에 알리는 ToolMessage를 만듭니다."""
 
     return ToolMessage(
@@ -53,9 +52,7 @@ def rejected_tool_message(
     )
 
 
-def responded_tool_message(
-    *, tool_call: Mapping[str, Any], message: str | None = None
-) -> ToolMessage:
+def responded_tool_message(*, tool_call: ToolCall, message: str | None = None) -> ToolMessage:
     """사용자 응답을 model에 다시 전달하는 ToolMessage를 만듭니다."""
 
     return ToolMessage(
@@ -66,7 +63,7 @@ def responded_tool_message(
     )
 
 
-def missing_decision_tool_message(*, tool_call: Mapping[str, Any]) -> ToolMessage:
+def missing_decision_tool_message(*, tool_call: ToolCall) -> ToolMessage:
     """필수 사용자 결정이 없을 때 안전한 error ToolMessage를 만듭니다."""
 
     return ToolMessage(

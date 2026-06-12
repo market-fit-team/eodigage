@@ -11,7 +11,7 @@ Goose Open Model Gym 코드를 각색함:
 from __future__ import annotations
 
 from pathlib import Path
-from typing import Any, cast
+from typing import Any, Literal
 
 import yaml
 
@@ -35,7 +35,8 @@ def load_suite(config_path: Path) -> SuiteDefinition:
 
     run = _parse_run_settings(data.get("run", {}), root_dir=root_dir)
     runners = [_parse_runner(item) for item in _require_list(data, "runners")]
-    matrix = [_parse_matrix_entry(item) for item in cast(list[Any], data.get("matrix", []))]
+    matrix_data = data.get("matrix", [])
+    matrix = [_parse_matrix_entry(item) for item in matrix_data] if isinstance(matrix_data, list) else []
     scenarios_dir = _resolve_path(root_dir, str(data.get("scenarios_dir", "scenarios")))
     scenarios = load_all_scenarios(scenarios_dir)
 
@@ -102,7 +103,7 @@ def _parse_runner(data: Any) -> RunnerConfig:
         api_key_env=str(mapping.get("api_key_env", "API_KEY")),
         api_key_header=str(mapping.get("api_key_header", "X-API-Key")),
         timeout_seconds=float(mapping.get("timeout_seconds", 180)),
-        label=cast(str | None, mapping.get("label")),
+        label=_optional_str(mapping.get("label")),
     )
 
 
@@ -125,16 +126,16 @@ def _parse_scenario(data: dict[str, Any], *, path: Path) -> Scenario:
     return Scenario(
         name=_require_str(data, "name"),
         description=_require_str(data, "description"),
-        prompt=cast(str | None, data.get("prompt")),
+        prompt=_optional_str(data.get("prompt")),
         setup={
             key: str(value)
             for key, value in _ensure_mapping(data.get("setup", {}), "setup").items()
         },
         validate=_parse_validation_rules(data.get("validate", [])),
         turns=turns,
-        tags=[str(item) for item in cast(list[Any], data.get("tags", []))],
+        tags=_parse_str_list(data.get("tags"), label="tags"),
         allowed_tools=_parse_optional_str_list(data.get("allowed_tools")),
-        interrupt_on=cast(dict[str, Any] | None, data.get("interrupt_on")),
+        interrupt_on=_optional_mapping(data.get("interrupt_on"), label="interrupt_on"),
         resume=_parse_resume(data.get("resume")),
     )
 
@@ -145,7 +146,7 @@ def _parse_turn(data: Any, *, path: Path) -> Turn:
         prompt=_require_str(mapping, "prompt"),
         validate=_parse_validation_rules(mapping.get("validate", [])),
         allowed_tools=_parse_optional_str_list(mapping.get("allowed_tools")),
-        interrupt_on=cast(dict[str, Any] | None, mapping.get("interrupt_on")),
+        interrupt_on=_optional_mapping(mapping.get("interrupt_on"), label="interrupt_on"),
         resume=_parse_resume(mapping.get("resume")),
     )
 
@@ -157,8 +158,8 @@ def _parse_resume(data: Any) -> ResumeConfig | None:
         return ResumeConfig()
     mapping = _ensure_mapping(data, "resume")
     return ResumeConfig(
-        decision=cast(Any, mapping.get("decision", "approve")),
-        message=cast(str | None, mapping.get("message")),
+        decision=_parse_resume_decision(mapping.get("decision", "approve")),
+        message=_optional_str(mapping.get("message")),
         allowed_tools=_parse_optional_str_list(mapping.get("allowed_tools")),
     )
 
@@ -184,6 +185,14 @@ def _parse_optional_str_list(data: Any) -> list[str] | None:
     return [str(item) for item in data]
 
 
+def _parse_str_list(data: Any, *, label: str) -> list[str]:
+    if data is None:
+        return []
+    if not isinstance(data, list):
+        raise TypeError(f"{label} must be a list of strings")
+    return [str(item) for item in data]
+
+
 def _load_yaml_mapping(path: Path) -> dict[str, Any]:
     with path.open(encoding="utf-8") as handle:
         loaded = yaml.safe_load(handle) or {}
@@ -204,6 +213,26 @@ def _require_str(mapping: dict[str, Any], key: str) -> str:
     if not isinstance(value, str) or not value:
         raise ValueError(f"'{key}' must be a non-empty string")
     return value
+
+
+def _optional_str(value: Any) -> str | None:
+    if value is None:
+        return None
+    if not isinstance(value, str):
+        raise TypeError("expected a string")
+    return value
+
+
+def _optional_mapping(value: Any, *, label: str) -> dict[str, Any] | None:
+    if value is None:
+        return None
+    return _ensure_mapping(value, label)
+
+
+def _parse_resume_decision(value: Any) -> Literal["approve", "reject", "respond"]:
+    if value in {"approve", "reject", "respond"}:
+        return value
+    raise ValueError("resume.decision must be one of: approve, reject, respond")
 
 
 def _ensure_mapping(value: Any, label: str) -> dict[str, Any]:

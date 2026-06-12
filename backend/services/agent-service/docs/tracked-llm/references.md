@@ -117,7 +117,7 @@ tests/services/rag/test_retrieval.py
 - qdrant-client AsyncQdrantClient
 - pytest-asyncio
 - httpx ASGITransport
-- pyrefly configuration
+- pyright configuration
 
 ## 내부 프로젝트 연결점
 

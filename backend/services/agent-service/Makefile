@@ -1,4 +1,4 @@
-.PHONY: help install dev run test integration-tests lint format
+.PHONY: help install dev run test integration-tests lint typecheck format
 
 help:
 	@echo 'Targets:'
@@ -8,6 +8,7 @@ help:
 	@echo '  test                Run unit tests'
 	@echo '  integration-tests   Run integration tests'
 	@echo '  lint                Run Ruff checks'
+	@echo '  typecheck           Run Pyright checks'
 	@echo '  format              Format with Ruff'
 
 install:
@@ -27,6 +28,9 @@ integration-tests:
 
 lint:
 	uv run python -m ruff check src tests
+
+typecheck:
+	uv run pyright src tests evals
 
 format:
 	uv run python -m ruff format src tests

@@ -8,7 +8,7 @@
 2. 관련 문서를 확인한다.
 3. 기존 테스트에서 같은 경계를 어떻게 검증하는지 본다.
 4. 새 파일이 어느 계층에 속하는지 먼저 결정한다.
-5. 구현 후 `uv run pytest`와 `uv run pyrefly check`를 실행한다.
+5. 구현 후 `uv run pytest`와 `uv run pyright src tests evals`를 실행한다.
 
 ## 새 LangGraph API 추가
 
@@ -267,7 +267,7 @@ from src.services.rag.posts.ingestion import index_post
 
 ```bash
 uv run pytest
-uv run pyrefly check
+uv run pyright src tests evals
 ```
 
 문서만 바꿨더라도 링크, 파일명, 경로가 실제 구조와 맞는지 확인한다.

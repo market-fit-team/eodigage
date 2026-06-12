@@ -1,8 +1,14 @@
 from fastapi import FastAPI, HTTPException
+from fastapi.exceptions import RequestValidationError
 from fastapi.testclient import TestClient
 from pydantic import BaseModel
+from starlette.exceptions import HTTPException as StarletteHTTPException
 
-from agent.core.exception_handlers import setup_global_exception_handlers
+from agent.core.exception_handlers import (
+    http_exception_handler,
+    request_validation_exception_handler,
+    server_error_exception_handler,
+)
 
 
 class Payload(BaseModel):
@@ -11,7 +17,9 @@ class Payload(BaseModel):
 
 def build_client() -> TestClient:
     app = FastAPI()
-    setup_global_exception_handlers(app)
+    app.add_exception_handler(StarletteHTTPException, http_exception_handler)
+    app.add_exception_handler(RequestValidationError, request_validation_exception_handler)
+    app.add_exception_handler(Exception, server_error_exception_handler)
 
     @app.get("/unauthorized")
     async def unauthorized() -> None:
@@ -24,6 +32,10 @@ def build_client() -> TestClient:
     @app.post("/validate")
     async def validate(payload: Payload) -> Payload:
         return payload
+
+    @app.get("/error")
+    async def error() -> None:
+        raise RuntimeError("boom")
 
     return TestClient(app, raise_server_exceptions=False)
 
@@ -58,4 +70,20 @@ def test_validation_exception_uses_problem_detail_media_type() -> None:
         "status": 400,
         "detail": "body.name: Field required",
         "instance": "/validate",
+    }
+
+
+def test_server_error_exception_uses_problem_detail_media_type() -> None:
+    client = build_client()
+
+    response = client.get("/error")
+
+    assert response.status_code == 500
+    assert response.headers["content-type"] == "application/problem+json"
+    assert response.json() == {
+        "type": "about:blank",
+        "title": "Internal Server Error",
+        "status": 500,
+        "detail": "서버 내부 오류가 발생했습니다.",
+        "instance": "/error",
     }

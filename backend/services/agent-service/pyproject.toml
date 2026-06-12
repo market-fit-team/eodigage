@@ -31,6 +31,7 @@ dev = [
     "anyio>=4.7.0",
     "langgraph-api>=0.10.0",
     "langgraph-cli[inmem]>=0.4.10",
+    "pyright>=1.1.410",
     "pytest>=9.0.3",
     "pytest-asyncio",
     "pytest-cov",
@@ -57,4 +58,3 @@ source-include = ["langgraph.json", ".env.example", "Makefile", "docs/**", "eval
 [tool.pyright]
 include = ["src", "evals", "tests"]
 extraPaths = ["."]
-

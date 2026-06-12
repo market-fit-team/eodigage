@@ -1,9 +1,10 @@
-from typing import Any, cast
+from typing import Any
 
 from langchain_core.messages import AnyMessage, ToolMessage
+from langchain_core.messages.tool import ToolCall
 from langchain_core.runnables import RunnableConfig
 from langgraph.prebuilt import ToolNode
-from langgraph.runtime import Runtime
+from langgraph.runtime import get_runtime
 from langgraph.types import Command, interrupt
 
 from agent.services.chat.approvals.messages import (
@@ -40,9 +41,15 @@ def _handle_chat_tool_error(error: Exception) -> str:
 _tool_node = ToolNode(CHAT_TOOLS, handle_tool_errors=_handle_chat_tool_error)
 
 
+def _require_tool_call_id(tool_call: ToolCall) -> str:
+    tool_call_id = tool_call["id"]
+    if tool_call_id is None:
+        raise ValueError(f"tool call id is required: {tool_call['name']}")
+    return tool_call_id
+
+
 def approval_gate(
     state: ChatState,
-    runtime: Runtime[ChatRuntimeContext],
 ) -> Command[Any]:
     """최신 tool call에 사용자 승인이 필요하면 graph를 일시 중단합니다."""
 
@@ -50,6 +57,7 @@ def approval_gate(
     if ai_message is None:
         return Command(goto="tools")
 
+    runtime = get_runtime(ChatRuntimeContext)
     context = runtime.context
     allowed_tools = context.get("allowed_tools", default_allowed_tools())
     interrupt_on = context.get("interrupt_on", {})
@@ -57,8 +65,7 @@ def approval_gate(
     review_configs = []
 
     for tool_call in ai_message.tool_calls:
-        tool_call_dict = cast(dict[str, Any], dict(tool_call))
-        tool_name = str(tool_call_dict["name"])
+        tool_name = tool_call["name"]
         if not requires_approval(
             tool_name=tool_name, allowed_tools=allowed_tools, interrupt_on=interrupt_on
         ):
@@ -67,7 +74,7 @@ def approval_gate(
         action_requests.append(
             build_action_request(
                 tool_name=tool_name,
-                tool_args=tool_call_dict.get("args", {}),
+                tool_args=tool_call["args"],
             )
         )
         review_configs.append(
@@ -80,18 +87,11 @@ def approval_gate(
     if not action_requests:
         return Command(update={"tool_approval_decisions": []}, goto="tools")
 
-    resume_payload = cast(
-        ApprovalResumePayload,
-        interrupt(
-            cast(
-                ApprovalInterruptPayload,
-                {
-                    "action_requests": action_requests,
-                    "review_configs": review_configs,
-                },
-            )
-        ),
-    )
+    interrupt_payload: ApprovalInterruptPayload = {
+        "action_requests": action_requests,
+        "review_configs": review_configs,
+    }
+    resume_payload: ApprovalResumePayload = interrupt(interrupt_payload)
 
     return Command(
         update={
@@ -104,7 +104,6 @@ def approval_gate(
 async def call_tools_with_approval(
     state: ChatState,
     config: RunnableConfig,
-    runtime: Runtime[ChatRuntimeContext],
 ) -> dict[str, list[AnyMessage] | list[ApprovalDecision]]:
     """승인된 tool call을 실행하고 reject/respond 결정은 ToolMessage로 합성합니다.
 
@@ -117,19 +116,19 @@ async def call_tools_with_approval(
     if ai_message is None:
         return {"messages": [], "tool_approval_decisions": []}
 
+    runtime = get_runtime(ChatRuntimeContext)
     context = runtime.context
     allowed_tools = context.get("allowed_tools", default_allowed_tools())
     interrupt_on = context.get("interrupt_on", {})
     decisions = state.get("tool_approval_decisions", [])
-    executable_calls: list[dict[str, Any]] = []
+    executable_calls: list[ToolCall] = []
     synthetic_messages_by_id: dict[str, ToolMessage] = {}
 
     approval_decision_index = 0
 
     for tool_call in ai_message.tool_calls:
-        tool_call_dict = cast(dict[str, Any], dict(tool_call))
-        tool_call_id = str(tool_call_dict["id"])
-        tool_name = str(tool_call_dict["name"])
+        tool_call_id = _require_tool_call_id(tool_call)
+        tool_name = tool_call["name"]
         needs_approval = requires_approval(
             tool_name=tool_name,
             allowed_tools=allowed_tools,
@@ -149,49 +148,44 @@ async def call_tools_with_approval(
 
         if needs_approval and decision is None:
             synthetic_messages_by_id[tool_call_id] = missing_decision_tool_message(
-                tool_call=tool_call_dict
+                tool_call=tool_call
             )
             continue
 
         decision_type = (decision or {"type": "approve"}).get("type", "approve")
         if decision_type == "approve":
-            executable_calls.append(tool_call_dict)
+            executable_calls.append(tool_call)
         elif decision_type == "edit":
-            executable_calls.append(
-                edited_tool_call(tool_call=tool_call_dict, decision=decision or {})
-            )
+            executable_calls.append(edited_tool_call(tool_call=tool_call, decision=decision or {}))
         elif decision_type == "reject":
             synthetic_messages_by_id[tool_call_id] = rejected_tool_message(
-                tool_call=tool_call_dict,
+                tool_call=tool_call,
                 message=(decision or {}).get("message"),
             )
         elif decision_type == "respond":
             synthetic_messages_by_id[tool_call_id] = responded_tool_message(
-                tool_call=tool_call_dict,
+                tool_call=tool_call,
                 message=(decision or {}).get("message"),
             )
         else:
             synthetic_messages_by_id[tool_call_id] = missing_decision_tool_message(
-                tool_call=tool_call_dict
+                tool_call=tool_call
             )
 
     executed_messages_by_id: dict[str, ToolMessage] = {}
     if executable_calls:
         executable_ai_message = ai_message.model_copy(update={"tool_calls": executable_calls})
         executable_state = {"messages": [*messages[:-1], executable_ai_message]}
-        result = await _tool_node.ainvoke(executable_state, config=cast(Any, config))
+        result = await _tool_node.ainvoke(executable_state, config=config)
         for message in result.get("messages", []):
             if isinstance(message, ToolMessage):
                 executed_messages_by_id[message.tool_call_id] = message
 
     ordered_messages: list[AnyMessage] = []
     for tool_call in ai_message.tool_calls:
-        tool_call_dict = cast(dict[str, Any], dict(tool_call))
-        tool_call_id = str(tool_call_dict["id"])
-        message = synthetic_messages_by_id.get(tool_call_id) or executed_messages_by_id.get(
-            tool_call_id
-        )
+        tool_call_id = _require_tool_call_id(tool_call)
+        message = synthetic_messages_by_id.get(tool_call_id) or executed_messages_by_id.get(tool_call_id)
         if message is not None:
-            ordered_messages.append(cast(AnyMessage, message))
+            ordered_messages.append(message)
 
     return {"messages": ordered_messages, "tool_approval_decisions": []}

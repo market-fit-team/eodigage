@@ -1,16 +1,23 @@
 from __future__ import annotations
 
 from fastapi import FastAPI, HTTPException, status
+from fastapi.exceptions import RequestValidationError
+from starlette.exceptions import HTTPException as StarletteHTTPException
 
-from agent.core.exception_handlers import setup_global_exception_handlers
+from agent.core.exception_handlers import (
+    http_exception_handler,
+    request_validation_exception_handler,
+    server_error_exception_handler,
+)
 from agent.schemas.chat import ListChatModelsResponse, ListChatToolsResponse
 from agent.services.chat.model_catalog import ChatModelCatalogError, list_chat_models
 from agent.services.chat.toolkits.chat_toolkit import list_chat_tools
 
 app = FastAPI(title="Pickle Agent Custom Routes")
 
-# 글로벌 예외 핸들러 등록
-setup_global_exception_handlers(app)
+app.add_exception_handler(StarletteHTTPException, http_exception_handler)
+app.add_exception_handler(RequestValidationError, request_validation_exception_handler)
+app.add_exception_handler(Exception, server_error_exception_handler)
 
 
 @app.get("/api/v1/llm/tools", response_model=ListChatToolsResponse, tags=["llm"])

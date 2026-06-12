@@ -12,10 +12,7 @@ from agent.services.chat.state import ChatState
 def _build_chat_graph() -> Any:
     """create_agent helper 없이 저수준 LangGraph chat/tool/HITL loop를 구성합니다."""
 
-    builder = StateGraph(
-        ChatState,
-        context_schema=ChatRuntimeContext,
-    )  # pyrefly: ignore[bad-specialization] - Pyrefly/LangGraph TypedDict 호환성 이슈
+    builder = StateGraph(ChatState, context_schema=ChatRuntimeContext)
 
     builder.add_node("chat_model", call_chat_model)
     builder.add_node("approval_gate", approval_gate)

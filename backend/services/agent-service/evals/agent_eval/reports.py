@@ -182,10 +182,14 @@ def _update_latest_symlink(output_dir: Path, run_dir: Path) -> None:
 
 
 def _json_default(value: Any) -> Any:
-    if is_dataclass(value):
-        return asdict(value)
+    if is_dataclass(value) and not isinstance(value, type):
+        return _dataclass_to_dict(value)
     if isinstance(value, Path):
         return str(value)
     if isinstance(value, datetime):
         return value.isoformat()
     raise TypeError(f"Object is not JSON serializable: {value!r}")
+
+
+def _dataclass_to_dict(value: Any) -> dict[str, Any]:
+    return asdict(value)

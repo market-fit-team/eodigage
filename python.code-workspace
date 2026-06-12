@@ -1,0 +1,13 @@
+// vscode에서 파이썬 가상환경 찾기 쉽도록 관리하는 파일
+{
+  "folders": [
+    {
+      "name": "agent-service",
+      "path": "backend/services/agent-service",
+    },
+  ],
+  "settings": {
+    "python.terminal.activateEnvironment": true,
+    "python.analysis.autoSearchPaths": true,
+  },
+}

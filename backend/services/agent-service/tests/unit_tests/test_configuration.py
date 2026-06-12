@@ -11,4 +11,4 @@ def test_graph_compiles() -> None:
 def test_tool_catalog_is_not_empty() -> None:
     tools = list_chat_tools()
     assert tools
-    assert {tool["name"] for tool in tools} >= {"add", "subtract", "multiply", "divide"}
+    assert {tool.name for tool in tools} >= {"add", "subtract", "multiply", "divide"}

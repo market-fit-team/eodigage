@@ -7,7 +7,7 @@
 ```bash
 cd llm
 uv run pytest
-uv run pyrefly check
+uv run pyright src tests evals
 ```
 
 ## 테스트 구조
@@ -225,10 +225,10 @@ class FakeVectorStore:
 - SSE header와 event frame
 - docs와 endpoint path 일치
 
-## pyrefly
+## pyright
 
 ```bash
-uv run pyrefly check
+uv run pyright src tests evals
 ```
 
-LangGraph/Pyrefly 호환성 때문에 일부 곳에는 명시적 `cast`나 ignore가 있을 수 있다. 타입 오류를 없애기 위해 graph state shape를 느슨하게 망가뜨리지 않는다.
+LangGraph 타입은 `pyright` 기준으로 검증한다. 타입 오류를 없애기 위해 graph state shape를 느슨하게 망가뜨리지 않는다.

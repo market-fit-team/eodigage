@@ -19,8 +19,8 @@ class ChatRuntimeContext(TypedDict):
     https://reference.langchain.com/python/langgraph/runtime/Runtime
     """
 
-    model: str
-    reasoning_effort: ReasoningEffort
+    model: NotRequired[str]
+    reasoning_effort: NotRequired[ReasoningEffort]
     allowed_tools: NotRequired[list[str]]
     interrupt_on: NotRequired[InterruptOnConfig]
 

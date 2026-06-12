@@ -14,7 +14,7 @@
 | [04-chat-stream-agent-tools-hitl.md](./04-chat-stream-agent-tools-hitl.md) | LangGraph thread/run stream, agent tool registry, HITL 승인 흐름            |
 | [05-rag-qdrant-sources.md](./05-rag-qdrant-sources.md)                     | Gemini embedding, Qdrant collection/alias, RAG source 확장 구조             |
 | [06-security-config.md](./06-security-config.md)                           | API key, CORS, secret/env, signed URL media fetch 보안 경계                 |
-| [07-testing.md](./07-testing.md)                                           | pytest/pyrefly 전략, fake client/store, LangGraph/tool/RAG 테스트 포인트    |
+| [07-testing.md](./07-testing.md)                                           | pytest/pyright 전략, fake client/store, LangGraph/tool/RAG 테스트 포인트    |
 | [08-development-guide.md](./08-development-guide.md)                       | 새 tool/source/API 추가 절차와 리뷰 체크리스트                              |
 | [09-agent-evals.md](./09-agent-evals.md)                                   | LangGraph SSE 스트리밍 응답 검증을 위한 Eval Harness 구조와 시나리오 작성법 |
 | [10-stream-events-v2-schema.md](./10-stream-events-v2-schema.md)           | LangGraph SDK 호환 SSE stream schema                                        |
