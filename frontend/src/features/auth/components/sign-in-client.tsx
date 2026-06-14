@@ -26,7 +26,7 @@ export default function SignInClient({
           })
         }}
       >
-        Continue with Google
+        Continue with Authentik
       </Button>
 
       <div>
