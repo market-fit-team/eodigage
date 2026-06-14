@@ -36,16 +36,22 @@ animals/
   page.tsx
   [id]/page.tsx
   search/page.tsx
-  _services/animal-service.ts
-  _types/animal.ts
   @modal/default.tsx
   @modal/[...catchAll]/page.tsx
   @modal/(.)[id]/page.tsx
   @modal/(.)search/page.tsx
-  _components/animals-shell.tsx
-  _components/animal-detail.tsx
-  _components/search-panel.tsx
-  animals.data.ts
+
+src/features/animal/
+  components/
+    animals-shell.tsx
+    animal-detail.tsx
+    search-panel.tsx
+  api/
+    animal-service.ts
+  mocks/
+    mock-animals.ts
+  types/
+    animal.ts
 ```
 
 `layout.tsx`는 `children`와 `modal` 슬롯을 같이 렌더한다.
@@ -376,16 +382,16 @@ Intercepting Routes
 - `src/app/(intercept-test)/animals/page.tsx`
 - `src/app/(intercept-test)/animals/[id]/page.tsx`
 - `src/app/(intercept-test)/animals/search/page.tsx`
-- `src/app/(intercept-test)/animals/_types/animal.ts`
-- `src/app/(intercept-test)/animals/_services/animal-service.ts`
+- `src/features/animal/types/animal.ts`
+- `src/features/animal/api/animal-service.ts`
 - `src/app/(intercept-test)/animals/@modal/default.tsx`
 - `src/app/(intercept-test)/animals/@modal/[...catchAll]/page.tsx`
 - `src/app/(intercept-test)/animals/@modal/(.)[id]/page.tsx`
 - `src/app/(intercept-test)/animals/@modal/(.)search/page.tsx`
-- `src/app/(intercept-test)/animals/_components/animals-shell.tsx`
-- `src/app/(intercept-test)/animals/_components/animal-detail.tsx`
-- `src/app/(intercept-test)/animals/_components/search-panel.tsx`
-- `src/app/(intercept-test)/animals/animals.data.ts`
+- `src/features/animal/components/animals-shell.tsx`
+- `src/features/animal/components/animal-detail.tsx`
+- `src/features/animal/components/search-panel.tsx`
+- `src/features/animal/mocks/mock-animals.ts`
 
 ## 참고 문서
 

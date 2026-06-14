@@ -1,5 +1,5 @@
 import { z } from "zod"
-import { SearchPagePanel } from "@/app/(intercept-test)/animals/_components/search-panel"
+import { SearchPagePanel } from "@/features/animal/components/search-panel"
 
 const AnimalsSearchParamsSchema = z.object({
   q: z.preprocess(

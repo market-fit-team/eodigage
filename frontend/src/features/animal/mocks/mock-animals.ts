@@ -1,4 +1,4 @@
-import type { Animal } from "@/app/(intercept-test)/animals/_types/animal"
+import type { Animal } from "@/features/animal/types/animal"
 
 export const ANIMALS: Animal[] = [
   {

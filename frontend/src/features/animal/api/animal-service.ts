@@ -1,5 +1,5 @@
-import type { Animal } from "@/app/(intercept-test)/animals/_types/animal"
-import { ANIMALS } from "@/app/(intercept-test)/animals/animals.data"
+import { ANIMALS } from "@/features/animal/mocks/mock-animals"
+import type { Animal } from "@/features/animal/types/animal"
 
 const normalize = (value: string) => value.trim().toLowerCase()
 

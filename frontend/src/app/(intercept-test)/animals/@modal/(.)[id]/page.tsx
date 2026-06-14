@@ -1,6 +1,6 @@
 import { notFound } from "next/navigation"
-import { AnimalDetailDialog } from "@/app/(intercept-test)/animals/_components/animal-detail"
-import { getAnimalById } from "@/app/(intercept-test)/animals/_services/animal-service"
+import { getAnimalById } from "@/features/animal/api/animal-service"
+import { AnimalDetailDialog } from "@/features/animal/components/animal-detail"
 
 export default async function AnimalDetailModalPage({
   params,

@@ -5,8 +5,8 @@ import {
   QueryClient,
   dehydrate,
 } from "@tanstack/react-query"
-import { CreatePost } from "@/features/posts/components/create-post"
-import { PostList } from "@/features/posts/components/post-list"
+import { CreatePost } from "@/features/post/components/create-post"
+import { PostList } from "@/features/post/components/post-list"
 import { prefetchGetPostsByCursorInfiniteQuery } from "@/shared/api/generated/community/endpoints/posts/posts"
 
 // 정적쉘 없이 클라이언트 컴포넌트 위주로 진행

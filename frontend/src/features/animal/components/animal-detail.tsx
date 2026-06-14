@@ -2,7 +2,7 @@
 
 import Link from "next/link"
 import { useRouter } from "next/navigation"
-import type { Animal } from "@/app/(intercept-test)/animals/_types/animal"
+import type { Animal } from "@/features/animal/types/animal"
 import { Badge } from "@/shared/components/ui/badge"
 import { Button } from "@/shared/components/ui/button"
 import {

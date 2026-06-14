@@ -1,6 +1,6 @@
 import { Suspense } from "react"
 import { ErrorBoundary } from "react-error-boundary"
-import { CreateScheduledPost } from "@/features/scheduled-posts/components/create-scheduled-post"
+import { CreateScheduledPost } from "@/features/post/components/create-scheduled-post"
 
 export default async function CommunityScheduledPostsPage() {
   return (
