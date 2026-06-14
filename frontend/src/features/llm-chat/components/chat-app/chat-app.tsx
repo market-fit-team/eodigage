@@ -1,6 +1,8 @@
-import { ChatComposerPanel } from "@/features/llm-chat/components/chat-app/components/chat-composer-panel"
-import { ChatHeroPanel } from "@/features/llm-chat/components/chat-app/components/chat-hero-panel"
-import { ChatMessagesPanel } from "@/features/llm-chat/components/chat-app/components/chat-messages-panel"
+"use client"
+
+import { ChatComposerPanel } from "@/features/llm-chat/components/chat-app/chat-composer-panel"
+import { ChatHeroPanel } from "@/features/llm-chat/components/chat-app/chat-hero-panel"
+import { ChatMessagesPanel } from "@/features/llm-chat/components/chat-app/chat-messages-panel"
 import { LangGraphChatStreamProvider } from "@/features/llm-chat/hooks/langgraph-chat-stream-provider"
 import { useChatModelSelection } from "@/features/llm-chat/hooks/use-chat-model-selection"
 import { useToolPolicy } from "@/features/llm-chat/hooks/use-tool-policy"

@@ -1,4 +1,4 @@
-import { ChatHero } from "@/features/llm-chat/components/chat-app/components/chat-hero"
+import { ChatHero } from "@/features/llm-chat/components/chat-app/chat-hero"
 import { useLangGraphChatStream } from "@/features/llm-chat/hooks/use-langgraph-chat-stream"
 
 export function ChatHeroPanel() {
