@@ -1,10 +1,9 @@
 // src/app/layout.tsx
-import Link from "next/link"
 import { UserNav } from "@/features/auth/components/user-nav"
 import { ClientOnly } from "@/shared/components/client-only"
 import { Toaster } from "@/shared/components/ui/sonner"
-import { Providers } from "./providers"
 import "./globals.css"
+import { Providers } from "./providers"
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
@@ -16,10 +15,6 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
               <UserNav />
             </ClientOnly>
           </div>
-          <nav>
-            <Link href="/community/posts">커뮤니티 게시판</Link>
-            <Link href="/community/scheduled-posts">예약 게시글 작성</Link>
-          </nav>
           <div>{children}</div>
           <Toaster />
         </Providers>

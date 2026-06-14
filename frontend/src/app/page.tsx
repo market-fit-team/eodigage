@@ -11,40 +11,56 @@ export default async function HomePage() {
   return (
     <main>
       <h1>Home</h1>
-      <pre>{JSON.stringify(session ?? null, null, 2)}</pre>
 
       <ul>
-        <li>
-          <Button asChild variant="link">
-            <Link href="/sign-in">/sign-in</Link>
-          </Button>
-        </li>
-        <li>
-          <Button asChild variant="link">
-            <Link href="/dashboard">/dashboard</Link>
-          </Button>
-        </li>
-        <li>
-          <Button asChild variant="link">
-            <Link href="/playground">/playground</Link>
-          </Button>
-        </li>
-        <li>
-          <Button asChild variant="link">
-            <Link href="/api/session">/api/session</Link>
-          </Button>
-        </li>
-        <li>
-          <Button asChild variant="link">
-            <Link href="/api/auth/jwks">/api/auth/jwks (JWKS)</Link>
-          </Button>
-        </li>
-        <li>
-          <Button asChild variant="link">
-            <Link href="/api/auth/token">/api/auth/token (JWT)</Link>
-          </Button>
-        </li>
+        {HOME_LINKS.map((link) => (
+          <li key={link.href}>
+            <Button asChild variant="link">
+              <Link href={link.href}>{link.label}</Link>
+            </Button>
+            <p>{link.description}</p>
+          </li>
+        ))}
       </ul>
+      <pre>{JSON.stringify(session ?? null, null, 2)}</pre>
     </main>
   )
 }
+
+const HOME_LINKS = [
+  {
+    href: "/sign-in",
+    label: "/sign-in",
+    description: "Better Auth 로그인 진입 페이지",
+  },
+  {
+    href: "/dashboard",
+    label: "/dashboard",
+    description: "로그인하지 않은 사용자는 접근할 수 없는 보호 페이지",
+  },
+  {
+    href: "/playground",
+    label: "/playground",
+    description: "세션, JWT, SSR 프리패치, hydration을 확인하는 실험 페이지",
+  },
+  {
+    href: "/chat",
+    label: "/chat",
+    description: "LLM 채팅 화면 진입 페이지",
+  },
+  {
+    href: "/community/posts",
+    label: "/community/posts",
+    description: "커뮤니티 게시글 목록 페이지",
+  },
+  {
+    href: "/community/scheduled-posts",
+    label: "/community/scheduled-posts",
+    description: "예약 게시글 작성 흐름 페이지",
+  },
+  {
+    href: "/animals",
+    label: "/animals",
+    description: "인터셉트 라우트와 패러렐 라우트를 실험하는 페이지",
+  },
+] as const
