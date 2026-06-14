@@ -3,13 +3,12 @@ from typing import Any
 from agent.core.config import settings
 from agent.schemas.chat import ReasoningEffort
 from agent.services.chat.model_cards import ChatModelRoute
+from agent.services.chat.providers.normalized import ChatOpenRouter
 
 
 def create_openrouter_chat_model(
     *, route: ChatModelRoute, reasoning_effort: ReasoningEffort
 ) -> Any:
-    from langchain_openai import ChatOpenAI
-
     kwargs: dict[str, Any] = {
         "model": route.langchain_model,
         "api_key": settings.openrouter_api_key,
@@ -22,4 +21,4 @@ def create_openrouter_chat_model(
     else:
         kwargs["extra_body"] = {"reasoning": {"effort": reasoning_effort}}
 
-    return ChatOpenAI(**kwargs)
+    return ChatOpenRouter(**kwargs)
