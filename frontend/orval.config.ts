@@ -1,24 +1,23 @@
 import { existsSync, readFileSync } from "node:fs"
-import {
-  type Config,
-  type Options,
-  type SchemaGenerationType,
-  defineConfig,
-} from "orval"
+import { type Config, type Options, defineConfig } from "orval"
+import { z } from "zod"
 
 const GENERATED_ROOT = "src/shared/api/generated"
 const CATALOG_PATH = ".orval/service-catalog.json"
 
-type CatalogService = {
-  name: string
-  openapiUrl: string
-  publicPath: string
-  schemasType?: SchemaGenerationType
-}
+const catalogServiceSchema = z.object({
+  name: z.string().min(1),
+  openapiUrl: z.url(),
+  publicPath: z.string().startsWith("/"),
+  schemasType: z.enum(["typescript", "zod"]).optional(),
+})
 
-type ServiceCatalog = {
-  services: CatalogService[]
-}
+const serviceCatalogSchema = z.object({
+  services: z.array(catalogServiceSchema),
+})
+
+type CatalogService = z.infer<typeof catalogServiceSchema>
+type ServiceCatalog = z.infer<typeof serviceCatalogSchema>
 
 const readCatalog = (): ServiceCatalog => {
   if (!existsSync(CATALOG_PATH)) {
@@ -27,13 +26,9 @@ const readCatalog = (): ServiceCatalog => {
     )
   }
 
-  const catalog = JSON.parse(readFileSync(CATALOG_PATH, "utf8")) as ServiceCatalog
-
-  if (!Array.isArray(catalog.services)) {
-    throw new Error(`${CATALOG_PATH} must contain a services array.`)
-  }
-
-  return catalog
+  return serviceCatalogSchema.parse(
+    JSON.parse(readFileSync(CATALOG_PATH, "utf8"))
+  )
 }
 
 const createProject = (service: CatalogService): Options => {
@@ -71,9 +66,7 @@ const createProject = (service: CatalogService): Options => {
           signal: true,
         },
         fetch: {
-          includeHttpResponseReturnType: true,
-          forceSuccessResponse: true,
-          runtimeValidation: false,
+          includeHttpResponseReturnType: false,
         },
       },
     },

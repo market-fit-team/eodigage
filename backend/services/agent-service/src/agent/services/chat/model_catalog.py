@@ -11,8 +11,7 @@ async def list_chat_models() -> ListChatModelsResponse:
 
     try:
         return ListChatModelsResponse(
-            object="list",
-            data=[card.to_model_info() for card in list_chat_model_cards()],
+            list=[card.to_model_info() for card in list_chat_model_cards()],
         )
     except (ValueError, TypeError) as error:
         raise ChatModelCatalogError("failed to fetch chat models") from error

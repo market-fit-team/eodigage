@@ -1,25 +1,26 @@
-"use client";
+"use client"
 
-import { useGetPostsByCursorSuspenseInfinite } from "@/shared/api/generated/community/endpoints/posts/posts";
-import { Button } from "@/shared/components/ui/button";
-
+import { useGetPostsByCursorSuspenseInfinite } from "@/shared/api/generated/community/endpoints/posts/posts"
+import { Button } from "@/shared/components/ui/button"
 
 export function PostList() {
   const { data, fetchNextPage, hasNextPage, isFetchingNextPage } =
     useGetPostsByCursorSuspenseInfinite(
       {},
-      { query: { getNextPageParam: (lastPage) => lastPage.data.nextCursor } }
-    );
+      { query: { getNextPageParam: (lastPage) => lastPage.nextCursor } }
+    )
 
   return (
     <div>
       <div>
         {data.pages.map((page, i) => (
           <div key={i}>
-            {page.data.items?.map((post) => (
+            {page.items?.map((post) => (
               <div key={post.id}>
                 <p>{post.content}</p>
-                <small suppressHydrationWarning>{new Date(post.createdAt!).toLocaleString("ko-KR")}</small>
+                <small suppressHydrationWarning>
+                  {new Date(post.createdAt!).toLocaleString("ko-KR")}
+                </small>
               </div>
             ))}
           </div>
@@ -31,7 +32,5 @@ export function PostList() {
         </Button>
       )}
     </div>
-  );
+  )
 }
-
-

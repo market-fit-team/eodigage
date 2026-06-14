@@ -1,46 +1,46 @@
-"use client";
+"use client"
 
-import { useRef } from "react";
-import { useUploadMediaAttachment } from "@/shared/api/generated/community/endpoints/media/media";
-import { Button } from "@/shared/components/ui/button";
-import { Input } from "@/shared/components/ui/input";
-import { toast } from "sonner";
-import { problemDetailErrorSchema } from "@/shared/api/problem-detail-schema";
+import { useRef } from "react"
+import { toast } from "sonner"
+import { useUploadMediaAttachment } from "@/shared/api/generated/community/endpoints/media/media"
+import { problemDetailSchema } from "@/shared/api/problem-detail-schema"
+import { Button } from "@/shared/components/ui/button"
+import { Input } from "@/shared/components/ui/input"
 
 type ImageUploadProps = {
-  onUploadSuccess: (mediaId: number) => void;
-};
+  onUploadSuccess: (mediaId: number) => void
+}
 
 export function ImageUpload({ onUploadSuccess }: ImageUploadProps) {
-  const fileInputRef = useRef<HTMLInputElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null)
 
   const { mutate: uploadMedia, isPending } = useUploadMediaAttachment({
     mutation: {
       onSuccess: (response) => {
-        const { id } = response.data;
+        const { id } = response
         if (id) {
-          onUploadSuccess(id);
+          onUploadSuccess(id)
         }
       },
       onError: (error) => {
-        console.error("Upload failed:", error);
-        const parsedError = problemDetailErrorSchema.safeParse(error);
-        toast.error(parsedError.data?.info.detail ?? "업로드 실패");
+        console.error("Upload failed:", error)
+        const parsedError = problemDetailSchema.safeParse(error)
+        toast.error(parsedError.data?.detail ?? "업로드 실패")
       },
     },
-  });
+  })
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    uploadMedia({ data: { file } });
-  };
+    const file = e.target.files?.[0]
+    if (!file) return
+    uploadMedia({ data: { file } })
+  }
 
   const handleClear = () => {
     if (fileInputRef.current) {
-      fileInputRef.current.value = "";
+      fileInputRef.current.value = ""
     }
-  };
+  }
 
   return (
     <div>
@@ -55,5 +55,5 @@ export function ImageUpload({ onUploadSuccess }: ImageUploadProps) {
         초기화
       </Button>
     </div>
-  );
+  )
 }

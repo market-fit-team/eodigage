@@ -1,25 +1,12 @@
-// src/features/auth/lib/fetch-with-auth.ts
-import { KEYCLOAK_PROVIDER_ID } from "./auth-constants"
 import { authClient } from "./auth-client"
-
-type AccessTokenResult = {
-  accessToken?: string
-  data?: {
-    accessToken?: string
-  }
-  error?: unknown
-}
-
-const extractAccessToken = (result: AccessTokenResult | null | undefined) => {
-  return result?.accessToken ?? result?.data?.accessToken
-}
+import { KEYCLOAK_PROVIDER_ID } from "./auth-constants"
 
 const getClientKeycloakAccessToken = async () => {
-  const result = (await authClient.getAccessToken({
+  const { data } = await authClient.getAccessToken({
     providerId: KEYCLOAK_PROVIDER_ID,
-  })) as AccessTokenResult
+  })
 
-  return extractAccessToken(result)
+  return data?.accessToken
 }
 
 const parseResponseBody = async (response: Response) => {
@@ -34,11 +21,6 @@ const parseResponseBody = async (response: Response) => {
   }
 
   return response.text()
-}
-
-const createHttpError = async (response: Response) => {
-  const detail = await response.text().catch(() => "")
-  return new Error(`API request failed: ${response.status} ${detail}`)
 }
 
 export const fetchWithAuth = async <T>(
@@ -61,14 +43,8 @@ export const fetchWithAuth = async <T>(
   })
 
   if (!response.ok) {
-    throw await createHttpError(response)
+    throw await parseResponseBody(response)
   }
 
-  const data = await parseResponseBody(response)
-
-  return {
-    data,
-    status: response.status,
-    headers: response.headers,
-  } as T
+  return (await parseResponseBody(response)) as T
 }

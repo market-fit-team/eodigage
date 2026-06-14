@@ -43,5 +43,4 @@ class ListChatModelsResponse(BaseModel):
 
     model_config = ConfigDict(extra="forbid")
 
-    object: str
-    data: list[ChatModelInfo]
+    list: list[ChatModelInfo]
