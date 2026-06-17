@@ -1,0 +1,25 @@
+{
+  "model_id": "trend_ensemble_calibrator",
+  "model_type": "sklearn.GradientBoostingRegressor",
+  "status": "sample_trained",
+  "data_mode": "sample",
+  "trained_at": "2026-06-17T15:52:30.347158+00:00",
+  "rows": 5,
+  "features": [
+    "target_score",
+    "sales_momentum_proxy",
+    "category_opportunity_score",
+    "demand_gap_score",
+    "weekend_sales_ratio",
+    "evening_sales_ratio"
+  ],
+  "target": "ensemble_target",
+  "metrics": {
+    "rmse": 0.089755,
+    "mae": 0.08747,
+    "r2": -18.440262,
+    "train_rows": 3,
+    "valid_rows": 2
+  },
+  "artifact_path": ".artifacts/trend_ensemble_calibrator/model.joblib"
+}

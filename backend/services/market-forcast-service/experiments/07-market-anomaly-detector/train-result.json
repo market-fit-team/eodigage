@@ -1,0 +1,26 @@
+{
+  "model_id": "market_anomaly_detector",
+  "model_type": "sklearn.IsolationForest",
+  "status": "sample_trained",
+  "data_mode": "sample",
+  "trained_at": "2026-06-17T15:52:30.319807+00:00",
+  "rows": 25,
+  "features": [
+    "sales_amount",
+    "sales_count",
+    "sales_per_count",
+    "weekend_sales_ratio",
+    "evening_sales_ratio",
+    "target_score",
+    "alighting_total",
+    "lunch_alighting",
+    "evening_alighting",
+    "night_alighting"
+  ],
+  "metrics": {
+    "anomaly_count": 2,
+    "anomaly_rate": 0.08
+  },
+  "artifact_path": ".artifacts/market_anomaly_detector/model.joblib",
+  "scores_path": ".artifacts/market_anomaly_detector/anomaly_scores.csv"
+}

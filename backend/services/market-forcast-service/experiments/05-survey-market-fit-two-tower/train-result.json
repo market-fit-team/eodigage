@@ -1,0 +1,28 @@
+{
+  "model_id": "survey_market_fit_two_tower",
+  "status": "sample_trained",
+  "framework_candidate": "TensorFlow Recommenders",
+  "data_mode": "sample",
+  "generated_at": "2026-06-17T15:43:16.932099+00:00",
+  "rows": 50,
+  "positive_pairs": 24,
+  "negative_pairs": 26,
+  "positive_rate": 0.48,
+  "label_path": ".sample/survey_item_labels.sample.csv",
+  "reason_not_trained": null,
+  "next_command": null,
+  "metrics": {
+    "epochs": 15,
+    "final_loss": 14.778645,
+    "hit_rate_at_3": 1.0,
+    "mrr": 0.9,
+    "embedding_dim": 32,
+    "item_count": 5,
+    "positive_training_pairs": 24
+  },
+  "artifact_path": {
+    "user_tower": ".artifacts/survey_market_fit_two_tower/user_tower.weights.h5",
+    "item_tower": ".artifacts/survey_market_fit_two_tower/item_tower.weights.h5"
+  },
+  "item_embeddings_path": ".artifacts/survey_market_fit_two_tower/item_embeddings.csv"
+}

@@ -26,6 +26,23 @@ backend/services/market-forcast-service/
 | `subway_station_hourly_ridership.sample.csv` | 서울시 지하철 호선별 역별 시간대별 승하차 인원 | 6 | 역/호선/월별 시간대 승하차. 행정동 결합에는 역-행정동 매핑이 더 필요하다. |
 | `small_business_activity_by_sector.sample.csv` | 서울시 영세자영업 경영활동 현황 업종별 | 7 | 업종별 운영점포수, 종사자수, 평균영업기간, 면적당매출액 |
 
+## survey_responses.sample.jsonl
+
+`survey_responses.sample.jsonl`은 5차 `survey_market_fit_two_tower` smoke training용 설문 페르소나다.
+
+```text
+rows = 10
+format = JSON Lines
+```
+
+설문 업종 선택지는 `estimated_sales_hdong_2025.sample.csv`의 `서비스_업종_코드`, `서비스_업종_코드_명`에서 가져온다.
+
+`survey_item_labels.sample.csv`는 5차 학습 스크립트가 생성한다.
+
+```text
+.venv/bin/python -m app.models.survey_market_fit_two_tower.train --data-mode sample --tfrs
+```
+
 ## 중복 원본
 
 `.raw/`에는 직장인구-행정동 CSV가 두 개 있다.

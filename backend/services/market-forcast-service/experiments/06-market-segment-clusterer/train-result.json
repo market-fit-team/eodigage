@@ -1,0 +1,25 @@
+{
+  "model_id": "market_segment_clusterer",
+  "model_type": "sklearn.KMeans",
+  "status": "sample_trained",
+  "data_mode": "sample",
+  "trained_at": "2026-06-17T15:52:30.233627+00:00",
+  "rows": 5,
+  "n_clusters": 3,
+  "features": [
+    "sales_amount",
+    "sales_per_count",
+    "weekend_sales_ratio",
+    "evening_sales_ratio",
+    "subway_commercial_trend_score",
+    "sales_momentum_up_probability",
+    "category_opportunity_score",
+    "demand_gap_score",
+    "startup_cost_million_krw_proxy"
+  ],
+  "metrics": {
+    "silhouette_score": 0.131979
+  },
+  "artifact_path": ".artifacts/market_segment_clusterer/model.joblib",
+  "assignments_path": ".artifacts/market_segment_clusterer/cluster_assignments.csv"
+}

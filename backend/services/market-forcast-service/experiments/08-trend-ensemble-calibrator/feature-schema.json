@@ -1,0 +1,1 @@
+{"model_id":"trend_ensemble_calibrator","features":["target_score","sales_momentum_proxy","category_opportunity_score","demand_gap_score","weekend_sales_ratio","evening_sales_ratio"],"target":"ensemble_target","training_status":"sample_trained"}

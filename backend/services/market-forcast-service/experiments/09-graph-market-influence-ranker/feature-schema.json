@@ -1,0 +1,1 @@
+{"model_id":"graph_market_influence_ranker","nodes":["area","category","item"],"edge_weights":["subway_commercial_trend_score","category_opportunity_score","sales_momentum_up_probability"],"target":"graph_influence_score","training_status":"sample_trained"}

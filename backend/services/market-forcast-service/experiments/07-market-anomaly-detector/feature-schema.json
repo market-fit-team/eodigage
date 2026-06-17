@@ -1,0 +1,1 @@
+{"model_id":"market_anomaly_detector","features":["sales_amount","sales_count","sales_per_count","weekend_sales_ratio","evening_sales_ratio","target_score","alighting_total","lunch_alighting","evening_alighting","night_alighting"],"target":"is_anomaly","training_status":"sample_trained"}

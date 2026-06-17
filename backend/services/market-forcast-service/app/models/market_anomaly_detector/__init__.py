@@ -1,0 +1,2 @@
+"""Market anomaly detection model."""
+

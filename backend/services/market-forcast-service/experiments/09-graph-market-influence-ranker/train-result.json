@@ -1,0 +1,15 @@
+{
+  "model_id": "graph_market_influence_ranker",
+  "model_type": "networkx.PageRank",
+  "status": "sample_trained",
+  "data_mode": "sample",
+  "trained_at": "2026-06-17T15:52:30.795083+00:00",
+  "nodes": 11,
+  "edges": 15,
+  "item_count": 5,
+  "metrics": {
+    "top_item_id": "11110515:CS100004",
+    "top_score": 0.072853
+  },
+  "artifact_path": ".artifacts/graph_market_influence_ranker/item_scores.json"
+}

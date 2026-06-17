@@ -1,0 +1,95 @@
+{
+  "model_id": "survey_market_fit_two_tower",
+  "training_status": "sample_trained",
+  "sample_training": {
+    "survey_responses": 10,
+    "items": 5,
+    "pairs": 50,
+    "positive_pairs": 24,
+    "negative_pairs": 26,
+    "positive_rate": 0.48,
+    "hard_constraint_violations_in_positive": 0
+  },
+  "framework_candidate": "TensorFlow Recommenders",
+  "entity": {
+    "user": "survey_response_id",
+    "item": "area_code + service_category_code"
+  },
+  "category_source": {
+    "source_file": "estimated_sales_hdong_2025",
+    "code_column": "서비스_업종_코드",
+    "name_column": "서비스_업종_코드_명"
+  },
+  "user_tower": {
+    "categorical_features": [
+      "budget_band",
+      "risk_tolerance",
+      "operation_time_preference",
+      "location_preference",
+      "growth_vs_stability",
+      "owner_experience_level"
+    ],
+    "multi_hot_features": [
+      "preferred_categories",
+      "avoid_categories",
+      "target_customer_age",
+      "target_customer_context",
+      "available_operation_days"
+    ],
+    "numeric_features": [
+      "subway_dependency",
+      "rent_sensitivity",
+      "competition_tolerance"
+    ],
+    "output": {
+      "name": "user_embedding",
+      "dimension": 32
+    }
+  },
+  "item_tower": {
+    "id_features": [
+      "area_code",
+      "service_category_code"
+    ],
+    "numeric_features": [
+      "sales_amount",
+      "sales_count",
+      "sales_per_count",
+      "weekend_sales_ratio",
+      "evening_sales_ratio",
+      "subway_commercial_trend_score",
+      "sales_momentum_up_probability",
+      "sales_momentum_down_probability",
+      "category_opportunity_score",
+      "demand_gap_score",
+      "resident_population",
+      "worker_population",
+      "living_population",
+      "consumption_total",
+      "food_consumption_ratio",
+      "apartment_average_price",
+      "attraction_facility_count",
+      "weighted_station_count"
+    ],
+    "categorical_features": [
+      "subway_coverage_level"
+    ],
+    "output": {
+      "name": "item_embedding",
+      "dimension": 32
+    }
+  },
+  "labels": {
+    "L0": "synthetic rule-generated survey-item pairs",
+    "L1": "explicit selected shortlist from survey result screen",
+    "L2": "behavior labels such as save, detail click, report download"
+  },
+  "metrics": [
+    "hit_rate_at_5",
+    "ndcg_at_10",
+    "mrr",
+    "constraint_violation_rate",
+    "category_diversity_at_10",
+    "area_diversity_at_10"
+  ]
+}

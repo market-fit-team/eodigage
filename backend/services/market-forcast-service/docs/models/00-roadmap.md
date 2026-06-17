@@ -18,6 +18,12 @@ experiments/01-subway-commercial-trend-score/
 02 sales_momentum_forecast
 03 category_opportunity_score
 04 demand_gap_detector
+05 survey_market_fit_two_tower
+06 market_segment_clusterer
+07 market_anomaly_detector
+08 trend_ensemble_calibrator
+09 graph_market_influence_ranker
+10 xgb_personalized_reranker
 ```
 
 `01 subway_commercial_trend_score`는 지하철 하차 흐름을 상권 단기 신호로 바꾼다. 다른 모델이 가져다 쓰는 첫 번째 외생 변수다.
@@ -27,6 +33,18 @@ experiments/01-subway-commercial-trend-score/
 `03 category_opportunity_score`는 한 상권 안에서 어떤 업종이 유리한지 랭킹한다.
 
 `04 demand_gap_detector`는 유입 신호는 강한데 매출 반응이 아직 약한 상권-업종 조합을 찾는다.
+
+`05 survey_market_fit_two_tower`는 사용자 설문 응답을 user tower로 만들고, 행정동-서비스업종 후보를 item tower로 만들어 개인화 추천 후보를 검색한다.
+
+`06 market_segment_clusterer`는 후보를 상권 타입으로 군집화해 UI tag와 필터로 쓴다.
+
+`07 market_anomaly_detector`는 매출/유입 패턴이 비정상적인 후보를 경고한다.
+
+`08 trend_ensemble_calibrator`는 1~4차 점수를 종합 trend confidence로 보정한다.
+
+`09 graph_market_influence_ranker`는 행정동-업종-item 그래프에서 영향력 점수를 만든다.
+
+`10 xgb_personalized_reranker`는 5차 two-tower 후보를 XGBoost Ranker로 최종 재정렬한다.
 
 ## 공통 산출물
 
@@ -55,6 +73,14 @@ model-card.md          모델 의미, 사용 조건, UI 해석
 점수/성장률 예측: XGBRegressor
 상승/보합/하락: XGBClassifier
 랭킹: XGBRanker, 단 3차 모델 첫 버전은 XGBRegressor
+```
+
+5차 모델은 retrieval 모델이라 TensorFlow Recommenders를 쓴다. XGBoost는 two-tower가 뽑은 후보를 재정렬하는 reranker로 붙인다.
+
+```text
+TFRS two-tower top 100
+-> XGBoost reranker
+-> final top 10
 ```
 
 artifact는 `.artifacts/<model_id>/`에 저장한다.
@@ -112,4 +138,5 @@ test: 가장 최근 월/분기
 - 서울시 지하철 호선별 역별 시간대별 승하차 인원 정보: `https://data.seoul.go.kr/dataList/OA-12252/S/1/datasetView.do`
 - 서울시 지하철호선별 역별 승하차 인원 정보: `https://data.seoul.go.kr/dataList/OA-12914/S/1/datasetView.do`
 - XGBoost Python API: `https://xgboost.readthedocs.io/en/latest/python/python_api.html`
-
+- TensorFlow Recommenders: `https://www.tensorflow.org/recommenders`
+- TensorFlow Recommenders Basic Retrieval: `https://www.tensorflow.org/recommenders/examples/basic_retrieval`
