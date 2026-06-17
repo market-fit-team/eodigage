@@ -1,0 +1,49 @@
+{
+  "model_id": "subway_commercial_trend_score",
+  "training_status": "sample_smoke_training_and_raw_baseline_supported",
+  "entity": "station x sample_area x service_category",
+  "sources": [
+    ".sample/subway_station_hourly_ridership.sample.csv",
+    ".sample/estimated_sales_hdong_2025.sample.csv"
+  ],
+  "target": {
+    "name": "target_score",
+    "type": "float",
+    "range": [0, 1],
+    "description": "Sample-only pseudo score from weighted alighting features and sales scale. Real model must replace this with future sales growth labels."
+  },
+  "features": [
+    "boarding_total",
+    "alighting_total",
+    "lunch_alighting",
+    "evening_alighting",
+    "commute_alighting",
+    "night_alighting",
+    "alighting_boarding_ratio",
+    "lunch_alighting_ratio",
+    "evening_alighting_ratio",
+    "commute_alighting_ratio",
+    "night_alighting_ratio",
+    "station_area_weight",
+    "weighted_alighting_total",
+    "weighted_lunch_alighting",
+    "weighted_evening_alighting",
+    "sales_amount",
+    "sales_count",
+    "sales_per_count",
+    "weekend_sales_ratio",
+    "evening_sales_ratio"
+  ],
+  "raw_mode": {
+    "sources": [
+      ".raw/서울시 지하철 호선별 역별 시간대별 승하차 인원 정보.csv",
+      ".raw/서울시 상권분석서비스(추정매출-행정동)_2025년.csv"
+    ],
+    "target_score": "next-quarter sales growth transformed into 0..1 score",
+    "default_join_strategy": "citywide_quarter_signal"
+  },
+  "real_spatial_training_replacements": {
+    "station_area_weight": "data/external/station_area_weights.csv from EPSG:5181 spatial join between station coordinates and commercial/hdong polygons",
+    "target_score": "next-period sales growth transformed into 0..1 score"
+  }
+}

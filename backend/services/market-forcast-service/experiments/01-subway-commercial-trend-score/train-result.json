@@ -1,0 +1,51 @@
+{
+  "model_id": "subway_commercial_trend_score",
+  "model_type": "xgboost.XGBRegressor",
+  "status": "trained_on_sample_smoke_data",
+  "data_mode": "sample",
+  "trained_at": "2026-06-17T15:16:40.924121+00:00",
+  "features": [
+    "boarding_total",
+    "alighting_total",
+    "lunch_alighting",
+    "evening_alighting",
+    "commute_alighting",
+    "night_alighting",
+    "alighting_boarding_ratio",
+    "lunch_alighting_ratio",
+    "evening_alighting_ratio",
+    "commute_alighting_ratio",
+    "night_alighting_ratio",
+    "station_area_weight",
+    "weighted_alighting_total",
+    "weighted_lunch_alighting",
+    "weighted_evening_alighting",
+    "sales_amount",
+    "sales_count",
+    "sales_per_count",
+    "weekend_sales_ratio",
+    "evening_sales_ratio"
+  ],
+  "target": "target_score",
+  "metrics": {
+    "rmse": 0.030651,
+    "mae": 0.026152,
+    "r2": 0.988915,
+    "valid_rows": 8,
+    "train_rows": 17,
+    "total_rows": 25
+  },
+  "artifact_path": ".artifacts/subway_commercial_trend_score/model.joblib",
+  "rows": 25,
+  "quarters": [
+    20251
+  ],
+  "join_strategy": "sample_surrogate_join",
+  "station_area_weights_path": "data/external/station_area_weights.csv",
+  "limitations": [
+    "sample mode uses only 5 subway rows and 5 sales rows",
+    "raw mode uses real next-quarter sales growth as target",
+    "raw mode uses citywide subway signal until data/external/station_area_weights.csv exists",
+    "citywide signal validates ingestion and temporal target construction but is not a real station-area model"
+  ]
+}

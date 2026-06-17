@@ -1,0 +1,51 @@
+{
+  "model_id": "sales_momentum_forecast",
+  "training_status": "sample_smoke_trained_and_raw_baseline_supported",
+  "entity": "area x service_category x quarter",
+  "sources": [
+    ".sample/estimated_sales_hdong_2025.sample.csv",
+    ".sample/subway_station_hourly_ridership.sample.csv",
+    ".raw/서울시 상권분석서비스(추정매출-행정동)_2025년.csv",
+    ".raw/서울시 지하철 호선별 역별 시간대별 승하차 인원 정보.csv"
+  ],
+  "target": {
+    "name": "trend_label",
+    "type": "integer_class",
+    "classes": {
+      "0": "down",
+      "1": "flat",
+      "2": "up"
+    },
+    "sample_description": "Pseudo trend label from sample score, evening alighting ratio, weekend sales ratio, and lunch alighting ratio.",
+    "raw_description": "Quantile label from next-quarter sales growth. Bottom 30% is down, middle 40% is flat, top 30% is up."
+  },
+  "features": [
+    "sales_amount",
+    "sales_count",
+    "sales_per_count",
+    "weekend_sales_ratio",
+    "evening_sales_ratio",
+    "target_score",
+    "alighting_total",
+    "lunch_alighting",
+    "evening_alighting",
+    "commute_alighting",
+    "night_alighting",
+    "alighting_boarding_ratio",
+    "lunch_alighting_ratio",
+    "evening_alighting_ratio",
+    "commute_alighting_ratio",
+    "night_alighting_ratio"
+  ],
+  "raw_mode": {
+    "rows_checked": 49727,
+    "quarters_checked": [20251, 20252, 20253],
+    "label_distribution_checked": {
+      "0": 14918,
+      "1": 19891,
+      "2": 14918
+    },
+    "join_strategy": "citywide_quarter_signal"
+  }
+}
+

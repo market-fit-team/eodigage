@@ -1,0 +1,44 @@
+{
+  "model_id": "sales_momentum_forecast",
+  "model_type": "xgboost.XGBClassifier",
+  "data_mode": "sample",
+  "trained_at": "2026-06-17T15:22:29.468844+00:00",
+  "features": [
+    "sales_amount",
+    "sales_count",
+    "sales_per_count",
+    "weekend_sales_ratio",
+    "evening_sales_ratio",
+    "target_score",
+    "alighting_total",
+    "lunch_alighting",
+    "evening_alighting",
+    "commute_alighting",
+    "night_alighting",
+    "alighting_boarding_ratio",
+    "lunch_alighting_ratio",
+    "evening_alighting_ratio",
+    "commute_alighting_ratio",
+    "night_alighting_ratio"
+  ],
+  "target": "trend_label",
+  "rows": 25,
+  "status": "trained_on_sample_smoke_data",
+  "metrics": {
+    "accuracy": 0.625,
+    "macro_f1": 0.622222,
+    "train_rows": 17,
+    "valid_rows": 8,
+    "labels": {
+      "0": "down",
+      "1": "flat",
+      "2": "up"
+    }
+  },
+  "limitations": [
+    "sample mode uses pseudo labels from tiny sample rows",
+    "raw mode uses next-quarter sales growth labels",
+    "subway feature is citywide baseline until station_area_weights.csv exists"
+  ],
+  "artifact_path": ".artifacts/sales_momentum_forecast/model.joblib"
+}

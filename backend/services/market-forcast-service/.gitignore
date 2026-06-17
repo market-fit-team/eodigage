@@ -1,0 +1,8 @@
+.raw/
+.artifacts/
+.cache/
+data/processed/
+data/external/
+__pycache__/
+*.py[cod]
+.venv/

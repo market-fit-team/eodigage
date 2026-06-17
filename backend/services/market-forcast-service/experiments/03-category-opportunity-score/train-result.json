@@ -1,0 +1,37 @@
+{
+  "model_id": "category_opportunity_score",
+  "model_type": "xgboost.XGBRegressor",
+  "data_mode": "sample",
+  "trained_at": "2026-06-17T15:24:01.677253+00:00",
+  "features": [
+    "sales_amount",
+    "sales_count",
+    "sales_per_count",
+    "weekend_sales_ratio",
+    "evening_sales_ratio",
+    "target_score",
+    "alighting_total",
+    "lunch_alighting",
+    "evening_alighting",
+    "night_alighting",
+    "lunch_alighting_ratio",
+    "evening_alighting_ratio",
+    "night_alighting_ratio"
+  ],
+  "target": "opportunity_score",
+  "rows": 25,
+  "status": "trained_on_sample_smoke_data",
+  "metrics": {
+    "rmse": 0.091685,
+    "mae": 0.07231,
+    "r2": 0.909738,
+    "train_rows": 17,
+    "valid_rows": 8
+  },
+  "limitations": [
+    "sample mode uses pseudo opportunity target",
+    "raw mode ranks categories from next-quarter relative growth",
+    "XGBRanker is deferred until more grouped training data is available"
+  ],
+  "artifact_path": ".artifacts/category_opportunity_score/model.joblib"
+}

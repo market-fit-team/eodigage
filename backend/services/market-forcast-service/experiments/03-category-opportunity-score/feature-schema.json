@@ -1,0 +1,42 @@
+{
+  "model_id": "category_opportunity_score",
+  "training_status": "sample_smoke_trained_and_raw_baseline_supported",
+  "entity": "area x service_category x quarter",
+  "sources": [
+    ".sample/estimated_sales_hdong_2025.sample.csv",
+    ".sample/subway_station_hourly_ridership.sample.csv",
+    ".raw/서울시 상권분석서비스(추정매출-행정동)_2025년.csv",
+    ".raw/서울시 지하철 호선별 역별 시간대별 승하차 인원 정보.csv"
+  ],
+  "target": {
+    "name": "opportunity_score",
+    "type": "float",
+    "range": [0, 1],
+    "sample_description": "Pseudo opportunity score from subway score, weekend sales ratio, evening alighting ratio, and lunch alighting ratio.",
+    "raw_description": "Relative next-quarter growth advantage inside area and city-category groups, minmax scaled to 0..1."
+  },
+  "features": [
+    "sales_amount",
+    "sales_count",
+    "sales_per_count",
+    "weekend_sales_ratio",
+    "evening_sales_ratio",
+    "target_score",
+    "alighting_total",
+    "lunch_alighting",
+    "evening_alighting",
+    "night_alighting",
+    "lunch_alighting_ratio",
+    "evening_alighting_ratio",
+    "night_alighting_ratio"
+  ],
+  "raw_mode": {
+    "rows_checked": 49727,
+    "quarters_checked": [20251, 20252, 20253],
+    "target_min": 0.0,
+    "target_max": 1.0,
+    "target_mean": 0.522455,
+    "join_strategy": "citywide_quarter_signal"
+  }
+}
+

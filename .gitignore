@@ -1,4 +1,5 @@
 **/.temp/
+backend/services/market-forcast-service/.raw/
 
 .env*
 !.env.example

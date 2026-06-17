@@ -1,0 +1,51 @@
+{
+  "model_id": "demand_gap_detector",
+  "training_status": "sample_smoke_trained_and_raw_baseline_supported",
+  "entity": "area x service_category x quarter",
+  "sources": [
+    ".sample/estimated_sales_hdong_2025.sample.csv",
+    ".sample/subway_station_hourly_ridership.sample.csv",
+    ".raw/서울시 상권분석서비스(추정매출-행정동)_2025년.csv",
+    ".raw/서울시 지하철 호선별 역별 시간대별 승하차 인원 정보.csv"
+  ],
+  "target": {
+    "name": "high_gap",
+    "type": "binary_class",
+    "classes": {
+      "0": "normal",
+      "1": "high_gap"
+    },
+    "sample_description": "Synthetic gap label from demand signal minus sales response.",
+    "raw_description": "Top 20% rows by demand-signal minus next-growth response gap."
+  },
+  "features": [
+    "sales_amount",
+    "sales_count",
+    "sales_per_count",
+    "weekend_sales_ratio",
+    "evening_sales_ratio",
+    "target_score",
+    "alighting_total",
+    "lunch_alighting",
+    "evening_alighting",
+    "commute_alighting",
+    "night_alighting",
+    "lunch_alighting_ratio",
+    "evening_alighting_ratio",
+    "night_alighting_ratio"
+  ],
+  "raw_mode": {
+    "rows_checked": 49727,
+    "quarters_checked": [20251, 20252, 20253],
+    "label_distribution_checked": {
+      "0": 39781,
+      "1": 9946
+    },
+    "positive_rate": 0.200012,
+    "gap_min": 0.0,
+    "gap_max": 1.0,
+    "gap_mean": 0.533391,
+    "join_strategy": "citywide_quarter_signal"
+  }
+}
+

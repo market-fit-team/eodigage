@@ -1,0 +1,2 @@
+"""Market forecast service package."""
+

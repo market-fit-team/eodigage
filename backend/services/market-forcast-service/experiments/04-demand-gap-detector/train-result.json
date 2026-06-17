@@ -1,0 +1,38 @@
+{
+  "model_id": "demand_gap_detector",
+  "model_type": "xgboost.XGBClassifier",
+  "data_mode": "sample",
+  "trained_at": "2026-06-17T15:25:18.780912+00:00",
+  "features": [
+    "sales_amount",
+    "sales_count",
+    "sales_per_count",
+    "weekend_sales_ratio",
+    "evening_sales_ratio",
+    "target_score",
+    "alighting_total",
+    "lunch_alighting",
+    "evening_alighting",
+    "commute_alighting",
+    "night_alighting",
+    "lunch_alighting_ratio",
+    "evening_alighting_ratio",
+    "night_alighting_ratio"
+  ],
+  "target": "high_gap",
+  "rows": 25,
+  "status": "trained_on_sample_smoke_data",
+  "metrics": {
+    "accuracy": 0.75,
+    "macro_f1": 0.428571,
+    "train_rows": 17,
+    "valid_rows": 8,
+    "positive_rate": 0.2
+  },
+  "limitations": [
+    "sample mode uses synthetic gap labels",
+    "raw mode uses demand-signal minus next-growth response gap labels",
+    "needs competition/rent/store-count data before business decision use"
+  ],
+  "artifact_path": ".artifacts/demand_gap_detector/model.joblib"
+}

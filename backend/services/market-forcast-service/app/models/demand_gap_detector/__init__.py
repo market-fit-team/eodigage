@@ -1,0 +1,2 @@
+"""Demand gap detector model."""
+
