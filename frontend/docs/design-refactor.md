@@ -342,12 +342,12 @@ ChartTooltipContent -> "border border-border/50 bg-background text-xs/relaxed"
 const chartConfig = {
   sales: {
     label: "매출",
-    color: "var(--chart-1)"
+    color: "var(--chart-1)",
   },
   traffic: {
     label: "유동인구",
-    color: "var(--chart-2)"
-  }
+    color: "var(--chart-2)",
+  },
 }
 ```
 
@@ -396,7 +396,7 @@ const MAP_COLORS = {
   activeLabel: "var(--primary-foreground)",
   idleFill: "var(--muted)",
   idleLabel: "var(--foreground)",
-  border: "var(--border)"
+  border: "var(--border)",
 }
 ```
 
