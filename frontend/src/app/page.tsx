@@ -1,7 +1,5 @@
-export default async function HomePage() {
-    return (
-        <main>
-            <h1>Home</h1>
-        </main>
-    )
+import { HomeScreen } from "@/features/home/components/home-screen"
+
+export default function HomePage() {
+  return <HomeScreen />
 }
