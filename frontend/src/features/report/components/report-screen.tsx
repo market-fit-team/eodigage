@@ -7,7 +7,6 @@ import {
   ArrowLeft,
   Bookmark,
   Calendar,
-  CheckCircle2,
   Coins,
   Download,
   Lock,
@@ -47,13 +46,6 @@ function ReportContent() {
   const districtId = searchParams.get("district") || "gangnam"
   const district =
     districtsData.find((d) => d.id === districtId) || districtsData[0]
-  const [chatNotes] = useState<string>(() => {
-    if (typeof window === "undefined") {
-      return ""
-    }
-
-    return localStorage.getItem("g15_temp_chat") || ""
-  })
   const [isSaved, setIsSaved] = useState(false)
   const [saveMessage, setSaveMessage] = useState("")
 
@@ -367,21 +359,7 @@ function ReportContent() {
             <h2 className="mb-3.5 border-b border-border pb-1.5 text-xs font-medium text-muted-foreground">
               5. AI 정밀 피드백 및 법률 특이사항
             </h2>
-            <div className="flex flex-col gap-4">
-              {chatNotes && (
-                <Card size="sm" className="bg-muted/20">
-                  <CardContent>
-                    <h4 className="mb-2 flex items-center gap-1.5 text-xs font-medium text-foreground">
-                      <CheckCircle2 className="h-3.5 w-3.5 text-primary" />
-                      컨설턴트 질의 요약
-                    </h4>
-                    <pre className="font-sans text-xs leading-relaxed whitespace-pre-line text-muted-foreground">
-                      {chatNotes}
-                    </pre>
-                  </CardContent>
-                </Card>
-              )}
-
+            <div>
               <Card size="sm" className="bg-primary/5">
                 <CardContent className="text-xs">
                   <h4 className="mb-2 flex items-center gap-1.5 font-medium text-foreground">
