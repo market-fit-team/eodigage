@@ -8,8 +8,8 @@ import {
   LayoutDashboard,
   Map,
   MessageCircleQuestion,
-  User2,
 } from "lucide-react"
+import { HeaderAuthButton } from "@/features/auth/components/header-auth-button"
 import { Badge } from "@/shared/components/ui/badge"
 import { buttonVariants } from "@/shared/components/ui/button"
 import { cn } from "@/shared/lib/utils"
@@ -41,12 +41,6 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       href: "/report",
       icon: FileSpreadsheet,
       active: pathname.startsWith("/report"),
-    },
-    {
-      label: "마이페이지",
-      href: "/mypage",
-      icon: User2,
-      active: pathname === "/mypage",
     },
   ]
 
@@ -87,16 +81,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             </nav>
 
             <div className="flex items-center">
-              <Link
-                href="/mypage"
-                className={cn(
-                  buttonVariants({ variant: "outline", size: "lg" }),
-                  "rounded-full px-3.5"
-                )}
-              >
-                <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-primary"></span>
-                <span>User Profile</span>
-              </Link>
+              <HeaderAuthButton />
             </div>
           </div>
         </div>
