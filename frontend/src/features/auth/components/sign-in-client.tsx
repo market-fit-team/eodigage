@@ -14,8 +14,6 @@ export default function SignInClient({
 }) {
   return (
     <div>
-      {error ? <div>Error: {error}</div> : null}
-
       <Button
         onClick={async () => {
           await authClient.signIn.oauth2({
