@@ -3,6 +3,11 @@
   "private": true,
   "type": "module",
   "main": "server.mjs",
+  "packageManager": "npm@10.9.3",
+  "engines": {
+    "node": "22.18.0",
+    "npm": "10.9.3"
+  },
   "scripts": {
     "dev": "node server.mjs",
     "start": "node server.mjs"
