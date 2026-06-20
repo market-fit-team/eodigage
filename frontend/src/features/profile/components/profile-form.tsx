@@ -8,7 +8,6 @@ import { useForm, useWatch } from "react-hook-form"
 import { toast } from "sonner"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { authClient } from "@/features/auth/lib/auth-client"
-import { AUTHENTIK_PROVIDER_ID } from "@/features/auth/lib/auth-constants"
 import {
   DISPLAY_NAME_MAX_LENGTH,
   DISPLAY_NAME_MIN_LENGTH,
@@ -45,12 +44,6 @@ import {
 import { Spinner } from "@/shared/components/ui/spinner"
 import { avatarColors } from "@/shared/lib/boring-avatars"
 
-type RefreshTokenResult = {
-  data?: {
-    accessToken?: string
-  }
-}
-
 type ProfileFormProps = {
   callbackURL: string
   initialAge: number | null
@@ -77,12 +70,6 @@ const getErrorMessage = (error: unknown) => {
   return "프로필 저장에 실패했습니다."
 }
 
-const refreshAuthToken = async () => {
-  return (await authClient.refreshToken({
-    providerId: AUTHENTIK_PROVIDER_ID,
-  })) as RefreshTokenResult
-}
-
 export function ProfileForm({
   callbackURL,
   initialAge,
@@ -92,7 +79,6 @@ export function ProfileForm({
   requiresInitialization,
 }: ProfileFormProps) {
   const router = useRouter()
-  const { refetch } = authClient.useSession()
   const [hasAvatarBeenClicked, setHasAvatarBeenClicked] = useState(false)
   const [isPending, startTransition] = useTransition()
 
@@ -120,15 +106,21 @@ export function ProfileForm({
   const handleSubmit = (values: ProfileFormValues) => {
     startTransition(async () => {
       try {
-        await refreshAuthToken()
+        const age = values.age === "" ? null : Number(values.age)
+        const job = values.job === "" ? null : values.job
+
         await patchMyProfile({
-          age: values.age === "" ? null : Number(values.age),
+          age,
           avatar_seed: values.avatarSeed,
           display_name: values.displayName,
-          job: values.job === "" ? null : values.job,
+          job,
         })
-        await refreshAuthToken()
-        await refetch()
+        await authClient.updateUser({
+          age,
+          avatarSeed: values.avatarSeed,
+          displayName: values.displayName,
+          job,
+        })
         toast.success("프로필을 저장했습니다.")
         router.push(resolveProfileCompletionRedirectTarget(callbackURL))
       } catch (error) {

@@ -87,26 +87,71 @@ Browser
 
 `src/features/auth/lib/auth.ts`는 Better Auth server instance를 만든다.
 authentik은 `genericOAuth` provider로 붙인다.
-`session.user`는 access token JWT의 `user_profile` claim 기준으로 다시 만든다.
+OAuth 로그인 시 access token JWT의 `user_profile` claim을 검증해 Better Auth `user.additionalFields`를 채운다.
+재로그인 시에도 `overrideUserInfo: true`로 같은 값을 다시 덮어쓴다.
+`customSession()`은 저장된 user 필드만 `session.user` shape로 투영한다.
 `nextCookies()`는 마지막에 둔다.
 
 ```ts
-customSession(async ({ session, user }, ctx) => {
-  const accessToken = await getAuthentikAccessToken(ctx, user.id)
-  const jwtPayload = decodeJwt(accessToken) as Record<string, unknown>
-  const userProfile = authentikUserProfileSchema.parse(jwtPayload.user_profile)
+genericOAuth({
+  config: [
+    {
+      providerId: AUTHENTIK_PROVIDER_ID,
+      overrideUserInfo: true,
+      async getUserInfo(tokens) {
+        if (!tokens.accessToken) {
+          return null
+        }
 
+        const jwtPayload = parseAuthentikAccessToken(tokens.accessToken)
+
+        return {
+          id: jwtPayload.sub,
+          email: jwtPayload.email,
+          emailVerified: jwtPayload.email_verified ?? false,
+          name:
+            jwtPayload.user_profile.display_name ??
+            jwtPayload.name ??
+            jwtPayload.email,
+          image: jwtPayload.picture ?? undefined,
+          user_profile: jwtPayload.user_profile,
+        }
+      },
+      mapProfileToUser(profile) {
+        return toStoredAuthentikUserProfile(
+          authentikUserProfileSchema.parse(profile.user_profile)
+        )
+      },
+    },
+  ],
+})
+```
+
+```ts
+customSession(async ({ session, user }) => {
   return {
     session,
-    user: {
-      uuid: userProfile.uuid,
-      displayName: userProfile.display_name ?? "default",
-      age: userProfile.age,
-      job: userProfile.job,
-      avatarSeed: userProfile.avatar_seed ?? "default",
-    },
+    user: toSessionUser(user),
   }
 }, options)
+```
+
+```ts
+const toSessionUser = (user: {
+  uuid: string
+  displayName?: string | null
+  age?: number | null
+  job?: string | null
+  avatarSeed?: string | null
+}) => {
+  return {
+    uuid: user.uuid,
+    displayName: user.displayName ?? "default",
+    age: user.age,
+    job: user.job,
+    avatarSeed: user.avatarSeed ?? "default",
+  }
+}
 ```
 
 ## `src/features/auth/lib/auth-client.ts`
@@ -133,14 +178,15 @@ await authClient.signIn.oauth2({
   providerId: "authentik",
   callbackURL,
   errorCallbackURL,
-  scopes: ["openid", "profile", "user_profile"],
+  scopes: ["openid", "profile", "email", "user_profile", "offline_access"],
 })
 ```
 
 ## Access Token
 
 서버와 클라이언트 모두 Better Auth가 authentik provider access token을 꺼내는 창구다.
-`session.user`는 이 access token JWT의 `user_profile`을 기준으로 만들어진다.
+`session.user`는 이 access token을 매 조회마다 다시 파싱하지 않는다.
+access token은 API 호출이나 playground 확인이 필요할 때만 직접 꺼낸다.
 
 서버는 `auth.api.getAccessToken(...)`를 쓴다.
 
@@ -163,6 +209,31 @@ const result = await authClient.getAccessToken({
 })
 
 const accessToken = result.data?.accessToken ?? null
+```
+
+## 프로필 수정
+
+`src/features/profile/components/profile-form.tsx`는 profile-service에 저장한 뒤 Better Auth `updateUser()`도 바로 호출한다.
+이 호출이 세션 cookie와 `useSession()` 값을 같이 갱신한다.
+별도 `refreshToken()`이나 `refetch()`는 두지 않는다.
+
+```ts
+const age = values.age === "" ? null : Number(values.age)
+const job = values.job === "" ? null : values.job
+
+await patchMyProfile({
+  age,
+  avatar_seed: values.avatarSeed,
+  display_name: values.displayName,
+  job,
+})
+
+await authClient.updateUser({
+  age,
+  avatarSeed: values.avatarSeed,
+  displayName: values.displayName,
+  job,
+})
 ```
 
 ## JWT
