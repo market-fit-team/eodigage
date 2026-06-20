@@ -1,7 +1,5 @@
-import { Suspense } from "react"
 import Link from "next/link"
 import { HeaderAuthButton } from "@/features/auth/components/header/header-auth-button"
-import { HeaderAuthButtonFallback } from "@/features/auth/components/header/header-auth-button-fallback"
 import {
   HeaderNavButton,
   type HeaderNavButtonProps,
@@ -49,9 +47,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             </nav>
 
             <div className="flex items-center">
-              <Suspense fallback={<HeaderAuthButtonFallback />}>
-                <HeaderAuthButton />
-              </Suspense>
+              <HeaderAuthButton />
             </div>
           </div>
         </div>

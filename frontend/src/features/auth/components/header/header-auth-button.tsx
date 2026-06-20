@@ -1,9 +1,16 @@
+"use client"
+
+import { HeaderAuthButtonFallback } from "@/features/auth/components/header/header-auth-button-fallback"
 import { HeaderAuthLoginButton } from "@/features/auth/components/header/header-auth-login-button"
 import { HeaderAuthLogoutButton } from "@/features/auth/components/header/header-auth-logout-button"
-import { getServerSession } from "@/features/auth/lib/server-session"
+import { useSession } from "@/features/auth/lib/auth-client"
 
-export async function HeaderAuthButton() {
-  const session = await getServerSession()
+export function HeaderAuthButton() {
+  const { data: session, isPending } = useSession()
+
+  if (isPending) {
+    return <HeaderAuthButtonFallback />
+  }
 
   if (!session) {
     return <HeaderAuthLoginButton />
