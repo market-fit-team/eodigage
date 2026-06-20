@@ -35,7 +35,7 @@ describe("/login page", () => {
     oauth2Mock.mockReset()
   })
 
-  it("redirects an authenticated user to a valid callback URL", async () => {
+  it("인증된 사용자를 유효한 콜백 URL로 리다이렉트한다", async () => {
     getServerSessionMock.mockResolvedValue({
       user: { id: "user-1" },
       session: { id: "session-1" },
@@ -53,7 +53,7 @@ describe("/login page", () => {
     expect(redirectMock).toHaveBeenCalledWith("/example/dashboard")
   })
 
-  it("redirects an authenticated user to root for an invalid callback URL", async () => {
+  it("인증된 사용자를 잘못된 콜백 URL에 대해 루트로 리다이렉트한다", async () => {
     getServerSessionMock.mockResolvedValue({
       user: { id: "user-1" },
       session: { id: "session-1" },
@@ -71,7 +71,7 @@ describe("/login page", () => {
     expect(redirectMock).toHaveBeenCalledWith("/")
   })
 
-  it("renders the login card for an unauthenticated user", async () => {
+  it("인증되지 않은 사용자에게 로그인 카드를 렌더링한다", async () => {
     getServerSessionMock.mockResolvedValue(null)
 
     const page = await LoginPage({

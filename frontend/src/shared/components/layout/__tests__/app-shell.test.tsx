@@ -18,7 +18,7 @@ vi.mock("@/shared/components/layout/header-nav-button", () => ({
 }))
 
 describe("AppShell", () => {
-  it("renders the header auth control instead of the old profile link", () => {
+  it("기존의 프로필 링크 대신 헤더 인증 컨트롤을 렌더링한다", () => {
     render(
       <AppShell>
         <div>content</div>

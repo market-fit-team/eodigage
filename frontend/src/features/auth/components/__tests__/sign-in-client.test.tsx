@@ -22,7 +22,7 @@ describe("SignInClient", () => {
     oauth2Mock.mockReset()
   })
 
-  it("calls Better Auth oauth2 sign-in with the authentik provider payload", async () => {
+  it("authentik 제공자 페이로드와 함께 Better Auth oauth2 로그인을 호출한다", async () => {
     oauth2Mock.mockResolvedValue(undefined)
 
     render(<SignInClient callbackURL="/example/dashboard" />)
@@ -39,7 +39,7 @@ describe("SignInClient", () => {
     })
   })
 
-  it("blocks duplicate clicks while sign-in is pending", async () => {
+  it("로그인이 대기 중일 때 중복 클릭을 차단한다", async () => {
     let resolveRequest: (() => void) | undefined
     oauth2Mock.mockImplementation(
       () =>
@@ -68,7 +68,7 @@ describe("SignInClient", () => {
     })
   })
 
-  it("shows the oauth error message from the callback", () => {
+  it("콜백에서 발생한 oauth 에러 메시지를 보여준다", () => {
     render(<SignInClient callbackURL="/" error="oauth" />)
 
     expect(screen.getByRole("alert")).toHaveTextContent(

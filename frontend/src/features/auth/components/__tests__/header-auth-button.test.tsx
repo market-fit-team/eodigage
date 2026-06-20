@@ -42,7 +42,7 @@ describe("Header auth buttons", () => {
     })
   })
 
-  it("renders a login link with the current pathname as callbackURL", () => {
+  it("현재 경로를 콜백 URL로 갖는 로그인 링크를 렌더링한다", () => {
     render(<HeaderAuthLoginButton />)
 
     expect(screen.getByRole("link", { name: "로그인" })).toHaveAttribute(
@@ -51,14 +51,14 @@ describe("Header auth buttons", () => {
     )
   })
 
-  it("renders a skeleton fallback instead of the old spinner", () => {
+  it("이전 스피너 대신 스켈레톤 폴백을 렌더링한다", () => {
     const { container } = render(<HeaderAuthButtonFallback />)
 
     expect(container.firstChild).toHaveAttribute("data-slot", "skeleton")
     expect(screen.queryByRole("status")).not.toBeInTheDocument()
   })
 
-  it("signs the user out and redirects to root", async () => {
+  it("사용자를 로그아웃시키고 루트로 리다이렉트한다", async () => {
     signOutMock.mockImplementation(
       async (options?: { fetchOptions?: { onSuccess?: () => void } }) => {
         options?.fetchOptions?.onSuccess?.()
@@ -86,7 +86,7 @@ describe("Header auth buttons", () => {
     expect(pushMock).toHaveBeenCalledWith("/")
   })
 
-  it("renders the login button when the session is missing", () => {
+  it("세션이 없을 때 로그인 버튼을 렌더링한다", () => {
     useSessionMock.mockReturnValue({
       data: null,
       isPending: false,
@@ -100,7 +100,7 @@ describe("Header auth buttons", () => {
     )
   })
 
-  it("renders the fallback while the client session is loading", () => {
+  it("클라이언트 세션이 로딩되는 동안 폴백을 렌더링한다", () => {
     useSessionMock.mockReturnValue({
       data: null,
       isPending: true,
@@ -111,7 +111,7 @@ describe("Header auth buttons", () => {
     expect(container.firstChild).toHaveAttribute("data-slot", "skeleton")
   })
 
-  it("renders the logout button when the session exists", () => {
+  it("세션이 존재할 때 로그아웃 버튼을 렌더링한다", () => {
     useSessionMock.mockReturnValue({
       data: {
         user: {

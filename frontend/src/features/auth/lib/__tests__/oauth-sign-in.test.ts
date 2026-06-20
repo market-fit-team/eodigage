@@ -7,7 +7,7 @@ import {
 } from "@/features/auth/lib/oauth-sign-in"
 
 describe("buildLoginErrorCallbackURL", () => {
-  it("keeps the normalized callback URL in the login error redirect", () => {
+  it("로그인 에러 리다이렉트에서 정규화된 콜백 URL을 유지한다", () => {
     expect(buildLoginErrorCallbackURL("/example/dashboard")).toBe(
       "/login?callbackURL=%2Fexample%2Fdashboard&error=oauth"
     )
@@ -15,7 +15,7 @@ describe("buildLoginErrorCallbackURL", () => {
 })
 
 describe("buildLoginSuccessCallbackURL", () => {
-  it("keeps the normalized callback URL in the login success redirect", () => {
+  it("로그인 성공 리다이렉트에서 정규화된 콜백 URL을 유지한다", () => {
     expect(buildLoginSuccessCallbackURL("/example/dashboard")).toBe(
       "/login?callbackURL=%2Fexample%2Fdashboard"
     )
@@ -23,7 +23,7 @@ describe("buildLoginSuccessCallbackURL", () => {
 })
 
 describe("buildOAuthSignInPayload", () => {
-  it("builds Better Auth oauth2 params for the Google option", () => {
+  it("Google 옵션에 대한 Better Auth oauth2 파라미터를 생성한다", () => {
     expect(
       buildOAuthSignInPayload({
         callbackURL: "/example/dashboard",
@@ -37,7 +37,7 @@ describe("buildOAuthSignInPayload", () => {
     })
   })
 
-  it("normalizes an invalid callback URL to root", () => {
+  it("잘못된 콜백 URL을 루트로 정규화한다", () => {
     expect(
       buildOAuthSignInPayload({
         callbackURL: "https://example.com",
