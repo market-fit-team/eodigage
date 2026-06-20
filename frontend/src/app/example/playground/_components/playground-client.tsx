@@ -1,127 +1,224 @@
 "use client"
 
-import { useState } from "react"
-import { useErrorBoundary } from "react-error-boundary"
+import { type ReactNode, useEffect, useMemo, useState } from "react"
 import { authClient } from "@/features/auth/lib/auth-client"
 import { AUTHENTIK_PROVIDER_ID } from "@/features/auth/lib/auth-constants"
-import { useGetEchoSuspense } from "@/shared/api/generated/echo/endpoints/echo/echo"
-import { useGetMeSuspense } from "@/shared/api/generated/profile/endpoints/profile/profile"
-import { Button } from "@/shared/components/ui/button"
+import {
+  type CoreUsersMeRetrieveQueryError,
+  useCoreUsersMeRetrieve,
+} from "@/shared/api/generated/authentik-users/endpoints/core/core"
+import type { SessionUser } from "@/shared/api/generated/authentik-users/schemas/session-user"
 import {
   Card,
   CardContent,
-  CardDescription,
   CardHeader,
   CardTitle,
 } from "@/shared/components/ui/card"
+import {
+  PlaygroundErrorFallback,
+  PlaygroundLoadingFallback,
+} from "./playground-fallback"
 
-type AccessTokenResult = {
-  accessToken?: string
-  data?: {
-    accessToken?: string
+type JwtPayload = {
+  [key: string]: unknown
+  aud?: string | string[]
+  exp?: number
+  iat?: number
+  iss?: string
+  sub?: string
+}
+
+// 클라이언트 쪽 결과도 서버 출력과 같은 형식으로 맞춰 비교하기 쉽게 만든다.
+const formatJson = (value: unknown) => {
+  return JSON.stringify(value ?? null, null, 2)
+}
+
+// hook/fetch/파싱 단계 오류를 pre 영역에 그대로 출력할 수 있게 문자열로 바꾼다.
+const getErrorMessage = (error: unknown) => {
+  if (error instanceof Error) {
+    return error.message
   }
+
+  return JSON.stringify(error ?? null, null, 2)
 }
 
-const extractAccessToken = (result: AccessTokenResult | null | undefined) => {
-  return result?.accessToken ?? result?.data?.accessToken ?? null
+// 브라우저에서도 access token payload를 직접 열어 서버 결과와 claim 차이가 없는지 확인한다.
+const decodeJwtPayload = (token: string): JwtPayload => {
+  const [, payload = ""] = token.split(".")
+  const normalizedPayload = payload.replace(/-/g, "+").replace(/_/g, "/")
+  const paddedPayload = normalizedPayload.padEnd(
+    normalizedPayload.length + ((4 - (normalizedPayload.length % 4)) % 4),
+    "="
+  )
+
+  return JSON.parse(atob(paddedPayload)) as JwtPayload
 }
 
-export default function PlaygroundClient({
-  apiOrigin,
-  serverAccessToken,
+// 클라이언트 비교 섹션 공용 카드다.
+function PlaygroundSection({
+  title,
+  children,
 }: {
-  apiOrigin: string
-  serverAccessToken: string | null
+  title: string
+  children: ReactNode
 }) {
-  const { data: session, isPending } = authClient.useSession()
-  const { showBoundary } = useErrorBoundary()
-  const [tokenPreview, setTokenPreview] = useState<string>("")
-
-  const { data: profile } = useGetMeSuspense({
-    request: serverAccessToken
-      ? {
-          headers: { Authorization: `Bearer ${serverAccessToken}` },
-        }
-      : undefined,
-  })
-  const { data: echo } = useGetEchoSuspense({
-    request: serverAccessToken
-      ? {
-          headers: { Authorization: `Bearer ${serverAccessToken}` },
-        }
-      : undefined,
-  })
-
-  const getOidcAccessTokenClient = async (): Promise<string | null> => {
-    const result = (await authClient.getAccessToken({
-      providerId: AUTHENTIK_PROVIDER_ID,
-    })) as AccessTokenResult
-
-    return extractAccessToken(result)
-  }
-
   return (
     <Card>
       <CardHeader>
-        <CardTitle>클라이언트 컴포넌트 (Hydration & Suspense 완료)</CardTitle>
-        <CardDescription>
-          호출 대상: <code>{apiOrigin}</code> (CORS는 Traefik이 처리)
-        </CardDescription>
+        <CardTitle className="text-base">{title}</CardTitle>
       </CardHeader>
-
       <CardContent>
-        <div>
-          <h3>클라이언트 세션</h3>
-          <pre>
-            {isPending
-              ? "불러오는 중..."
-              : JSON.stringify(session ?? null, null, 2)}
-          </pre>
-        </div>
-
-        <div>
-          <Button
-            onClick={async () => {
-              try {
-                const token = await getOidcAccessTokenClient()
-                if (!token) {
-                  setTokenPreview("")
-                  showBoundary(
-                    new Error(
-                      "OIDC access token 조회 실패 (먼저 로그인해주세요)"
-                    )
-                  )
-                  return
-                }
-                setTokenPreview(`${token.slice(0, 32)}…`)
-              } catch (err) {
-                showBoundary(err)
-              }
-            }}
-          >
-            클라이언트에서 OIDC access token 조회
-          </Button>
-
-          <Button variant="outline" disabled>
-            (데이터는 Suspense를 통해 자동 로드됨)
-          </Button>
-        </div>
-
-        <div>
-          <h3>클라이언트 access token 미리보기</h3>
-          <pre>{tokenPreview || "—"}</pre>
-        </div>
-
-        <div>
-          <h3>Profile 응답 결과 (React Query 캐시)</h3>
-          <pre>{JSON.stringify(profile, null, 2)}</pre>
-        </div>
-
-        <div>
-          <h3>Echo 응답 결과 (React Query 캐시)</h3>
-          <pre>{JSON.stringify(echo, null, 2)}</pre>
-        </div>
+        <pre className="overflow-x-auto rounded-md bg-muted/40 p-4 text-xs break-all whitespace-pre-wrap">
+          {children}
+        </pre>
       </CardContent>
     </Card>
+  )
+}
+
+export default function PlaygroundClient() {
+  const { data: session, isPending: isSessionPending } = authClient.useSession()
+  const [accessToken, setAccessToken] = useState<string | null>(null)
+  const [accessTokenError, setAccessTokenError] = useState<string | null>(null)
+  const [isAccessTokenPending, setIsAccessTokenPending] = useState(true)
+
+  useEffect(() => {
+    let isMounted = true
+
+    const loadAccessToken = async () => {
+      // useSession이 끝나기 전에는 토큰 조회 여부를 결정할 수 없으므로 먼저 대기한다.
+      if (isSessionPending) {
+        return
+      }
+
+      if (!session) {
+        if (!isMounted) {
+          return
+        }
+
+        setAccessToken(null)
+        setAccessTokenError("클라이언트 세션이 없습니다.")
+        setIsAccessTokenPending(false)
+        return
+      }
+
+      setIsAccessTokenPending(true)
+      setAccessTokenError(null)
+
+      try {
+        // 클라이언트에서는 Better Auth client API로 access token을 받아온다.
+        const result = await authClient.getAccessToken({
+          providerId: AUTHENTIK_PROVIDER_ID,
+        })
+
+        if (!isMounted) {
+          return
+        }
+
+        setAccessToken(result.data?.accessToken ?? null)
+      } catch (error) {
+        if (!isMounted) {
+          return
+        }
+
+        setAccessToken(null)
+        setAccessTokenError(getErrorMessage(error))
+      } finally {
+        if (isMounted) {
+          setIsAccessTokenPending(false)
+        }
+      }
+    }
+
+    void loadAccessToken()
+
+    return () => {
+      isMounted = false
+    }
+  }, [isSessionPending, session])
+
+  const parsedJwtResult = useMemo(() => {
+    if (!accessToken) {
+      return {
+        error: null,
+        payload: null,
+      }
+    }
+
+    try {
+      return {
+        error: null,
+        payload: decodeJwtPayload(accessToken),
+      }
+    } catch (error) {
+      return {
+        error: getErrorMessage(error),
+        payload: null,
+      }
+    }
+  }, [accessToken])
+
+  // Authentik 사용자 정보는 generated hook으로 직접 읽어 Better Auth 세션과 분리된 원본 응답을 보여준다.
+  const authentikUserQuery = useCoreUsersMeRetrieve({
+    query: {
+      enabled: Boolean(accessToken),
+      retry: false,
+    },
+    request: accessToken
+      ? {
+          headers: {
+            Authorization: `Bearer ${accessToken}`,
+          },
+          cache: "no-store",
+        }
+      : undefined,
+  })
+
+  const authentikUser: SessionUser | null = authentikUserQuery.data ?? null
+  const authentikUserError: CoreUsersMeRetrieveQueryError | null =
+    authentikUserQuery.error ?? null
+
+  return (
+    <section className="grid gap-6 lg:grid-cols-3">
+      <PlaygroundSection title="클라이언트 세션 (useSession)">
+        {isSessionPending ? "세션 불러오는 중..." : formatJson(session)}
+      </PlaygroundSection>
+
+      <PlaygroundSection title="클라이언트 JWT 원문 (getAccessToken)">
+        {isAccessTokenPending
+          ? "JWT 불러오는 중..."
+          : accessTokenError
+            ? accessTokenError
+            : (accessToken ?? "access token 없음")}
+      </PlaygroundSection>
+
+      <PlaygroundSection title="클라이언트 JWT 파싱 결과">
+        {isAccessTokenPending
+          ? "JWT 파싱 대기 중..."
+          : accessTokenError || parsedJwtResult.error
+            ? (accessTokenError ?? parsedJwtResult.error)
+            : formatJson(parsedJwtResult.payload)}
+      </PlaygroundSection>
+
+      {isAccessTokenPending ? (
+        <PlaygroundLoadingFallback
+          title="클라이언트 Authentik 사용자 조회"
+          description="access token이 준비되면 generated hook으로 /core/users/me/를 호출합니다."
+        />
+      ) : accessTokenError ? (
+        <PlaygroundErrorFallback
+          title="클라이언트 Authentik 사용자 조회"
+          description={accessTokenError}
+        />
+      ) : (
+        <PlaygroundSection title="클라이언트 Authentik 사용자 정보 (generated hook)">
+          {authentikUserQuery.isPending
+            ? "Authentik 사용자 정보를 불러오는 중..."
+            : authentikUserError
+              ? formatJson(authentikUserError)
+              : formatJson(authentikUser)}
+        </PlaygroundSection>
+      )}
+    </section>
   )
 }
