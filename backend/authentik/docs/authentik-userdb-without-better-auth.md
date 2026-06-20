@@ -1,4 +1,4 @@
-# authentik user DB without Better Auth ownership
+# Better Auth가 소유하지 않는 authentik 사용자 DB 경계
 
 ## 현재 경계
 
@@ -50,7 +50,7 @@ Better Auth `user.id`, `session.userId`, `account.accountId`를 MSA의 사용자
 ```
 
 MSA가 공유하는 사용자 기준값은 authentik user다.
-REST 조회와 수정은 `AUTHENTIK_MSA_USER_API_TOKEN`으로 `/api/v3/core/users/`를 호출한다.
+REST 생성/조회/수정/삭제는 `AUTHENTIK_SERVICE_ROLE_KEY`를 Bearer token으로 사용해 `/api/v3/core/users/`를 호출한다.
 
 ```text
 MSA local row
@@ -105,7 +105,7 @@ authentik.core.user
 ## 프로필 수정
 
 프로필 수정 UI는 Better Auth `user` table을 수정하지 않는다.
-프론트는 BFF나 MSA endpoint를 호출하고, 그 서버가 service token으로 authentik `/core/users/{pk}/`를 PATCH 한다.
+프론트는 BFF나 MSA endpoint를 호출하고, 그 서버가 서비스롤키로 authentik `/core/users/{pk}/`를 PATCH 한다.
 
 ```text
 Browser
@@ -173,4 +173,8 @@ type AuthentikUserRef = {
 - https://better-auth.com/docs/plugins/generic-oauth
 - https://better-auth.com/docs/integrations/next
 - https://docs.goauthentik.io/add-secure-apps/providers/oauth2/
-- https://docs.goauthentik.io/developer-docs/api/
+- https://api.goauthentik.io/authentication/
+- https://api.goauthentik.io/reference/core-users-list/
+- https://api.goauthentik.io/reference/core-users-create/
+- https://api.goauthentik.io/reference/core-users-partial-update/
+- https://api.goauthentik.io/reference/core-users-destroy/

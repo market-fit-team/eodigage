@@ -36,12 +36,11 @@ services:
       AUTHENTIK_BOOTSTRAP_PASSWORD: ${AUTHENTIK_BOOTSTRAP_PASSWORD:-authentik}
       AUTHENTIK_BOOTSTRAP_TOKEN: ${AUTHENTIK_BOOTSTRAP_TOKEN:-dev-authentik-bootstrap-token-change-me}
       AUTHENTIK_CLIENT_SECRET: ${AUTHENTIK_CLIENT_SECRET}
-      AUTHENTIK_MSA_USER_API_TOKEN: ${AUTHENTIK_MSA_USER_API_TOKEN}
+      AUTHENTIK_SERVICE_ROLE_KEY: "${AUTHENTIK_SERVICE_ROLE_KEY:?AUTHENTIK_SERVICE_ROLE_KEY를 .env에 설정하세요}"
       GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID}
       GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET}
     volumes:
       - ./backend/authentik/blueprints/pickle-web.yaml:/blueprints/pickle-web.yaml:ro
-      - ./backend/authentik/scripts:/bootstrap:ro
     labels:
       - traefik.enable=true
       - traefik.http.routers.authentik.rule=PathPrefix(`/api/authentik`)
@@ -73,14 +72,13 @@ services:
       AUTHENTIK_POSTGRESQL__USER: authentik
       AUTHENTIK_POSTGRESQL__PASSWORD: ${PG_PASS:-authentik}
       AUTHENTIK_CLIENT_SECRET: ${AUTHENTIK_CLIENT_SECRET}
-      AUTHENTIK_MSA_USER_API_TOKEN: ${AUTHENTIK_MSA_USER_API_TOKEN}
+      AUTHENTIK_SERVICE_ROLE_KEY: "${AUTHENTIK_SERVICE_ROLE_KEY:?AUTHENTIK_SERVICE_ROLE_KEY를 .env에 설정하세요}"
       GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID}
       GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET}
     user: root
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
       - ./backend/authentik/blueprints/pickle-web.yaml:/blueprints/pickle-web.yaml:ro
-      - ./backend/authentik/scripts:/bootstrap:ro
     depends_on:
       authentik-db:
         condition: service_healthy

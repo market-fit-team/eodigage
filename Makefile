@@ -1,4 +1,4 @@
-.PHONY: dev infra status authentik-bootstrap-msa-user-api api-catalog api-gen frontend clean
+.PHONY: dev infra status api-catalog api-gen frontend down clean
 
 infra:
 	@echo "Docker Compose 인프라를 시작합니다..."
@@ -13,9 +13,6 @@ status:
 		&& echo "traefik 상태: running" \
 		|| echo "traefik 상태: fail"
 
-authentik-bootstrap-msa-user-api:
-	@echo "authentik MSA user API service token을 부트스트랩합니다..."
-	@docker exec authentik-server python /bootstrap/bootstrap-msa-user-api.py
 
 api-catalog:
 	@echo "docker-compose 라벨을 기준으로 Orval 카탈로그를 생성합니다..."
