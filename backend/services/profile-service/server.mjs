@@ -45,16 +45,16 @@ const profileUpdateSchema = z
     message: "At least one profile field is required",
   })
 
+const jwtUserProfileSchema = z.object({
+  uuid: z.string().uuid(),
+  display_name: z.string().nullable().optional(),
+  age: z.number().int().nullable().optional(),
+  job: z.string().nullable().optional(),
+  avatar_seed: z.string().nullable().optional(),
+})
+
 const isRecord = (value) =>
   typeof value === "object" && value !== null && !Array.isArray(value)
-
-const getNestedUserProfile = (payload) => {
-  if (!isRecord(payload) || !isRecord(payload.user_profile)) {
-    return {}
-  }
-
-  return payload.user_profile
-}
 
 const toNullableString = (value) => {
   return typeof value === "string" ? value : null
@@ -64,23 +64,43 @@ const toNullableInteger = (value) => {
   return Number.isInteger(value) ? value : null
 }
 
+const extractJwtUserProfile = (payload) => {
+  if (!isRecord(payload)) {
+    throw createHttpError(
+      400,
+      "INVALID_USER_PROFILE_CLAIMS",
+      "JWT payload is not an object"
+    )
+  }
+
+  const parsedUserProfile = jwtUserProfileSchema.safeParse(payload.user_profile)
+  if (!parsedUserProfile.success) {
+    throw createHttpError(
+      400,
+      "INVALID_USER_PROFILE_CLAIMS",
+      "JWT does not contain a valid user_profile claim",
+      {
+        issues: parsedUserProfile.error.issues.map((issue) => ({
+          code: issue.code,
+          message: issue.message,
+          path: issue.path,
+        })),
+      }
+    )
+  }
+
+  return parsedUserProfile.data
+}
+
 const buildProfileResponseFromClaims = (payload) => {
-  const nestedUserProfile = getNestedUserProfile(payload)
+  const userProfile = extractJwtUserProfile(payload)
 
   return {
-    authentik_user_uuid:
-      toNullableString(nestedUserProfile.authentik_user_uuid) ||
-      toNullableString(payload.authentik_user_uuid),
-    display_name:
-      toNullableString(nestedUserProfile.display_name) ||
-      toNullableString(payload.display_name),
-    age:
-      toNullableInteger(nestedUserProfile.age) ??
-      toNullableInteger(payload.age),
-    job: toNullableString(nestedUserProfile.job) || toNullableString(payload.job),
-    avatar_seed:
-      toNullableString(nestedUserProfile.avatar_seed) ||
-      toNullableString(payload.avatar_seed),
+    authentik_user_uuid: userProfile.uuid,
+    display_name: toNullableString(userProfile.display_name),
+    age: toNullableInteger(userProfile.age),
+    job: toNullableString(userProfile.job),
+    avatar_seed: toNullableString(userProfile.avatar_seed),
   }
 }
 
@@ -319,17 +339,8 @@ const getBearerToken = (authorizationHeader) => {
   return token
 }
 
-const requireAuthentikUserUuid = (payload) => {
-  const profile = buildProfileResponseFromClaims(payload)
-  if (!profile.authentik_user_uuid) {
-    throw createHttpError(
-      400,
-      "NO_AUTHENTIK_USER_UUID",
-      "JWT does not contain authentik_user_uuid"
-    )
-  }
-
-  return profile.authentik_user_uuid
+const requireCurrentUserUuid = (payload) => {
+  return extractJwtUserProfile(payload).uuid
 }
 
 const verifyAccessToken = async (authorizationHeader) => {
@@ -422,7 +433,7 @@ app.get("/health", (_req, res) => {
 
 app.get("/user-profile", authenticateRequest, async (req, res, next) => {
   try {
-    const authentikUserUuid = requireAuthentikUserUuid(res.locals.jwtPayload)
+    const authentikUserUuid = requireCurrentUserUuid(res.locals.jwtPayload)
     const user = await findAuthentikUserByUuid(authentikUserUuid)
     res.json(buildProfileResponseFromAuthentikUser(user))
   } catch (error) {
@@ -433,7 +444,7 @@ app.get("/user-profile", authenticateRequest, async (req, res, next) => {
 app.patch("/user-profile", authenticateRequest, async (req, res, next) => {
   try {
     const jwtPayload = res.locals.jwtPayload
-    const authentikUserUuid = requireAuthentikUserUuid(jwtPayload)
+    const authentikUserUuid = requireCurrentUserUuid(jwtPayload)
     const updateBody = profileUpdateSchema.parse(req.body)
     const user = await findAuthentikUserByUuid(authentikUserUuid)
     const currentAttributes = isRecord(user.attributes) ? user.attributes : {}

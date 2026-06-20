@@ -28,10 +28,13 @@ export default function ProfilePage() {
     try {
       const nextDisplayName = `test-${Math.random().toString(36).slice(2, 10)}`
       const sessionUserBeforeRefresh = session?.user ?? null
+      const preRefreshResponse = (await authClient.refreshToken({
+        providerId: AUTHENTIK_PROVIDER_ID,
+      })) as { data?: RefreshTokenResult }
       const patchResponse = await patchMyProfile({
         display_name: nextDisplayName,
       })
-      const response = (await authClient.refreshToken({
+      const postRefreshResponse = (await authClient.refreshToken({
         providerId: AUTHENTIK_PROVIDER_ID,
       })) as { data?: RefreshTokenResult }
 
@@ -42,8 +45,9 @@ export default function ProfilePage() {
         stringify({
           requestedDisplayName: nextDisplayName,
           sessionUserBeforeRefresh,
+          preRefreshResponse: preRefreshResponse.data ?? null,
           patchResponse,
-          refreshTokenResponse: response.data ?? null,
+          postRefreshResponse: postRefreshResponse.data ?? null,
           sessionUserAfterRefetch: refreshedSession.data?.user ?? null,
         })
       )
