@@ -1,106 +1,46 @@
-"use client"
+import { redirect } from "next/navigation"
+import { z } from "zod"
+import { normalizeCallbackURL } from "@/features/auth/lib/callback-url"
+import { getServerSession } from "@/features/auth/lib/server-session"
+import { ProfileForm } from "@/features/profile/components/profile-form"
+import { resolveProfileDraft } from "@/features/profile/lib/profile-defaults"
 
-import { useState } from "react"
-import { AUTHENTIK_PROVIDER_ID } from "@/features/auth/lib/auth-constants"
-import { authClient } from "@/features/auth/lib/auth-client"
-import { patchMyProfile } from "@/shared/api/generated/profile/endpoints/profile/profile"
-
-type RefreshTokenResult = {
-  accessToken?: string
-  refreshToken?: string
-  providerId?: string
-  accountId?: string
+const getFirstSearchParamValue = (value: unknown) => {
+  return Array.isArray(value) ? value[0] : value
 }
 
-const stringify = (value: unknown) => JSON.stringify(value ?? null, null, 2)
+const ProfileSearchParamsSchema = z.object({
+  callbackURL: z.preprocess(getFirstSearchParamValue, z.string().optional()),
+})
 
-export default function ProfilePage() {
-  const { data: session, isPending, refetch } = authClient.useSession()
-  const [isSubmitting, setIsSubmitting] = useState(false)
-  const [result, setResult] = useState<string>("")
-  const [error, setError] = useState<string>("")
+export default async function ProfilePage(props: PageProps<"/profile">) {
+  const session = await getServerSession()
+  const rawSearchParams = (await props.searchParams) ?? {}
+  const parsedSearchParams =
+    ProfileSearchParamsSchema.safeParse(rawSearchParams)
+  const callbackURL = normalizeCallbackURL(
+    parsedSearchParams.success ? parsedSearchParams.data.callbackURL : undefined
+  )
 
-  const handleUpdateProfile = async () => {
-    setIsSubmitting(true)
-    setResult("")
-    setError("")
-
-    try {
-      const nextDisplayName = `test-${Math.random().toString(36).slice(2, 10)}`
-      const sessionUserBeforeRefresh = session?.user ?? null
-      const preRefreshResponse = (await authClient.refreshToken({
-        providerId: AUTHENTIK_PROVIDER_ID,
-      })) as { data?: RefreshTokenResult }
-      const patchResponse = await patchMyProfile({
-        display_name: nextDisplayName,
-      })
-      const postRefreshResponse = (await authClient.refreshToken({
-        providerId: AUTHENTIK_PROVIDER_ID,
-      })) as { data?: RefreshTokenResult }
-
-      await refetch()
-      const refreshedSession = await authClient.getSession()
-
-      setResult(
-        stringify({
-          requestedDisplayName: nextDisplayName,
-          sessionUserBeforeRefresh,
-          preRefreshResponse: preRefreshResponse.data ?? null,
-          patchResponse,
-          postRefreshResponse: postRefreshResponse.data ?? null,
-          sessionUserAfterRefetch: refreshedSession.data?.user ?? null,
-        })
-      )
-    } catch (refreshError) {
-      setError(
-        refreshError instanceof Error
-          ? refreshError.message
-          : stringify(refreshError)
-      )
-    } finally {
-      setIsSubmitting(false)
-    }
+  if (!session) {
+    const loginCallbackURL = callbackURL === "/" ? "/profile" : callbackURL
+    redirect(`/login?callbackURL=${encodeURIComponent(loginCallbackURL)}`)
   }
 
+  const profileDraft = resolveProfileDraft(session.user)
+
   return (
-    <main className="space-y-6 p-8">
-      <section className="space-y-2">
-        <h1 className="text-2xl font-semibold">Profile Refresh Test</h1>
-        <p className="text-sm text-muted-foreground">
-          버튼을 누르면 랜덤 닉네임 저장 후 Better Auth `refreshToken`과
-          `useSession` 재조회를 순서대로 실행합니다.
-        </p>
-      </section>
-
-      <button
-        type="button"
-        onClick={handleUpdateProfile}
-        disabled={isPending || isSubmitting || !session}
-        className="rounded-md bg-black px-4 py-2 text-sm font-medium text-white disabled:cursor-not-allowed disabled:opacity-50"
-      >
-        {isSubmitting ? "Updating..." : "Update Random Display Name"}
-      </button>
-
-      <section className="space-y-2">
-        <h2 className="text-lg font-medium">Current Session User</h2>
-        <pre className="overflow-x-auto rounded-md border p-4 text-xs">
-          {isPending ? "Loading..." : stringify(session?.user)}
-        </pre>
-      </section>
-
-      <section className="space-y-2">
-        <h2 className="text-lg font-medium">Refresh Result</h2>
-        <pre className="overflow-x-auto rounded-md border p-4 text-xs">
-          {result || "No result yet."}
-        </pre>
-      </section>
-
-      <section className="space-y-2">
-        <h2 className="text-lg font-medium">Error</h2>
-        <pre className="overflow-x-auto rounded-md border p-4 text-xs">
-          {error || "No error."}
-        </pre>
-      </section>
+    <main className="flex flex-1 bg-muted/20 px-4 py-12 sm:px-6">
+      <div className="mx-auto w-full max-w-4xl">
+        <ProfileForm
+          callbackURL={callbackURL}
+          initialAge={profileDraft.age}
+          initialAvatarSeed={profileDraft.avatarSeed}
+          initialDisplayName={profileDraft.displayName}
+          initialJob={profileDraft.job}
+          requiresInitialization={profileDraft.requiresInitialization}
+        />
+      </div>
     </main>
   )
 }

@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest"
 import { getDefaultLoginOption } from "@/features/auth/lib/login-options"
 import {
   buildLoginErrorCallbackURL,
+  buildLoginSuccessCallbackURL,
   buildOAuthSignInPayload,
 } from "@/features/auth/lib/oauth-sign-in"
 
@@ -9,6 +10,14 @@ describe("buildLoginErrorCallbackURL", () => {
   it("keeps the normalized callback URL in the login error redirect", () => {
     expect(buildLoginErrorCallbackURL("/example/dashboard")).toBe(
       "/login?callbackURL=%2Fexample%2Fdashboard&error=oauth"
+    )
+  })
+})
+
+describe("buildLoginSuccessCallbackURL", () => {
+  it("keeps the normalized callback URL in the login success redirect", () => {
+    expect(buildLoginSuccessCallbackURL("/example/dashboard")).toBe(
+      "/login?callbackURL=%2Fexample%2Fdashboard"
     )
   })
 })
@@ -22,7 +31,7 @@ describe("buildOAuthSignInPayload", () => {
       })
     ).toEqual({
       providerId: "authentik",
-      callbackURL: "/example/dashboard",
+      callbackURL: "/login?callbackURL=%2Fexample%2Fdashboard",
       errorCallbackURL: "/login?callbackURL=%2Fexample%2Fdashboard&error=oauth",
       scopes: ["openid", "profile", "email", "user_profile", "offline_access"],
     })
@@ -36,7 +45,7 @@ describe("buildOAuthSignInPayload", () => {
       })
     ).toEqual({
       providerId: "authentik",
-      callbackURL: "/",
+      callbackURL: "/login?callbackURL=%2F",
       errorCallbackURL: "/login?callbackURL=%2F&error=oauth",
       scopes: ["openid", "profile", "email", "user_profile", "offline_access"],
     })

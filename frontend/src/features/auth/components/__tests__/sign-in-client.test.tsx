@@ -33,7 +33,7 @@ describe("SignInClient", () => {
 
     expect(oauth2Mock).toHaveBeenCalledWith({
       providerId: "authentik",
-      callbackURL: "/example/dashboard",
+      callbackURL: "/login?callbackURL=%2Fexample%2Fdashboard",
       errorCallbackURL: "/login?callbackURL=%2Fexample%2Fdashboard&error=oauth",
       scopes: ["openid", "profile", "email", "user_profile", "offline_access"],
     })

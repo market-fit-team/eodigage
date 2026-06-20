@@ -4,6 +4,7 @@ import SignInClient from "@/features/auth/components/sign-in-client"
 import { normalizeCallbackURL } from "@/features/auth/lib/callback-url"
 import { OAUTH_LOGIN_ERROR } from "@/features/auth/lib/oauth-sign-in"
 import { getServerSession } from "@/features/auth/lib/server-session"
+import { isProfileSetupRequired } from "@/features/profile/lib/profile-defaults"
 
 const getFirstSearchParamValue = (value: unknown) => {
   return Array.isArray(value) ? value[0] : value
@@ -28,6 +29,10 @@ export default async function LoginPage(props: PageProps<"/login">) {
       : undefined
 
   if (session) {
+    if (isProfileSetupRequired(session.user)) {
+      redirect(`/profile?callbackURL=${encodeURIComponent(callbackURL)}`)
+    }
+
     redirect(callbackURL)
   }
 

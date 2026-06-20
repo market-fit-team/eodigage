@@ -10,6 +10,14 @@ export type OAuthSignInPayload = {
   scopes: string[]
 }
 
+export const buildLoginSuccessCallbackURL = (callbackURL: string) => {
+  const searchParams = new URLSearchParams({
+    callbackURL: normalizeCallbackURL(callbackURL),
+  })
+
+  return `/login?${searchParams.toString()}`
+}
+
 /**
  * OAuth 로그인 실패 시 돌아올 에러 콜백 URL을 만든다.
  *
@@ -41,7 +49,7 @@ export const buildOAuthSignInPayload = ({
 
   return {
     providerId: loginOption.oauthProviderId,
-    callbackURL: normalizedCallbackURL,
+    callbackURL: buildLoginSuccessCallbackURL(normalizedCallbackURL),
     errorCallbackURL: buildLoginErrorCallbackURL(normalizedCallbackURL),
     scopes: [...loginOption.scopes],
   }
