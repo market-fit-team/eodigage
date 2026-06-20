@@ -2,6 +2,8 @@
 
 import { useState } from "react"
 import { useRouter } from "next/navigation"
+import Avatar from "boring-avatars"
+import { LogOut } from "lucide-react"
 import { signOut } from "@/features/auth/lib/auth-client"
 import {
   AlertDialog,
@@ -12,33 +14,69 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-  AlertDialogTrigger,
 } from "@/shared/components/ui/alert-dialog"
 import { Button } from "@/shared/components/ui/button"
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/shared/components/ui/dropdown-menu"
+import { avatarColors } from "@/shared/lib/boring-avatars"
 
 type HeaderAuthLogoutButtonProps = {
+  avatarSeed: string
   userName?: string | null
 }
 
 export function HeaderAuthLogoutButton({
+  avatarSeed,
   userName,
 }: HeaderAuthLogoutButtonProps) {
   const router = useRouter()
+  const [isLogoutDialogOpen, setIsLogoutDialogOpen] = useState(false)
   const [isSigningOut, setIsSigningOut] = useState(false)
+  const resolvedUserName = userName?.trim() || "내 계정"
 
   return (
-    <AlertDialog>
-      <AlertDialogTrigger asChild>
-        <Button
-          variant="outline"
-          size="lg"
-          disabled={isSigningOut}
-          className="min-w-20 px-3.5"
-          title={userName ?? undefined}
-        >
-          로그아웃
-        </Button>
-      </AlertDialogTrigger>
+    <AlertDialog open={isLogoutDialogOpen} onOpenChange={setIsLogoutDialogOpen}>
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>
+          <Button
+            variant="ghost"
+            size="icon-lg"
+            className="rounded-full p-0"
+            title={resolvedUserName}
+            aria-label={`${resolvedUserName} 메뉴`}
+          >
+            <Avatar
+              colors={avatarColors}
+              name={avatarSeed}
+              size={24}
+              variant="beam"
+            />
+          </Button>
+        </DropdownMenuTrigger>
+
+        <DropdownMenuContent align="end" className="w-48">
+          <DropdownMenuLabel className="truncate">
+            {resolvedUserName}
+          </DropdownMenuLabel>
+          <DropdownMenuSeparator />
+          <DropdownMenuItem
+            variant="destructive"
+            disabled={isSigningOut}
+            onSelect={() => {
+              setIsLogoutDialogOpen(true)
+            }}
+          >
+            <LogOut className="size-4" />
+            로그아웃
+          </DropdownMenuItem>
+        </DropdownMenuContent>
+      </DropdownMenu>
 
       <AlertDialogContent>
         <AlertDialogHeader>
@@ -51,6 +89,7 @@ export function HeaderAuthLogoutButton({
           <AlertDialogCancel>취소</AlertDialogCancel>
           <AlertDialogAction
             variant="destructive"
+            disabled={isSigningOut}
             onClick={async () => {
               if (isSigningOut) return
 
@@ -60,6 +99,7 @@ export function HeaderAuthLogoutButton({
                 await signOut({
                   fetchOptions: {
                     onSuccess: () => {
+                      setIsLogoutDialogOpen(false)
                       router.push("/")
                     },
                   },

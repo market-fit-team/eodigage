@@ -16,5 +16,10 @@ export function HeaderAuthButton() {
     return <HeaderAuthLoginButton />
   }
 
-  return <HeaderAuthLogoutButton userName={session.user.name} />
+  return (
+    <HeaderAuthLogoutButton
+      avatarSeed={session.user.avatarSeed}
+      userName={session.user.displayName}
+    />
+  )
 }

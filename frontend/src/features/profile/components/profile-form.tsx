@@ -43,6 +43,7 @@ import {
   NativeSelectOption,
 } from "@/shared/components/ui/native-select"
 import { Spinner } from "@/shared/components/ui/spinner"
+import { avatarColors } from "@/shared/lib/boring-avatars"
 
 type RefreshTokenResult = {
   data?: {
@@ -58,17 +59,6 @@ type ProfileFormProps = {
   initialJob: string | null
   requiresInitialization: boolean
 }
-
-const avatarColors = [
-  "#FFABAB",
-  "#FFCC99",
-  "#FFFF99",
-  "#CCFFCC",
-  "#99CCFF",
-  "#CC99FF",
-  "#FF99CC",
-  "#99FFFF",
-]
 
 const getErrorMessage = (error: unknown) => {
   if (

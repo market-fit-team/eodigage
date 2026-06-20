@@ -65,10 +65,12 @@ describe("Header auth buttons", () => {
       }
     )
 
-    render(<HeaderAuthLogoutButton userName="홍길동" />)
+    render(<HeaderAuthLogoutButton avatarSeed="default" userName="홍길동" />)
 
-    await userEvent.click(screen.getByRole("button", { name: "로그아웃" }))
+    await userEvent.click(screen.getByRole("button", { name: "홍길동 메뉴" }))
     expect(signOutMock).not.toHaveBeenCalled()
+
+    await userEvent.click(screen.getByRole("menuitem", { name: "로그아웃" }))
 
     const alertDialog = screen.getByRole("alertdialog", {
       name: "로그아웃 하시겠습니까?",
@@ -115,6 +117,8 @@ describe("Header auth buttons", () => {
     useSessionMock.mockReturnValue({
       data: {
         user: {
+          avatarSeed: "default",
+          displayName: "홍길동",
           name: "홍길동",
         },
       },
@@ -123,7 +127,7 @@ describe("Header auth buttons", () => {
 
     render(<HeaderAuthButton />)
 
-    expect(screen.getByRole("button", { name: "로그아웃" })).toHaveAttribute(
+    expect(screen.getByRole("button", { name: "홍길동 메뉴" })).toHaveAttribute(
       "title",
       "홍길동"
     )
