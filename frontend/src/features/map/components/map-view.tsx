@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect } from "react"
+import { useEffect, useMemo } from "react"
 import { useSearchParams } from "next/navigation"
 import { Filter, MessageSquare } from "lucide-react"
 import { MapChatWidget } from "@/features/agent/components/map-chat-widget/map-chat-widget"
@@ -11,7 +11,11 @@ import {
   getInitialTradeAreaId,
   getPersistedPersona,
 } from "@/features/map/lib/get-initial-trade-area"
-import { getSelectedTradeArea } from "@/features/map/lib/map-selectors"
+import {
+  getRecommendedTradeAreaIds,
+  getSelectedTradeArea,
+  resolveRecommendedTradeAreaIds,
+} from "@/features/map/lib/map-selectors"
 import { useMapStore } from "@/features/map/store/map-store"
 import { Button } from "@/shared/components/ui/button"
 
@@ -20,6 +24,7 @@ import { Button } from "@/shared/components/ui/button"
 export function MapView() {
   const searchParams = useSearchParams()
   const personaQuery = searchParams.get("persona")
+  const activePersona = useMapStore((state) => state.activePersona)
   const isChatOpen = useMapStore((state) => state.isChatOpen)
   const isFilterOpen = useMapStore((state) => state.isFilterOpen)
   const closeChat = useMapStore((state) => state.closeChat)
@@ -34,6 +39,20 @@ export function MapView() {
     (state) => state.setSelectedTradeAreaId
   )
   const selectedTradeArea = getSelectedTradeArea(selectedTradeAreaId)
+  const onboardingTradeAreaIds = useMemo(
+    () => getRecommendedTradeAreaIds(activePersona),
+    [activePersona]
+  )
+  const recommendedTradeAreaIds = useMemo(
+    () =>
+      resolveRecommendedTradeAreaIds({
+        chatTradeAreaIds: null,
+        isChatPanelActive: isChatOpen,
+        onboardingTradeAreaIds,
+        surveyTradeAreaIds: null,
+      }),
+    [isChatOpen, onboardingTradeAreaIds]
+  )
 
   useEffect(() => {
     // 공유 링크에서는 라우트 쿼리가 저장된 온보딩 페르소나보다 우선한다.
@@ -82,7 +101,7 @@ export function MapView() {
 
       {/* 지도는 모든 패널 아래에 고정되는 배경 레이어다. */}
       <div className="absolute inset-0 z-0">
-        <CanvasWidget />
+        <CanvasWidget recommendedTradeAreaIds={recommendedTradeAreaIds} />
       </div>
 
       {/* 결과 도크는 왼쪽 사이드바 상태를 따라 겹치지 않게 배치한다. */}

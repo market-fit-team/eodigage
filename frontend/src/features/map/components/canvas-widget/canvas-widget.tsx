@@ -1,14 +1,17 @@
 "use client"
 
-import { useMemo, useRef } from "react"
+import { useRef } from "react"
 import { useDongPolygonMap } from "@/features/map/hooks/use-dong-polygon-map"
-import { getRecommendedTradeAreaIds } from "@/features/map/lib/map-selectors"
 import { useMapStore } from "@/features/map/store/map-store"
+import type { TradeAreaId } from "@/features/map/types/map"
 
 // CanvasWidget은 지도 표면을 렌더링하고 polygon 상호작용 상태만 스토어에 기록
 // 필터링/추천/선택 표시는 스토어 상태에서 파생, 지도 layer는 표시 역할
-export function CanvasWidget() {
-  const activePersona = useMapStore((state) => state.activePersona)
+type CanvasWidgetProps = {
+  recommendedTradeAreaIds: TradeAreaId[]
+}
+
+export function CanvasWidget({ recommendedTradeAreaIds }: CanvasWidgetProps) {
   const mapFocusRequest = useMapStore((state) => state.mapFocusRequest)
   const hoveredDongCode = useMapStore((state) => state.hoveredDongCode)
   const selectedDongCode = useMapStore((state) => state.selectedDongCode)
@@ -18,16 +21,12 @@ export function CanvasWidget() {
   const selectDong = useMapStore((state) => state.selectDong)
 
   const mapContainerRef = useRef<HTMLDivElement | null>(null)
-  const recommendedDongCodes = useMemo(
-    () => getRecommendedTradeAreaIds(activePersona),
-    [activePersona]
-  )
 
   useDongPolygonMap({
     containerRef: mapContainerRef,
     mapFocusRequest,
     hoveredDongCode,
-    recommendedDongCodes,
+    recommendedDongCodes: recommendedTradeAreaIds,
     selectedDongCode,
     clearPolygonHover,
     focusMapOnDong,
