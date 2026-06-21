@@ -1,11 +1,9 @@
 import { type RefObject, useEffect, useEffectEvent, useRef } from "react"
-import type { Map } from "maplibre-gl"
+import type { Map, PaddingOptions } from "maplibre-gl"
 import {
-  focusedAreaPadding,
   koreaInteractionBounds,
   maxMapZoom,
   minMapZoom,
-  overlayAwareViewportPadding,
   seoulViewportBounds,
 } from "@/features/map/lib/map-renderer/map-config"
 import { baseMapStyle } from "@/features/map/lib/map-renderer/map-style"
@@ -25,6 +23,7 @@ type UseDongPolygonMapInput = {
   mapFocusRequest: MapFocusRequest | null
   recommendedDongCodes: DongCode[]
   selectedDongCode: DongCode | null
+  viewportPadding: PaddingOptions
 } & DongPolygonMapActions
 
 export function useDongPolygonMap({
@@ -33,6 +32,7 @@ export function useDongPolygonMap({
   mapFocusRequest,
   recommendedDongCodes,
   selectedDongCode,
+  viewportPadding,
   clearPolygonHover,
   focusMapOnDong,
   hoverDong,
@@ -59,6 +59,22 @@ export function useDongPolygonMap({
       selectedDongCode,
     })
   })
+  const getCurrentViewportPadding = useEffectEvent(() => viewportPadding)
+  const focusRequestedDong = useEffectEvent((focusRequest: MapFocusRequest) => {
+    const map = mapRef.current
+    const focusedDong = getDongByCode(focusRequest.dongCode)
+
+    if (!map || !focusedDong) {
+      return
+    }
+
+    map.flyTo({
+      center: [focusedDong.centerLng, focusedDong.centerLat],
+      essential: true,
+      padding: viewportPadding,
+      zoom: 13,
+    })
+  })
 
   useEffect(() => {
     if (!containerRef.current || mapRef.current) {
@@ -82,7 +98,7 @@ export function useDongPolygonMap({
         bounds: seoulViewportBounds,
         container,
         fitBoundsOptions: {
-          padding: overlayAwareViewportPadding,
+          padding: getCurrentViewportPadding(),
         },
         localIdeographFontFamily: "sans-serif",
         maxBounds: koreaInteractionBounds,
@@ -163,17 +179,20 @@ export function useDongPolygonMap({
 
   useEffect(() => {
     const map = mapRef.current
-    const focusedDong = getDongByCode(mapFocusRequest?.dongCode ?? null)
 
-    if (!map || !focusedDong) {
+    if (!map) {
       return
     }
 
-    map.flyTo({
-      center: [focusedDong.centerLng, focusedDong.centerLat],
-      essential: true,
-      padding: focusedAreaPadding,
-      zoom: 13,
+    map.easeTo({
+      duration: 300,
+      padding: viewportPadding,
     })
+  }, [viewportPadding])
+
+  useEffect(() => {
+    if (mapFocusRequest) {
+      focusRequestedDong(mapFocusRequest)
+    }
   }, [mapFocusRequest])
 }

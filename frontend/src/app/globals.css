@@ -128,3 +128,13 @@
     @apply font-sans;
   }
 }
+
+[data-map-canvas-widget] .maplibregl-ctrl-bottom-right {
+  display: flex;
+  flex-direction: row;
+  align-items: flex-end;
+}
+
+[data-map-canvas-widget] .maplibregl-ctrl-attrib {
+  opacity: 0.6;
+}
