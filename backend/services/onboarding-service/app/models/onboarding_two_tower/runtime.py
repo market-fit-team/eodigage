@@ -2,11 +2,15 @@ from __future__ import annotations
 
 from typing import Any
 
-from app.models.onboarding_two_tower.contract import UserProfilePayload
+from app.models.onboarding_two_tower.user_profiles import (
+    USER_CONTROL_SPECS,
+    category_options,
+    load_user_profiles,
+)
 from app.models.onboarding_two_tower.predict import predict_with_runtime
 from app.models.onboarding_two_tower.train import load_model, train_and_save
-from app.models.onboarding_two_tower.user_profiles import USER_CONTROL_SPECS, load_user_profiles
 from app.models.item_catalog.features import build_item_features
+from app.two_tower.contracts import UserProfilePayload
 
 _RUNTIME_MODEL: Any | None = None
 _RUNTIME_METADATA: dict[str, Any] | None = None
@@ -40,11 +44,6 @@ def evaluation_payload() -> dict[str, Any]:
 def catalog_payload() -> dict[str, Any]:
     _, metadata = get_runtime()
     items = build_item_features(data_mode="sample").copy()
-    category_rows = (
-        items[["service_category_code", "service_category_name"]]
-        .drop_duplicates()
-        .sort_values(["service_category_name", "service_category_code"])
-    )
     item_preview = (
         items.sort_values(["sales_amount", "subway_commercial_trend_score"], ascending=[False, False])
         .head(8)[
@@ -63,13 +62,7 @@ def catalog_payload() -> dict[str, Any]:
     return {
         "model_id": metadata["model_id"],
         "feature_controls": USER_CONTROL_SPECS,
-        "category_options": [
-            {
-                "code": row["service_category_code"],
-                "label": row["service_category_name"],
-            }
-            for _, row in category_rows.iterrows()
-        ],
+        "category_options": category_options(),
         "sample_profiles": _sample_profiles(),
         "item_preview": item_preview,
         "evaluation": metadata,

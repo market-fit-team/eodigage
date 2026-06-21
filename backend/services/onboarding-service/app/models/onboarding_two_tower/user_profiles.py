@@ -9,6 +9,16 @@ import pandas as pd
 SERVICE_ROOT = Path(__file__).resolve().parents[3]
 SAMPLE_USER_PROFILES = SERVICE_ROOT / ".sample" / "user_tower_profiles.sample.jsonl"
 
+CATEGORY_OPTIONS: list[dict[str, str]] = [
+    {"code": "CS100001", "label": "한식음식점"},
+    {"code": "CS100003", "label": "일식음식점"},
+    {"code": "CS100004", "label": "양식음식점"},
+    {"code": "CS100005", "label": "제과점"},
+    {"code": "CS100007", "label": "치킨전문점"},
+]
+
+CATEGORY_LABEL_BY_CODE = {option["code"]: option["label"] for option in CATEGORY_OPTIONS}
+
 DEFAULT_USER_PROFILES: list[dict[str, Any]] = [
     {
         "user_id": "profile_urban_evening_growth",
@@ -173,6 +183,10 @@ USER_CONTROL_SPECS = [
         "maximum": 5,
     },
 ]
+
+
+def category_options() -> list[dict[str, str]]:
+    return [option.copy() for option in CATEGORY_OPTIONS]
 
 
 def ensure_sample_user_profiles(path: Path = SAMPLE_USER_PROFILES) -> Path:

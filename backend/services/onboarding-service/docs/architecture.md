@@ -1,61 +1,108 @@
 # onboarding-service
 
-`app/main.py`는 FastAPI 앱을 만들고 `/health`, `/two-tower/*` 라우트를 붙인다.
+`app/main.py`는 앱 부팅 시 DB 스키마를 준비하고, FastAPI 라우터를 `/two-tower/*` 경로로 연다.
 
 ```text
 app.main:app
+-> app.db.session.prepare_database()
 -> app.api.routes.router
+-> app.two_tower.service
 -> app.models.onboarding_two_tower.runtime
--> app.models.onboarding_two_tower.train / predict
 ```
 
 브라우저 예제 화면은 Traefik 경유로 `http://localhost:8088/api/onboarding`를 호출한다.
 
-## /two-tower/catalog
+## app/db
 
-`/two-tower/catalog`은 프론트 예제 화면이 처음 들어올 때 필요한 초기 데이터를 한 번에 준다.
+`app/db/models.py`는 유저 타워 현재 상태와 추천 캐시를 나눠 저장한다.
 
 ```text
-feature_controls
-+ category_options
-+ sample_profiles
-+ item_preview
-+ evaluation
+user_tower_profiles
++ auth_user_uuid unique
++ profile_code indexed
++ preferred_category_code
++ budget_level ... competition_tolerance_level
++ raw_answers json
 ```
 
-응답 shape:
-
-```json
-{
-  "model_id": "onboarding_two_tower",
-  "feature_controls": [
-    {
-      "name": "budget_level",
-      "label": "예산 허용치",
-      "minimum": 1,
-      "maximum": 5
-    }
-  ],
-  "sample_profiles": [
-    {
-      "user_id": "profile_safe_residential_bakery",
-      "preferred_category_code": "CS100005",
-      "budget_level": 2
-    }
-  ]
-}
+```text
+user_tower_prediction_cache
++ profile_code
++ model_signature
++ top_k
++ prediction_json
 ```
+
+`auth_user_uuid`는 인증 서버 JWT의 `user_profile.uuid`를 그대로 받는다.
+
+## app/two_tower/codecs.py
+
+`app/two_tower/codecs.py`는 현재 유저 타워 점수를 9글자 base36 공유 코드로 바꾼다.
+
+```text
+r + version(1) + category(1) + score_group_1(2) + score_group_2(2) + score_group_3(2)
+```
+
+점수 그룹은 아래 순서대로 3개씩 묶는다.
+
+```text
+group_1
++ budget_level
++ stability_level
++ subway_dependency_level
+```
+
+```text
+group_2
++ weekend_preference_level
++ evening_preference_level
++ resident_focus_level
+```
+
+```text
+group_3
++ worker_focus_level
++ rent_sensitivity_level
++ competition_tolerance_level
+```
+
+`decode_profile_code()`는 공유 코드만으로 다시 `UserProfilePayload`를 복원한다.
+
+## app/two_tower/service.py
+
+`app/two_tower/service.py`는 프론트가 직접 쓰는 경로를 묶는다.
+
+```text
+get_catalog_response()
+resolve_prediction_response()
+get_saved_profile_response()
+upsert_saved_profile_response()
+resolve_shared_profile_response()
+```
+
+`resolve_prediction_response()`는 아래 순서로 동작한다.
+
+```text
+user_profile
+-> encode_profile_code()
+-> evaluation_payload()
+-> model_signature = model_id:trained_at
+-> prediction cache hit 확인
+-> miss 면 runtime predict 후 DB 캐시 저장
+```
+
+같은 점수 조합과 같은 학습 버전이면 이후 응답은 `prediction_json` 재사용으로 끝난다.
 
 ## /two-tower/predict
 
-`/two-tower/predict`는 프론트에서 조정한 유저 타워 값을 바로 받아 추천을 다시 계산한다.
+`/two-tower/predict`는 저장 없이 현재 점수 조합의 추천만 바로 계산한다.
 
 ```json
 {
   "top_k": 5,
   "user_profile": {
     "user_id": "demo-user",
-    "profile_name": "수동 조정",
+    "profile_name": "사용자 조정 프로필",
     "preferred_category_code": "CS100005",
     "budget_level": 2,
     "stability_level": 5,
@@ -70,107 +117,105 @@ feature_controls
 }
 ```
 
-응답은 `trained_at`, `user_profile`, `recommendations`를 돌려준다.
+응답에는 추천 결과 외에 `profile_code`, `share_path`, `share_url`, `model_signature`가 같이 들어간다.
+
+## /two-tower/profiles/users/{auth_user_uuid}
+
+`PUT /two-tower/profiles/users/{auth_user_uuid}`는 현재 점수 조합을 사용자 현재 상태로 저장한다.
+
+`GET /two-tower/profiles/users/{auth_user_uuid}`는 가장 최근 저장된 현재 상태를 다시 읽는다.
+
+```text
+JWT user_profile.uuid
+-> user_tower_profiles.auth_user_uuid
+-> current profile row
+-> prediction cache lookup
+```
+
+## /two-tower/profiles/code/{profile_code}
+
+`GET /two-tower/profiles/code/{profile_code}`는 DB에서 사용자 row를 찾지 않는다.
+
+```text
+profile_code
+-> decode_profile_code()
+-> prediction cache lookup
+-> miss 면 runtime predict
+```
+
+이 경로는 공유 URL 진입 화면 `frontend/src/app/example/two-tower/[base36]/page.tsx`가 그대로 사용한다.
 
 ## app/models/onboarding_two_tower
 
-`app/models/onboarding_two_tower/train.py`는 TensorFlow Recommenders retrieval 모델을 학습한다.
+`app/models/onboarding_two_tower/train.py`는 현재 retrieval 모델을 학습한다.
+
+지금은 사용자 식별자 `user_id`를 모델 입력에서 빼고 아래 피처만 사용한다.
 
 ```text
 user tower
--> preferred_category_code
--> budget_level
--> stability_level
--> subway_dependency_level
--> weekend_preference_level
--> evening_preference_level
--> resident_focus_level
--> worker_focus_level
--> rent_sensitivity_level
--> competition_tolerance_level
++ preferred_category_code
++ budget_level
++ stability_level
++ subway_dependency_level
++ weekend_preference_level
++ evening_preference_level
++ resident_focus_level
++ worker_focus_level
++ rent_sensitivity_level
++ competition_tolerance_level
 ```
 
 ```text
 item tower
--> item_id
--> area_code
--> service_category_code
--> subway_coverage_level
--> area_profile_type
--> sales_amount
--> weekend_sales_ratio
--> evening_sales_ratio
--> subway_commercial_trend_score
--> category_opportunity_score
--> demand_gap_score
--> resident_population
--> worker_population
--> living_population
++ item_id
++ area_code
++ service_category_code
++ subway_coverage_level
++ area_profile_type
++ sales_amount
++ weekend_sales_ratio
++ evening_sales_ratio
++ subway_commercial_trend_score
++ category_opportunity_score
++ demand_gap_score
++ resident_population
++ worker_population
++ living_population
 ```
 
-`user_profiles.py`는 샘플 프로필과 UI 조정 슬라이더 정의를 같이 가진다.
+## frontend/src/app/example/two-tower
+
+예제 화면은 아래 두 경로로 나뉜다.
 
 ```text
-DEFAULT_USER_PROFILES
-USER_CONTROL_SPECS
-build_user_item_labels()
+src/app/example/two-tower/page.tsx
+-> 저장 가능한 기본 콘솔
 ```
-
-`runtime.py`는 현재 프로세스 안에 로드된 모델과 metadata를 캐시한다.
 
 ```text
-get_runtime()
-train_runtime()
-catalog_payload()
-predict_payload()
+src/app/example/two-tower/[base36]/page.tsx
+-> 공유 코드 진입 화면
+-> base36 값이 바뀌면 같은 클라이언트 컴포넌트에서 URL도 교체
 ```
 
-## .sample
-
-`.sample/`에는 아이템 타워용 상권 샘플 CSV와 유저 프로필 JSONL이 들어있다.
-
-```text
-.sample/estimated_sales_hdong_2025.sample.csv
-.sample/subway_station_hourly_ridership.sample.csv
-.sample/resident_population_hdong.sample.csv
-.sample/working_population_hdong.sample.csv
-.sample/living_population_hdong_domestic.sample.csv
-.sample/user_tower_profiles.sample.jsonl
-```
-
-`app/models/item_catalog/features.py`는 이 파일들을 합쳐 `행정동-업종` 후보 catalog를 만든다.
-
-## docker-compose.yml
-
-루트 `docker-compose.yml`에는 `onboarding-service`가 `/api/onboarding` 경로로 붙어 있다.
-
-```text
-http://localhost:8088/api/onboarding/health
-http://localhost:8088/api/onboarding/two-tower/catalog
-http://localhost:8088/api/onboarding/two-tower/predict
-http://localhost:8088/api/onboarding/openapi.json
-```
-
-학습 artifact는 바인드 마운트로 호스트에 남긴다.
-
-```text
-./backend/services/onboarding-service/.artifacts
--> /app/.artifacts
-```
+실제 UI와 fetch 로직은 `_components/two-tower-client.tsx`와 `_components/two-tower-api.ts`에 있다.
 
 ## 주요 파일
 
 - `app/main.py`
 - `app/api/routes.py`
-- `app/models/onboarding_two_tower/contract.py`
-- `app/models/onboarding_two_tower/runtime.py`
+- `app/db/models.py`
+- `app/db/session.py`
+- `app/two_tower/contracts.py`
+- `app/two_tower/codecs.py`
+- `app/two_tower/service.py`
 - `app/models/onboarding_two_tower/train.py`
-- `app/models/onboarding_two_tower/predict.py`
-- `app/models/item_catalog/features.py`
-- `Dockerfile`
+- `app/models/onboarding_two_tower/runtime.py`
+- `../../frontend/src/app/example/two-tower/_components/two-tower-client.tsx`
 
 ## 참고 문서
 
-- FastAPI: `https://fastapi.tiangolo.com/`
-- TensorFlow Recommenders: `https://www.tensorflow.org/recommenders`
-- TensorFlow Recommenders Basic Retrieval: `https://www.tensorflow.org/recommenders/examples/basic_retrieval`
+- FastAPI SQL Databases: `https://fastapi.tiangolo.com/tutorial/sql-databases/`
+- FastAPI async: `https://fastapi.tiangolo.com/async/`
+- SQLAlchemy asyncio: `https://docs.sqlalchemy.org/en/latest/orm/extensions/asyncio.html`
+- Next.js Dynamic Segments: `https://nextjs.org/docs/app/api-reference/file-conventions/dynamic-routes`

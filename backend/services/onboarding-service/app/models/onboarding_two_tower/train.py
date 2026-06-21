@@ -23,7 +23,7 @@ from app.models.item_catalog.features import build_item_features
 SERVICE_ROOT = Path(__file__).resolve().parents[3]
 ARTIFACT_DIR = SERVICE_ROOT / ".artifacts" / "onboarding_two_tower"
 SEED = 42
-USER_STRING_FEATURES = ["user_id", "preferred_category_code"]
+USER_STRING_FEATURES = ["preferred_category_code"]
 ITEM_STRING_FEATURES = [
     "item_id",
     "area_code",

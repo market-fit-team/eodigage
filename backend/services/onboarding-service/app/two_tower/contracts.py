@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Any
+from typing import Any, Literal
 
 from pydantic import BaseModel, Field
 
@@ -26,6 +26,19 @@ class TrainRequest(BaseModel):
 
 class PredictRequest(BaseModel):
     top_k: int = Field(default=5, ge=1, le=10, description="반환할 추천 개수")
+    user_profile: UserProfilePayload
+
+
+class SaveUserTowerProfileRequest(BaseModel):
+    top_k: int = Field(default=5, ge=1, le=10, description="캐시와 응답에 사용할 추천 개수")
+    source: Literal["manual", "preset", "survey", "shared_url"] = Field(
+        default="manual",
+        description="현재 프로필이 만들어진 경로",
+    )
+    raw_answers: dict[str, Any] | None = Field(
+        default=None,
+        description="설문 원문 응답을 그대로 보관할 때 사용하는 JSON",
+    )
     user_profile: UserProfilePayload
 
 
@@ -76,35 +89,11 @@ class EvaluationResponse(BaseModel):
     item_string_features: list[str]
     item_numeric_features: list[str]
 
-    model_config = {
-        "json_schema_extra": {
-            "example": {
-                "model_id": "onboarding_two_tower",
-                "trained_at": "2026-06-21T06:17:40.253934+00:00",
-                "epochs": 2,
-                "rows": 14,
-                "user_count": 6,
-                "item_count": 5,
-                "embedding_dim": 32,
-                "final_loss": 11.0756,
-                "hit_rate_at_3": 1.0,
-                "mrr": 1.0,
-                "artifact_paths": {
-                    "user_tower": ".artifacts/onboarding_two_tower/user_tower.weights.h5",
-                    "item_tower": ".artifacts/onboarding_two_tower/item_tower.weights.h5",
-                    "item_embeddings": ".artifacts/onboarding_two_tower/item_embeddings.csv",
-                },
-                "user_string_features": ["user_id", "preferred_category_code"],
-                "user_numeric_features": ["budget_level", "stability_level"],
-                "item_string_features": ["item_id", "area_code"],
-                "item_numeric_features": ["sales_amount", "weekend_sales_ratio"],
-            }
-        }
-    }
-
 
 class CatalogResponse(BaseModel):
     model_id: str
+    profile_code_prefix: str
+    profile_schema_version: int
     feature_controls: list[FeatureControl]
     category_options: list[CategoryOption]
     sample_profiles: list[UserProfilePayload]
@@ -114,47 +103,28 @@ class CatalogResponse(BaseModel):
 
 class PredictResponse(BaseModel):
     trained_at: str
+    model_signature: str
     top_k: int
+    profile_code: str
+    profile_schema_version: int
+    share_path: str
+    share_url: str
     user_profile: UserProfilePayload
     recommendations: list[RecommendationItem]
 
-    model_config = {
-        "json_schema_extra": {
-            "example": {
-                "trained_at": "2026-06-21T06:17:40.253934+00:00",
-                "top_k": 5,
-                "user_profile": {
-                    "user_id": "demo-user",
-                    "profile_name": "수동 조정",
-                    "preferred_category_code": "CS100005",
-                    "budget_level": 2,
-                    "stability_level": 5,
-                    "subway_dependency_level": 2,
-                    "weekend_preference_level": 3,
-                    "evening_preference_level": 2,
-                    "resident_focus_level": 5,
-                    "worker_focus_level": 1,
-                    "rent_sensitivity_level": 5,
-                    "competition_tolerance_level": 1,
-                },
-                "recommendations": [
-                    {
-                        "rank": 1,
-                        "score": -0.400037,
-                        "item_id": "11110515:CS100005",
-                        "area_name": "청운효자동",
-                        "service_category_name": "제과점",
-                        "area_profile_type": "residential",
-                        "sales_amount": 451701842.0,
-                        "weekend_sales_ratio": 0.379,
-                        "evening_sales_ratio": 0.2625,
-                        "resident_population": 8417,
-                        "worker_population": 6095,
-                        "subway_commercial_trend_score": 0.4338,
-                        "category_opportunity_score": 0.4231,
-                        "demand_gap_score": 0.6209,
-                    }
-                ],
-            }
-        }
-    }
+
+class StoredUserTowerProfile(BaseModel):
+    auth_user_uuid: str | None
+    profile_code: str
+    profile_schema_version: int
+    share_path: str
+    share_url: str
+    source: str
+    updated_at: str | None
+    raw_answers: dict[str, Any] | None = None
+    user_profile: UserProfilePayload
+
+
+class ResolvedProfileResponse(BaseModel):
+    profile: StoredUserTowerProfile
+    prediction: PredictResponse
