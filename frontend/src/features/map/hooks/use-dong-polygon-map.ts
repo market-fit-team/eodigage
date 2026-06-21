@@ -34,6 +34,7 @@ export function useDongPolygonMap({
   recommendedDongCodes,
   selectedDongCode,
   clearPolygonHover,
+  focusMapOnDong,
   hoverDong,
   selectDong,
 }: UseDongPolygonMapInput) {
@@ -43,6 +44,9 @@ export function useDongPolygonMap({
   })
   const onHoverDong = useEffectEvent((code: DongCode | null) => {
     hoverDong(code)
+  })
+  const onFocusMapOnDong = useEffectEvent((code: DongCode) => {
+    focusMapOnDong(code)
   })
   const onSelectDong = useEffectEvent((code: DongCode | null) => {
     selectDong(code)
@@ -114,6 +118,7 @@ export function useDongPolygonMap({
         addDongPolygonLayers(map)
         bindDongPolygonEvents({
           clearPolygonHover: onClearPolygonHover,
+          focusMapOnDong: onFocusMapOnDong,
           hoverDong: onHoverDong,
           map,
           selectDong: onSelectDong,

@@ -25,6 +25,7 @@ import type { DongCode } from "@/features/map/types/map"
 
 export type DongPolygonMapActions = {
   clearPolygonHover: () => void
+  focusMapOnDong: (dongCode: DongCode) => void
   hoverDong: (hoveredDongCode: DongCode | null) => void
   selectDong: (selectedDongCode: DongCode | null) => void
 }
@@ -88,6 +89,7 @@ type BindDongPolygonEventsInput = DongPolygonMapActions & {
 
 export const bindDongPolygonEvents = ({
   clearPolygonHover,
+  focusMapOnDong,
   hoverDong,
   map,
   selectDong,
@@ -116,6 +118,7 @@ export const bindDongPolygonEvents = ({
     }
 
     selectDong(code)
+    focusMapOnDong(code)
   })
 }
 

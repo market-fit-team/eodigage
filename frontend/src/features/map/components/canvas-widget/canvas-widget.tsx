@@ -13,6 +13,7 @@ export function CanvasWidget() {
   const hoveredDongCode = useMapStore((state) => state.hoveredDongCode)
   const selectedDongCode = useMapStore((state) => state.selectedDongCode)
   const clearPolygonHover = useMapStore((state) => state.clearPolygonHover)
+  const focusMapOnDong = useMapStore((state) => state.focusMapOnDong)
   const hoverDong = useMapStore((state) => state.hoverDong)
   const selectDong = useMapStore((state) => state.selectDong)
 
@@ -29,6 +30,7 @@ export function CanvasWidget() {
     recommendedDongCodes,
     selectedDongCode,
     clearPolygonHover,
+    focusMapOnDong,
     hoverDong,
     selectDong,
   })

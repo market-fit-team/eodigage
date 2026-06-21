@@ -24,7 +24,7 @@ export const overlayAwareViewportPadding = {
 export const focusedAreaPadding = {
   bottom: 96,
   left: 96,
-  right: 340,
+  right: 96,
   top: 96,
 }
 
