@@ -1,6 +1,6 @@
 "use client"
 
-import { getFilteredTradeAreas } from "@/features/map/lib/map-selectors"
+import { useFilteredRecommendedAreas } from "@/features/map/hooks/use-filtered-recommended-areas"
 import { useMapStore } from "@/features/map/store/map-store"
 import { Button } from "@/shared/components/ui/button"
 import { Card, CardContent } from "@/shared/components/ui/card"
@@ -12,9 +12,7 @@ import {
 // FilterWidget은 MapView 상단의 가로 검색 바를 소유한다.
 // 추천 목록을 좁히는 2차 검색이며, 바가 어디에 배치되는지는 알지 않는다.
 export function FilterWidget() {
-  const activePersona = useMapStore((state) => state.activePersona)
   const budgetRange = useMapStore((state) => state.budgetRange)
-  const recommendationsOnly = useMapStore((state) => state.recommendationsOnly)
   const resetFilters = useMapStore((state) => state.resetFilters)
   const selectedCategory = useMapStore((state) => state.selectedCategory)
   const setBudgetRange = useMapStore((state) => state.setBudgetRange)
@@ -24,13 +22,8 @@ export function FilterWidget() {
   )
   const targetDemographic = useMapStore((state) => state.targetDemographic)
 
-  const filteredTradeAreas = getFilteredTradeAreas({
-    activePersona,
-    budgetRange,
-    recommendationsOnly,
-    selectedCategory,
-    targetDemographic,
-  })
+  // 카운트는 추천 목록과 동일한 필터 결과를 보여준다.
+  const filteredRecommendedAreas = useFilteredRecommendedAreas()
 
   return (
     <Card className="overflow-hidden bg-card/30 py-0 backdrop-blur-sm">
@@ -92,7 +85,7 @@ export function FilterWidget() {
         </NativeSelect>
 
         <div className="ml-auto flex shrink-0 items-center gap-3 text-muted-foreground">
-          <span>{filteredTradeAreas.length}개 지역</span>
+          <span>{filteredRecommendedAreas.length}개 지역</span>
           <Button
             type="button"
             variant="ghost"
