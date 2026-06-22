@@ -1,14 +1,11 @@
 "use client"
 
-import { useEffect } from "react"
-import { useSearchParams } from "next/navigation"
 import { PanelLeftOpen } from "lucide-react"
 import { CanvasWidget } from "@/features/map/components/canvas-widget/canvas-widget"
 import { DetailWidget } from "@/features/map/components/detail-widget/detail-widget"
 import { ExploreWidget } from "@/features/map/components/explore-widget/explore-widget"
 import { FilterWidget } from "@/features/map/components/filter-widget/filter-widget"
 import { useRecommendedAreas } from "@/features/map/hooks/use-recommended-areas"
-import { getPersistedPersona } from "@/features/map/lib/get-initial-trade-area"
 import { getSelectedTradeArea } from "@/features/map/lib/map-selectors"
 import { useMapStore } from "@/features/map/store/map-store"
 import { Button } from "@/shared/components/ui/button"
@@ -16,32 +13,11 @@ import { Button } from "@/shared/components/ui/button"
 // MapView는 지도 페이지 프레임을 소유한다.
 // 상단 필터 바, 왼쪽 추천/채팅 패널, 중앙 지도, 오른쪽 상세 패널 배치를 여기서 결정한다.
 export function MapView() {
-  const searchParams = useSearchParams()
-  const personaQuery = searchParams.get("persona")
   const isLeftPanelOpen = useMapStore((state) => state.isLeftPanelOpen)
   const openLeftPanel = useMapStore((state) => state.openLeftPanel)
   const selectedDongCode = useMapStore((state) => state.selectedDongCode)
-  const selectDong = useMapStore((state) => state.selectDong)
-  const setActivePersona = useMapStore((state) => state.setActivePersona)
-  const setRecommendationsOnly = useMapStore(
-    (state) => state.setRecommendationsOnly
-  )
   const selectedTradeArea = getSelectedTradeArea(selectedDongCode)
   const hasRecommendations = useRecommendedAreas().length > 0
-
-  useEffect(() => {
-    const nextPersona = personaQuery || getPersistedPersona()
-    selectDong(null)
-
-    if (nextPersona) {
-      setActivePersona(nextPersona)
-      setRecommendationsOnly(true)
-      return
-    }
-
-    setActivePersona(null)
-    setRecommendationsOnly(false)
-  }, [personaQuery, selectDong, setActivePersona, setRecommendationsOnly])
 
   return (
     <div className="relative flex h-[calc(100vh-64px)] flex-1 overflow-hidden bg-muted/40">

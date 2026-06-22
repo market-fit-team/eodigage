@@ -4,20 +4,18 @@ import type {
   TargetDemographic,
   TradeAreaId,
 } from "@/features/map/types/map"
-import { districtsData, personaResults } from "@/features/startup/lib/data"
+import { districtsData } from "@/features/startup/lib/data"
 
 type FilteredTradeAreaInput = {
-  activePersona: string | null
   budgetRange: BudgetRange
-  recommendationsOnly: boolean
   selectedCategory: string
   targetDemographic: TargetDemographic
 }
 
 type ResolveRecommendedTradeAreaIdsInput = {
-  chatTradeAreaIds: TradeAreaId[] | null
-  isChatPanelActive: boolean
+  chatRecommendedTradeAreaIds: TradeAreaId[] | null
   onboardingTradeAreaIds: TradeAreaId[] | null
+  shouldUseChatRecommendations: boolean
   surveyTradeAreaIds: TradeAreaId[] | null
 }
 
@@ -27,9 +25,7 @@ export const getSelectedTradeArea = (selectedDongCode: DongCode | null) =>
   districtsData.find((district) => district.id === selectedDongCode) ?? null
 
 export const getFilteredTradeAreas = ({
-  activePersona,
   budgetRange,
-  recommendationsOnly,
   selectedCategory,
   targetDemographic,
 }: FilteredTradeAreaInput) =>
@@ -76,37 +72,21 @@ export const getFilteredTradeAreas = ({
       }
     }
 
-    if (recommendationsOnly && activePersona) {
-      const personaInfo = personaResults[activePersona]
-
-      if (
-        personaInfo &&
-        !personaInfo.recommendedDistricts.includes(district.id)
-      ) {
-        return false
-      }
-    }
-
     return true
   })
 
 export const getFilteredTradeAreaIds = (input: FilteredTradeAreaInput) =>
   new Set(getFilteredTradeAreas(input).map((district) => district.id))
 
-export const getRecommendedTradeAreaIds = (activePersona: string | null) =>
-  activePersona
-    ? (personaResults[activePersona]?.recommendedDistricts ?? [])
-    : []
-
 export const resolveRecommendedTradeAreaIds = ({
-  chatTradeAreaIds,
-  isChatPanelActive,
+  chatRecommendedTradeAreaIds,
   onboardingTradeAreaIds,
+  shouldUseChatRecommendations,
   surveyTradeAreaIds,
 }: ResolveRecommendedTradeAreaIdsInput) => {
   const baseTradeAreaIds = surveyTradeAreaIds ?? onboardingTradeAreaIds ?? []
 
-  return isChatPanelActive
-    ? (chatTradeAreaIds ?? baseTradeAreaIds)
+  return shouldUseChatRecommendations
+    ? (chatRecommendedTradeAreaIds ?? baseTradeAreaIds)
     : baseTradeAreaIds
 }
