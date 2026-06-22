@@ -4,6 +4,7 @@ import { Suspense, useMemo, useState, useTransition } from "react"
 import { OnboardingResultPredictionPanelQuery } from "@/features/onboarding/components/result/onboarding-result-prediction-panel-query"
 import { OnboardingResultPredictionPanelSkeleton } from "@/features/onboarding/components/result/onboarding-result-prediction-panel-skeleton"
 import type { OnboardingCategoryRecommendation } from "@/features/onboarding/types/onboarding"
+import { ClientOnly } from "@/shared/components/client-only"
 import { Badge } from "@/shared/components/ui/badge"
 import { Card, CardContent } from "@/shared/components/ui/card"
 import {
@@ -161,23 +162,29 @@ export function OnboardingResultCategoryExplorer({
                 )
               })}
             </CarouselContent>
-            <CarouselPrevious className="-left-10" />
-            <CarouselNext className="-right-10" />
+            <CarouselPrevious
+              size="icon-lg"
+              className="z-10 -left-10 size-10"
+            />
+            <CarouselNext
+              size="icon-lg"
+              className="z-10 -right-10 size-10"
+            />
           </Carousel>
         </div>
       </div>
 
       <div className="space-y-4">
-        <Suspense
-          key={selectedCategory.service_category_code}
-          fallback={<OnboardingResultPredictionPanelSkeleton />}
-        >
-          <OnboardingResultPredictionPanelQuery
-            resultCode={resultCode}
-            selectedCategoryCode={selectedCategory.service_category_code}
-            selectedCategoryName={selectedCategory.service_category_name}
-          />
-        </Suspense>
+        <ClientOnly fallback={<OnboardingResultPredictionPanelSkeleton />}>
+          <Suspense fallback={<OnboardingResultPredictionPanelSkeleton />}>
+            <OnboardingResultPredictionPanelQuery
+              key={selectedCategory.service_category_code}
+              resultCode={resultCode}
+              selectedCategoryCode={selectedCategory.service_category_code}
+              selectedCategoryName={selectedCategory.service_category_name}
+            />
+          </Suspense>
+        </ClientOnly>
       </div>
     </div>
   )
