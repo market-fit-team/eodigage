@@ -2,7 +2,7 @@ import type { DistrictData } from "@/features/startup/lib/data"
 
 export type TradeAreaId = DistrictData["id"]
 
-export type MapTab = "sectors" | "demographics" | "traffic"
+export type MapTab = "franchises" | "sales"
 
 export type BudgetRange = "all" | "low" | "high"
 

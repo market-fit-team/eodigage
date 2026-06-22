@@ -2,7 +2,6 @@ import type {
   BudgetRange,
   DongCode,
   TargetDemographic,
-  TradeAreaId,
 } from "@/features/map/types/map"
 import { districtsData } from "@/features/startup/lib/data"
 
@@ -10,13 +9,6 @@ type FilteredTradeAreaInput = {
   budgetRange: BudgetRange
   selectedCategory: string
   targetDemographic: TargetDemographic
-}
-
-type ResolveRecommendedTradeAreaIdsInput = {
-  chatRecommendedTradeAreaIds: TradeAreaId[] | null
-  onboardingTradeAreaIds: TradeAreaId[] | null
-  shouldUseChatRecommendations: boolean
-  surveyTradeAreaIds: TradeAreaId[] | null
 }
 
 // 선택자 유틸은 필터링 규칙이 위젯과 스토어 조각에 흩어지지 않게 한다.
@@ -77,16 +69,3 @@ export const getFilteredTradeAreas = ({
 
 export const getFilteredTradeAreaIds = (input: FilteredTradeAreaInput) =>
   new Set(getFilteredTradeAreas(input).map((district) => district.id))
-
-export const resolveRecommendedTradeAreaIds = ({
-  chatRecommendedTradeAreaIds,
-  onboardingTradeAreaIds,
-  shouldUseChatRecommendations,
-  surveyTradeAreaIds,
-}: ResolveRecommendedTradeAreaIdsInput) => {
-  const baseTradeAreaIds = surveyTradeAreaIds ?? onboardingTradeAreaIds ?? []
-
-  return shouldUseChatRecommendations
-    ? (chatRecommendedTradeAreaIds ?? baseTradeAreaIds)
-    : baseTradeAreaIds
-}

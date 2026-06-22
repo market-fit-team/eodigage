@@ -2,7 +2,7 @@
 
 import { useRouter } from "next/navigation"
 import { FileText } from "lucide-react"
-import { DetailInsights } from "@/features/map/components/detail/detail-insights"
+import { DetailPreviewTabs } from "@/features/map/components/detail/detail-preview-tabs"
 import { DetailSummary } from "@/features/map/components/detail/detail-summary"
 import { getSelectedTradeArea } from "@/features/map/lib/map-selectors"
 import { useMapStore } from "@/features/map/store/map-store"
@@ -12,10 +12,8 @@ import { Card, CardContent } from "@/shared/components/ui/card"
 // Detail은 선택된 상권 상세 패널의 상태와 화면 이동을 조정한다.
 export function Detail() {
   const router = useRouter()
-  const activeResultTab = useMapStore((state) => state.activeResultTab)
   const selectedDongCode = useMapStore((state) => state.selectedDongCode)
   const selectDong = useMapStore((state) => state.selectDong)
-  const setActiveResultTab = useMapStore((state) => state.setActiveResultTab)
   const selectedTradeArea = getSelectedTradeArea(selectedDongCode)
 
   if (!selectedTradeArea) {
@@ -31,11 +29,7 @@ export function Detail() {
             onClose={() => selectDong(null)}
           />
           <div className="mt-5">
-            <DetailInsights
-              activeTab={activeResultTab}
-              tradeArea={selectedTradeArea}
-              onTabChange={setActiveResultTab}
-            />
+            <DetailPreviewTabs tradeArea={selectedTradeArea} />
           </div>
         </div>
 
