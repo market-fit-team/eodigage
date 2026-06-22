@@ -2,14 +2,14 @@
 
 import { useMemo, useRef } from "react"
 import { useDongPolygonMap } from "@/features/map/hooks/use-dong-polygon-map"
-import { useRecommendedAreas } from "@/features/map/hooks/use-recommended-areas"
+import { useFilteredRecommendedAreas } from "@/features/map/hooks/use-filtered-recommended-areas"
 import { getMapViewportPadding } from "@/features/map/lib/map-renderer/map-config"
 import { useMapStore } from "@/features/map/store/map-store"
 
 // Canvas는 지도 표면을 렌더링하고 polygon 상호작용 상태만 스토어에 기록
 // 필터링/추천/선택 표시는 스토어 상태에서 파생, 지도 layer는 표시 역할
 export function Canvas() {
-  const recommendedTradeAreaIds = useRecommendedAreas()
+  const filteredRecommendedAreas = useFilteredRecommendedAreas()
   const isLeftPanelOpen = useMapStore((state) => state.isLeftPanelOpen)
   const mapFocusRequest = useMapStore((state) => state.mapFocusRequest)
   const hoveredDongCode = useMapStore((state) => state.hoveredDongCode)
@@ -20,6 +20,10 @@ export function Canvas() {
   const selectDong = useMapStore((state) => state.selectDong)
 
   const mapContainerRef = useRef<HTMLDivElement | null>(null)
+  const recommendedDongCodes = useMemo(
+    () => filteredRecommendedAreas.map((tradeArea) => tradeArea.id),
+    [filteredRecommendedAreas]
+  )
   const viewportPadding = useMemo(
     () =>
       getMapViewportPadding({
@@ -33,7 +37,7 @@ export function Canvas() {
     containerRef: mapContainerRef,
     mapFocusRequest,
     hoveredDongCode,
-    recommendedDongCodes: recommendedTradeAreaIds,
+    recommendedDongCodes,
     selectedDongCode,
     viewportPadding,
     clearPolygonHover,
