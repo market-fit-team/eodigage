@@ -55,7 +55,7 @@ class CategoryUserProfilePayload(BaseModel):
 
 class CategoryRecommendation(BaseModel):
     rank: int
-    score: float = Field(ge=0, le=1)
+    score: float = Field(ge=0, le=1, description="후보 집합과 무관하게 0~1 범위로 보정한 업종 추천 점수")
     service_category_code: str
     service_category_name: str
     category_group: str

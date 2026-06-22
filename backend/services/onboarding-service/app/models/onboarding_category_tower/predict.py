@@ -24,12 +24,10 @@ from app.models.onboarding_category_tower.train import (
 from app.models.onboarding_category_tower.user_profiles import sample_user_profiles
 
 
-def _normalize_scores(scores: np.ndarray) -> np.ndarray:
-    minimum = float(np.min(scores))
-    maximum = float(np.max(scores))
-    if maximum == minimum:
-        return np.ones_like(scores, dtype=np.float32)
-    return ((scores - minimum) / (maximum - minimum)).astype(np.float32)
+def _scale_scores_to_unit_interval(scores: np.ndarray) -> np.ndarray:
+    clipped = np.clip(scores.astype(np.float64), -12.0, 12.0)
+    scaled = 1.0 / (1.0 + np.exp(-clipped))
+    return np.clip(scaled, 1e-6, 1.0 - 1e-6).astype(np.float32)
 
 
 def _resolve_user_profile(payload: dict[str, Any], data_mode: str) -> pd.DataFrame:
@@ -78,7 +76,7 @@ def predict_with_runtime(
     item_embeddings = model.item_model(item_tensors)
     user_embedding = model.user_model(user_tensors)
     raw_scores = tf.linalg.matmul(user_embedding, item_embeddings, transpose_b=True)[0].numpy()
-    normalized_scores = _normalize_scores(raw_scores)
+    scaled_scores = _scale_scores_to_unit_interval(raw_scores)
     ranked_indices = np.argsort(raw_scores)[::-1][:top_k]
 
     recommendations: list[dict[str, Any]] = []
@@ -87,7 +85,7 @@ def predict_with_runtime(
         recommendations.append(
             CategoryRecommendation(
                 rank=rank,
-                score=round(float(normalized_scores[int(index)]), 6),
+                score=round(float(scaled_scores[int(index)]), 6),
                 service_category_code=str(item["service_category_code"]),
                 service_category_name=str(item["service_category_name"]),
                 category_group=str(item["category_group"]),

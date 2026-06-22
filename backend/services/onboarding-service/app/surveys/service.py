@@ -62,7 +62,7 @@ DEFAULT_EFFECT_WEIGHT = 0.5
 NEUTRAL_USER_TOWER_SCORE = 0.5
 DEFAULT_CATEGORY_TOP_K = 20
 DEFAULT_AREA_TOP_K = 5
-CATEGORY_RECOMMENDATION_SCORE_SCALE = "category_retrieval_v1"
+CATEGORY_RECOMMENDATION_SCORE_SCALE = "category_sigmoid_zero_to_one_v1"
 AGE_FIELD_NAMES = [
     "target_age_10_level",
     "target_age_20_level",

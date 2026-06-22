@@ -12,7 +12,7 @@ from app.two_tower.contracts import PredictResponse, UserProfilePayload
 from app.two_tower.repository import AreaPredictionCacheRepository
 
 prediction_cache_repository = AreaPredictionCacheRepository()
-RECOMMENDATION_SCORE_SCALE = "minmax_zero_to_one_v1"
+RECOMMENDATION_SCORE_SCALE = "sigmoid_zero_to_one_v1"
 
 
 def build_model_signature(metadata: dict[str, Any]) -> str:

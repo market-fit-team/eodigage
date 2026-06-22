@@ -42,7 +42,7 @@ class UserProfilePayload(AreaUserProfilePayload):
 
 class RecommendationItem(BaseModel):
     rank: int
-    score: float = Field(ge=0, le=1, description="0~1로 정규화한 상권 추천 점수")
+    score: float = Field(ge=0, le=1, description="후보 집합과 무관하게 0~1 범위로 보정한 상권 추천 점수")
     item_id: str
     area_name: str
     service_category_name: str
