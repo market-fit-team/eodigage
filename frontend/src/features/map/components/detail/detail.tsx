@@ -38,7 +38,7 @@ export function Detail() {
             type="button"
             size="lg"
             onClick={() =>
-              router.push(`/report?district=${selectedTradeArea.id}`)
+              router.push(`/map/detail?district=${selectedTradeArea.id}`)
             }
             className="w-full gap-1.5"
           >
