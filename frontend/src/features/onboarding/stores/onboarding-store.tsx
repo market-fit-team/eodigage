@@ -10,16 +10,12 @@ import type {
 
 type OnboardingStoreState = {
   answers: OnboardingSurveyAnswers
-  currentStep: number
-  direction: "enter" | "exit-forward" | "exit-backward" | "idle"
   survey: OnboardingSurvey
 }
 
 type OnboardingStoreActions = {
   resetSurvey: () => void
   setAnswer: (questionId: string, value: OnboardingSurveyAnswerValue) => void
-  setCurrentStep: (step: number) => void
-  setDirection: (direction: OnboardingStoreState["direction"]) => void
 }
 
 export type OnboardingStore = OnboardingStoreState & OnboardingStoreActions
@@ -27,14 +23,10 @@ export type OnboardingStore = OnboardingStoreState & OnboardingStoreActions
 const createOnboardingStore = (survey: OnboardingSurvey) =>
   createStore<OnboardingStore>()((set) => ({
     answers: {},
-    currentStep: 0,
-    direction: "enter",
     survey,
     resetSurvey: () =>
       set({
         answers: {},
-        currentStep: 0,
-        direction: "enter",
       }),
     setAnswer: (questionId, value) =>
       set((state) => ({
@@ -43,8 +35,6 @@ const createOnboardingStore = (survey: OnboardingSurvey) =>
           [questionId]: value,
         },
       })),
-    setCurrentStep: (step) => set({ currentStep: step }),
-    setDirection: (direction) => set({ direction }),
   }))
 
 type OnboardingStoreApi = ReturnType<typeof createOnboardingStore>

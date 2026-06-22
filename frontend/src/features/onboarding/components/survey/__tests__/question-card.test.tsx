@@ -24,7 +24,6 @@ function QuestionCardHarness({
     <QuestionCard
       question={question}
       answer={answer}
-      direction="enter"
       onAnswer={(_, value) => {
         setAnswer(value)
         onAnswer(value)

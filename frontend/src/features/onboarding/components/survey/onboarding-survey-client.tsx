@@ -1,34 +1,90 @@
 "use client"
 
-import { useEffect, useRef, useTransition } from "react"
+import { useTransition } from "react"
 import { useRouter } from "next/navigation"
+import {
+  AnimatePresence,
+  motion,
+  useIsPresent,
+  usePresenceData,
+  useReducedMotion,
+} from "motion/react"
 import { toast } from "sonner"
 import { QuestionCard } from "@/features/onboarding/components/survey/question-card"
 import { SurveyProgress } from "@/features/onboarding/components/survey/survey-progress"
+import { useSurveyNavigator } from "@/features/onboarding/hooks/use-survey-navigator"
 import { getOnboardingErrorMessage } from "@/features/onboarding/lib/onboarding-error"
 import {
   buildSurveyPreviewRequest,
   hasAnsweredQuestion,
 } from "@/features/onboarding/lib/onboarding-form"
 import { getOnboardingResultPath } from "@/features/onboarding/lib/onboarding-routes"
+import {
+  ONBOARDING_SURVEY_OVERLAY_DURATION_MS,
+  type OnboardingSurveyTransitionDirection,
+  buildOnboardingSurveyQuestionVariants,
+  getOnboardingSurveyQuestionTransition,
+} from "@/features/onboarding/lib/onboarding-survey-motion"
 import { useOnboardingStore } from "@/features/onboarding/stores/onboarding-store"
 import { usePreviewActiveSurveySurveysActivePreviewPost } from "@/shared/api/generated/onboarding/endpoints/survey/survey"
 import { Badge } from "@/shared/components/ui/badge"
 import { Button } from "@/shared/components/ui/button"
 
+type SurveyQuestionMotionFrameProps = {
+  answer: string | string[] | undefined
+  direction: OnboardingSurveyTransitionDirection
+  isTransitioning: boolean
+  onAnswer: (questionId: string, value: string | string[]) => void
+  onTransitionComplete: () => void
+  question: Parameters<typeof QuestionCard>[0]["question"]
+  shouldReduceMotion: boolean
+}
+
+function SurveyQuestionMotionFrame({
+  answer,
+  direction,
+  isTransitioning,
+  onAnswer,
+  onTransitionComplete,
+  question,
+  shouldReduceMotion,
+}: SurveyQuestionMotionFrameProps) {
+  const isPresent = useIsPresent()
+  const presenceDirection =
+    (usePresenceData() as OnboardingSurveyTransitionDirection | undefined) ??
+    direction
+
+  return (
+    <motion.div
+      key={question.id}
+      custom={presenceDirection}
+      initial="enter"
+      animate="center"
+      exit="exit"
+      variants={buildOnboardingSurveyQuestionVariants(shouldReduceMotion)}
+      transition={getOnboardingSurveyQuestionTransition(shouldReduceMotion)}
+      onAnimationComplete={() => {
+        if (!isPresent) {
+          return
+        }
+
+        onTransitionComplete()
+      }}
+      className={isTransitioning ? "pointer-events-none h-full" : "h-full"}
+    >
+      <QuestionCard question={question} answer={answer} onAnswer={onAnswer} />
+    </motion.div>
+  )
+}
+
 export function OnboardingSurveyClient() {
   const router = useRouter()
+  const shouldReduceMotion = Boolean(useReducedMotion())
   const [isRedirectPending, startRedirectTransition] = useTransition()
   const survey = useOnboardingStore((state) => state.survey)
   const answers = useOnboardingStore((state) => state.answers)
-  const currentStep = useOnboardingStore((state) => state.currentStep)
-  const direction = useOnboardingStore((state) => state.direction)
   const setAnswer = useOnboardingStore((state) => state.setAnswer)
-  const setCurrentStep = useOnboardingStore((state) => state.setCurrentStep)
-  const setDirection = useOnboardingStore((state) => state.setDirection)
   const resetSurvey = useOnboardingStore((state) => state.resetSurvey)
-  const stepTransitionTimeoutRef = useRef<number | null>(null)
-  const autoAdvanceTimeoutRef = useRef<number | null>(null)
   const { mutate: previewSurveyResult, isPending } =
     usePreviewActiveSurveySurveysActivePreviewPost({
       mutation: {
@@ -49,58 +105,20 @@ export function OnboardingSurveyClient() {
       },
     })
   const isSubmitting = isPending || isRedirectPending
-
-  useEffect(() => {
-    return () => {
-      if (stepTransitionTimeoutRef.current !== null) {
-        window.clearTimeout(stepTransitionTimeoutRef.current)
-      }
-
-      if (autoAdvanceTimeoutRef.current !== null) {
-        window.clearTimeout(autoAdvanceTimeoutRef.current)
-      }
-    }
-  }, [])
-
   const totalSteps = survey.questions.length
-  const currentQuestion = survey.questions[currentStep]
-  const currentAnswer = answers[currentQuestion.id]
-  const canAdvance = hasAnsweredQuestion(currentQuestion, currentAnswer)
-  const isLastStep = currentStep === totalSteps - 1
-
-  const moveToStep = (nextStep: number) => {
-    setDirection(nextStep > currentStep ? "exit-forward" : "exit-backward")
-
-    if (stepTransitionTimeoutRef.current !== null) {
-      window.clearTimeout(stepTransitionTimeoutRef.current)
-    }
-
-    stepTransitionTimeoutRef.current = window.setTimeout(() => {
-      setCurrentStep(nextStep)
-      setDirection("enter")
-    }, 300)
-  }
-
-  const handleAnswer = (questionId: string, value: string | string[]) => {
-    setAnswer(questionId, value)
-
-    if (
-      currentQuestion.selection_type === "single" &&
-      typeof value === "string" &&
-      currentStep < totalSteps - 1
-    ) {
-      if (autoAdvanceTimeoutRef.current !== null) {
-        window.clearTimeout(autoAdvanceTimeoutRef.current)
-      }
-
-      autoAdvanceTimeoutRef.current = window.setTimeout(() => {
-        moveToStep(currentStep + 1)
-      }, 150)
-    }
-  }
+  const navigator = useSurveyNavigator({
+    answers,
+    setAnswer,
+    survey,
+  })
+  const canAdvance = hasAnsweredQuestion(
+    navigator.currentQuestion,
+    navigator.currentAnswer
+  )
+  const canSubmit = canAdvance && !navigator.isTransitioning
 
   const handleSubmit = () => {
-    if (!canAdvance) {
+    if (!canSubmit) {
       return
     }
 
@@ -109,11 +127,21 @@ export function OnboardingSurveyClient() {
     })
   }
 
+  const handleReset = () => {
+    resetSurvey()
+    navigator.resetNavigation()
+  }
+
   return (
     <div className="min-h-[calc(100dvh-3.5rem)] bg-linear-to-br from-background via-background to-accent/20">
       {isSubmitting ? (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-background/80 backdrop-blur-sm">
-          <div className="flex animate-in flex-col items-center gap-4 duration-300 fade-in zoom-in">
+          <div
+            className="flex animate-in flex-col items-center gap-4 fade-in zoom-in"
+            style={{
+              animationDuration: `${ONBOARDING_SURVEY_OVERLAY_DURATION_MS}ms`,
+            }}
+          >
             <div className="relative h-12 w-12">
               <div className="absolute inset-0 rounded-full border-2 border-primary/20" />
               <div className="absolute inset-0 animate-spin rounded-full border-2 border-transparent border-t-primary" />
@@ -127,38 +155,38 @@ export function OnboardingSurveyClient() {
         </div>
       ) : null}
 
-      <div className="mx-auto flex min-h-[calc(100dvh-3.5rem)] max-w-xl flex-col px-5 py-8 md:px-8 md:py-12">
-        <header className="mb-8 space-y-3">
-          <Badge variant="secondary" className="gap-1.5">
-            설문 코드 {survey.survey_code} · v{survey.version}
-          </Badge>
-          <div className="space-y-2">
-            <h1 className="text-xl font-bold text-foreground md:text-2xl">
-              {survey.title}
-            </h1>
-            <p className="text-xs leading-relaxed text-muted-foreground md:text-sm">
-              {survey.description}
-            </p>
-          </div>
-        </header>
+      <div className="mx-auto flex h-[calc(100dvh-3.5rem)] max-w-xl flex-col px-5 pt-4 pb-4 md:px-8 md:pt-6 md:pb-8">
+        <SurveyProgress
+          current={navigator.currentStep}
+          total={totalSteps}
+          title={<Badge variant="secondary">창업 성향 분석</Badge>}
+        />
 
-        <SurveyProgress current={currentStep} total={totalSteps} />
-
-        <div className="mt-8 flex-1" style={{ minHeight: 360 }}>
-          <QuestionCard
-            question={currentQuestion}
-            answer={currentAnswer}
-            direction={direction}
-            onAnswer={handleAnswer}
-          />
+        <div className="mt-4 flex-1 overflow-hidden">
+          <AnimatePresence
+            mode="wait"
+            initial={false}
+            custom={navigator.transitionDirection}
+          >
+            <SurveyQuestionMotionFrame
+              key={navigator.currentQuestion.id}
+              question={navigator.currentQuestion}
+              answer={navigator.currentAnswer}
+              direction={navigator.transitionDirection}
+              isTransitioning={navigator.isTransitioning}
+              shouldReduceMotion={shouldReduceMotion}
+              onAnswer={navigator.handleAnswer}
+              onTransitionComplete={navigator.completeTransition}
+            />
+          </AnimatePresence>
         </div>
 
-        <nav className="mt-8 flex items-center gap-3 border-t border-border/50 pt-4">
+        <nav className="mt-4 flex items-center gap-3 border-t border-border/50 pt-3">
           <Button
             variant="ghost"
             size="lg"
-            onClick={() => moveToStep(currentStep - 1)}
-            disabled={currentStep === 0 || isSubmitting}
+            onClick={navigator.goPrev}
+            disabled={!navigator.canGoPrev || isSubmitting}
             className="flex-1"
           >
             이전
@@ -166,21 +194,23 @@ export function OnboardingSurveyClient() {
 
           <Button
             size="lg"
-            onClick={
-              isLastStep ? handleSubmit : () => moveToStep(currentStep + 1)
+            onClick={navigator.isLastStep ? handleSubmit : navigator.goNext}
+            disabled={
+              navigator.isLastStep
+                ? !canSubmit || isSubmitting
+                : !navigator.canGoNext || isSubmitting
             }
-            disabled={!canAdvance || isSubmitting}
             className="flex-2"
           >
-            {isLastStep ? "결과 보기" : "다음"}
+            {navigator.isLastStep ? "결과 보기" : "다음"}
           </Button>
         </nav>
 
-        <div className="mt-4 flex items-center justify-between text-[11px] text-muted-foreground">
+        <div className="mt-3 flex items-center justify-between text-[11px] text-muted-foreground">
           <span>로그인 없이도 결과를 볼 수 있습니다.</span>
           <button
             type="button"
-            onClick={resetSurvey}
+            onClick={handleReset}
             className="font-medium underline-offset-4 hover:text-foreground hover:underline"
           >
             처음부터 다시

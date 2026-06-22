@@ -7,25 +7,8 @@ import { Checkbox } from "@/shared/components/ui/checkbox"
 
 type QuestionCardProps = {
   answer: OnboardingSurveyAnswerValue | undefined
-  direction: "enter" | "exit-forward" | "exit-backward" | "idle"
   onAnswer: (questionId: string, value: string | string[]) => void
   question: OnboardingSurveyQuestion
-}
-
-const getAnimationClassName = (direction: QuestionCardProps["direction"]) => {
-  if (direction === "enter") {
-    return "animate-in fade-in duration-200"
-  }
-
-  if (direction === "exit-forward") {
-    return "animate-out fade-out slide-out-to-left-8 duration-300"
-  }
-
-  if (direction === "exit-backward") {
-    return "animate-out fade-out slide-out-to-right-8 duration-300"
-  }
-
-  return ""
 }
 
 const isSelectedOption = (
@@ -42,12 +25,10 @@ const isSelectedOption = (
 
 export function QuestionCard({
   answer,
-  direction,
   onAnswer,
   question,
 }: QuestionCardProps) {
   const isSingle = question.selection_type === "single"
-  const animationClassName = getAnimationClassName(direction)
 
   const handleOptionClick = (optionCode: string) => {
     if (isSingle) {
@@ -84,8 +65,8 @@ export function QuestionCard({
   }
 
   return (
-    <div className={`flex flex-col gap-6 ${animationClassName}`}>
-      <div className="space-y-2" style={{ minHeight: 48 }}>
+    <div className="flex h-full flex-col gap-5">
+      <div className="shrink-0 space-y-2">
         <h2 className="text-lg leading-relaxed font-semibold text-foreground">
           {question.prompt}
         </h2>
@@ -96,8 +77,8 @@ export function QuestionCard({
         ) : null}
       </div>
 
-      <div className="flex flex-col gap-3" style={{ minHeight: 220 }}>
-        {question.options.map((option, index) => {
+      <div className="custom-scrollbar flex flex-1 flex-col gap-2.5 overflow-y-auto pr-1 pb-4">
+        {question.options.map((option) => {
           const isSelected = isSelectedOption(answer, option.code, isSingle)
 
           return (
@@ -108,7 +89,7 @@ export function QuestionCard({
               aria-pressed={isSelected}
               onClick={() => handleOptionClick(option.code)}
               onKeyDown={(event) => handleOptionKeyDown(event, option.code)}
-              className={`group relative flex items-center gap-3 rounded-xl border px-4 py-3.5 text-left text-sm transition-all duration-200 ease-out ${
+              className={`group relative flex items-center gap-3 rounded-xl border px-4 py-3 text-left text-sm transition-all duration-200 ease-out ${
                 isSelected
                   ? "border-primary bg-primary/5 shadow-sm ring-1 ring-primary/20"
                   : "border-border bg-card hover:border-primary/30 hover:bg-accent/50 hover:shadow-sm"
