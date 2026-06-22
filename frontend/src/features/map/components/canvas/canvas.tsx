@@ -6,9 +6,9 @@ import { useRecommendedAreas } from "@/features/map/hooks/use-recommended-areas"
 import { getMapViewportPadding } from "@/features/map/lib/map-renderer/map-config"
 import { useMapStore } from "@/features/map/store/map-store"
 
-// CanvasWidget은 지도 표면을 렌더링하고 polygon 상호작용 상태만 스토어에 기록
+// Canvas는 지도 표면을 렌더링하고 polygon 상호작용 상태만 스토어에 기록
 // 필터링/추천/선택 표시는 스토어 상태에서 파생, 지도 layer는 표시 역할
-export function CanvasWidget() {
+export function Canvas() {
   const recommendedTradeAreaIds = useRecommendedAreas()
   const isLeftPanelOpen = useMapStore((state) => state.isLeftPanelOpen)
   const mapFocusRequest = useMapStore((state) => state.mapFocusRequest)
@@ -44,7 +44,7 @@ export function CanvasWidget() {
 
   return (
     <div
-      data-map-canvas-widget
+      data-map-canvas
       className="relative h-full min-h-0 w-full overflow-hidden bg-background select-none"
     >
       <div ref={mapContainerRef} className="absolute inset-0 h-full w-full" />

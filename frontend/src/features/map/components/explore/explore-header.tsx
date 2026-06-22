@@ -5,8 +5,8 @@ import { useMapStore } from "@/features/map/store/map-store"
 import { Button } from "@/shared/components/ui/button"
 import { Tabs, TabsList, TabsTrigger } from "@/shared/components/ui/tabs"
 
-// ExploreWidgetHeader는 추천 목록과 AI 채팅을 한 자리에서 전환
-export function ExploreWidgetHeader() {
+// ExploreHeader는 추천 목록과 AI 채팅을 한 자리에서 전환
+export function ExploreHeader() {
   const closeLeftPanel = useMapStore((state) => state.closeLeftPanel)
   const leftPanelMode = useMapStore((state) => state.leftPanelMode)
   const setLeftPanelMode = useMapStore((state) => state.setLeftPanelMode)

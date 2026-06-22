@@ -30,9 +30,9 @@ import {
   TabsTrigger,
 } from "@/shared/components/ui/tabs"
 
-// DetailWidget은 선택된 상권 상세 패널과 리포트 CTA를 렌더링한다.
+// Detail은 선택된 상권 상세 패널과 리포트 CTA를 렌더링한다.
 // 이 패널의 도킹 위치는 MapView가 결정한다.
-export function DetailWidget() {
+export function Detail() {
   const router = useRouter()
   const activeResultTab = useMapStore((state) => state.activeResultTab)
   const selectedDongCode = useMapStore((state) => state.selectedDongCode)

@@ -1,10 +1,10 @@
 "use client"
 
 import { PanelLeftOpen } from "lucide-react"
-import { CanvasWidget } from "@/features/map/components/canvas-widget/canvas-widget"
-import { DetailWidget } from "@/features/map/components/detail-widget/detail-widget"
-import { ExploreWidget } from "@/features/map/components/explore-widget/explore-widget"
-import { FilterWidget } from "@/features/map/components/filter-widget/filter-widget"
+import { Canvas } from "@/features/map/components/canvas/canvas"
+import { Detail } from "@/features/map/components/detail/detail"
+import { Explore } from "@/features/map/components/explore/explore"
+import { Filter } from "@/features/map/components/filter/filter"
 import { useRecommendedAreas } from "@/features/map/hooks/use-recommended-areas"
 import { getSelectedTradeArea } from "@/features/map/lib/map-selectors"
 import { useMapStore } from "@/features/map/store/map-store"
@@ -23,20 +23,20 @@ export function MapView() {
     <div className="relative flex h-[calc(100vh-64px)] flex-1 overflow-hidden bg-muted/40">
       {/* 지도는 모든 패널 아래에 고정되는 배경 레이어다. */}
       <div className="absolute inset-0 z-0">
-        <CanvasWidget />
+        <Canvas />
       </div>
 
       {/* 상단 필터 바: 추천 목록을 2차 검색하는 바. 추천이 없으면 노출하지 않는다. */}
       {hasRecommendations && (
         <div className="absolute top-4 right-4 left-4 z-20">
-          <FilterWidget />
+          <Filter />
         </div>
       )}
 
       {/* 왼쪽 패널: 공통 토글 헤더로 추천 목록과 AI 채팅을 한 자리에서 전환한다. */}
       {isLeftPanelOpen ? (
         <div className="absolute top-20 bottom-4 left-4 z-20 w-80">
-          <ExploreWidget selectedTradeArea={selectedTradeArea} />
+          <Explore selectedTradeArea={selectedTradeArea} />
         </div>
       ) : (
         <Button
@@ -51,10 +51,10 @@ export function MapView() {
         </Button>
       )}
 
-      {/* 오른쪽 패널은 선택된 동 상세를 보여준다(선택이 없으면 DetailWidget을 닫는다). */}
+      {/* 오른쪽 패널은 선택된 동 상세를 보여준다(선택이 없으면 Detail을 닫는다). */}
       {selectedDongCode && (
         <div className="absolute top-20 right-4 bottom-20 z-10 w-80">
-          <DetailWidget />
+          <Detail />
         </div>
       )}
     </div>

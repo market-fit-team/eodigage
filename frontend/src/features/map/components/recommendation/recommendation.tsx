@@ -11,7 +11,7 @@ import { CardContent } from "@/shared/components/ui/card"
 
 // 추천 원천(온보딩·설문·AI)은 useFilteredRecommendedAreas 훅이 필터까지 적용해 파생하므로
 // 여기서는 표시만 맡는다.
-export function RecommendationWidget() {
+export function Recommendation() {
   const selectedDongCode = useMapStore((state) => state.selectedDongCode)
   const selectDong = useMapStore((state) => state.selectDong)
   const focusMapOnDong = useMapStore((state) => state.focusMapOnDong)

@@ -9,9 +9,9 @@ import {
   NativeSelectOption,
 } from "@/shared/components/ui/native-select"
 
-// FilterWidget은 MapView 상단의 가로 검색 바를 소유한다.
+// Filter는 MapView 상단의 가로 검색 바를 소유한다.
 // 추천 목록을 좁히는 2차 검색이며, 바가 어디에 배치되는지는 알지 않는다.
-export function FilterWidget() {
+export function Filter() {
   const budgetRange = useMapStore((state) => state.budgetRange)
   const resetFilters = useMapStore((state) => state.resetFilters)
   const selectedCategory = useMapStore((state) => state.selectedCategory)
