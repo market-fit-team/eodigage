@@ -21,7 +21,6 @@ import {
 import { Button } from "@/shared/components/ui/button"
 import { ScrollArea } from "@/shared/components/ui/scroll-area"
 import { Badge } from "@/shared/components/ui/badge"
-import { Separator } from "@/shared/components/ui/separator"
 import {
   Tooltip,
   TooltipContent,
@@ -42,13 +41,13 @@ import type { DocumentItem } from "../_fixtures/mock-data"
 // ─── 파일 타입별 아이콘 매핑 ────────────────────────────────
 
 const fileTypeIcons: Record<DocumentItem["type"], React.ReactNode> = {
-  tsx: <FileCode2 className="size-3.5 text-blue-500/70" />,
-  ts: <FileCode2 className="size-3.5 text-blue-400/70" />,
-  css: <FileType className="size-3.5 text-purple-500/70" />,
-  json: <FileJson className="size-3.5 text-amber-500/70" />,
-  md: <FileText className="size-3.5 text-foreground/40" />,
-  env: <FileCog className="size-3.5 text-emerald-500/70" />,
-  yaml: <FileCog className="size-3.5 text-rose-400/70" />,
+  tsx: <FileCode2 className="size-3.5 text-blue-500" />,
+  ts: <FileCode2 className="size-3.5 text-blue-400" />,
+  css: <FileType className="size-3.5 text-purple-500" />,
+  json: <FileJson className="size-3.5 text-amber-500" />,
+  md: <FileText className="size-3.5 text-foreground" />,
+  env: <FileCog className="size-3.5 text-emerald-500" />,
+  yaml: <FileCog className="size-3.5 text-rose-400" />,
 }
 
 // ─── Props ─────────────────────────────────────────────────
@@ -72,11 +71,11 @@ export function DocumentPanel({
       {/* ── 헤더 ── */}
       <div className="flex h-12 shrink-0 items-center justify-between border-b border-border/20 px-4">
         <div className="flex items-center gap-2">
-          <FolderOpen className="size-3.5 text-muted-foreground/50" />
-          <span className="text-[11px] font-medium text-foreground/70">
+          <FolderOpen className="size-3.5 text-muted-foreground" />
+          <span className="text-xs font-medium text-foreground">
             프로젝트 파일
           </span>
-          <Badge variant="outline" className="text-[7px] px-1.5 py-0 h-3.5">
+          <Badge variant="outline" className="h-4 px-1.5 py-0 text-[10px]">
             {documents.length}
           </Badge>
         </div>
@@ -87,7 +86,7 @@ export function DocumentPanel({
                 variant="ghost"
                 size="icon-xs"
                 onClick={onCollapsePanel}
-                className="cursor-pointer text-muted-foreground/40 hover:text-muted-foreground"
+                className="cursor-pointer text-muted-foreground hover:text-foreground"
                 id="doc-panel-collapse-btn"
               >
                 <PanelRightClose className="size-3.5" />
@@ -116,7 +115,7 @@ export function DocumentPanel({
 
       {/* ── 하단 안내 ── */}
       <div className="shrink-0 border-t border-border/15 px-4 py-2.5">
-        <p className="text-[8px] text-muted-foreground/30 leading-relaxed">
+        <p className="text-xs text-muted-foreground leading-relaxed">
           파일을 채팅 입력창에 드래그하거나 ⋮ 메뉴에서 추가할 수 있습니다
         </p>
       </div>
@@ -160,7 +159,7 @@ function DocumentRow({
       id={`doc-row-${doc.id}`}
     >
       {/* 드래그 핸들 */}
-      <GripVertical className="size-3 shrink-0 text-muted-foreground/20 opacity-0 group-hover:opacity-100 transition-opacity" />
+      <GripVertical className="size-3 shrink-0 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity" />
 
       {/* 파일 아이콘 */}
       <span className="shrink-0">
@@ -169,16 +168,16 @@ function DocumentRow({
 
       {/* 파일 정보 */}
       <div className="min-w-0 flex-1">
-        <p className="truncate text-[10px] font-medium text-foreground/70 leading-tight">
+        <p className="truncate text-xs font-medium text-foreground leading-tight">
           {doc.name}
         </p>
-        <p className="truncate text-[8px] text-muted-foreground/35 mt-0.5">
+        <p className="truncate text-xs text-muted-foreground mt-0.5">
           {doc.path} · {doc.size}
         </p>
       </div>
 
       {/* 업데이트 시간 */}
-      <span className="shrink-0 text-[7px] text-muted-foreground/25 hidden group-hover:hidden sm:block">
+      <span className="shrink-0 text-xs text-muted-foreground hidden group-hover:hidden sm:block">
         {doc.updatedAt}
       </span>
 
@@ -186,7 +185,7 @@ function DocumentRow({
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
           <button
-            className="shrink-0 rounded-md p-1 text-muted-foreground/25 opacity-0 group-hover:opacity-100 hover:bg-muted/50 hover:text-muted-foreground/60 transition-all cursor-pointer"
+            className="shrink-0 rounded-md p-1 text-muted-foreground opacity-0 group-hover:opacity-100 hover:bg-muted/50 hover:text-foreground transition-all cursor-pointer"
             id={`doc-menu-${doc.id}`}
           >
             <MoreVertical className="size-3" />

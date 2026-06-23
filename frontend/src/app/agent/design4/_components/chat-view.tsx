@@ -178,8 +178,8 @@ export function ChatView({
       {isDragOver && (
         <div className="absolute inset-0 z-20 flex items-center justify-center bg-background/80 backdrop-blur-sm border-2 border-dashed border-primary/30 rounded-xl m-2 pointer-events-none">
           <div className="flex flex-col items-center gap-2">
-            <FileCode2 className="size-8 text-primary/50" />
-            <span className="text-xs font-medium text-primary/60">
+            <FileCode2 className="size-8 text-primary" />
+            <span className="text-xs font-medium text-primary">
               여기에 파일을 놓으세요
             </span>
           </div>
@@ -189,13 +189,13 @@ export function ChatView({
       {/* ── 헤더 ── */}
       <header className="flex h-12 shrink-0 items-center justify-between border-b border-border/20 px-6">
         <div className="flex items-center gap-2">
-          <Sparkles className="size-3.5 text-foreground/40" />
-          <span className="text-[11px] font-medium text-foreground/70">
+          <Sparkles className="size-3.5 text-foreground" />
+          <span className="text-sm font-medium text-foreground">
             {activeThreadTitle}
           </span>
         </div>
         <div className="flex items-center gap-1.5">
-          <Badge variant="outline" className="text-[8px] font-normal px-2 py-0 h-4">
+          <Badge variant="outline" className="h-4 px-2 py-0 text-[10px] font-normal">
             GPT-4o
           </Badge>
           {/* 문서 패널 토글 */}
@@ -207,7 +207,7 @@ export function ChatView({
                     variant="ghost"
                     size="icon-xs"
                     onClick={onToggleDocPanel}
-                    className="cursor-pointer text-muted-foreground/40 hover:text-muted-foreground"
+                    className="cursor-pointer text-muted-foreground hover:text-foreground"
                     id="doc-panel-open-btn"
                   >
                     <PanelRight className="size-3.5" />
@@ -259,13 +259,13 @@ export function ChatView({
                 {attachedDocs.map((doc) => (
                   <span
                     key={doc.id}
-                    className="inline-flex items-center gap-1 rounded-md bg-muted/50 px-2 py-0.5 text-[9px] font-medium text-foreground/60 border border-border/20"
+                    className="inline-flex items-center gap-1 rounded-md bg-muted/50 px-2 py-0.5 text-xs font-medium text-foreground border border-border/20"
                   >
-                    <FileCode2 className="size-2.5 text-muted-foreground/40" />
+                    <FileCode2 className="size-2.5 text-muted-foreground" />
                     {doc.name}
                     <button
                       onClick={() => onDetachDoc(doc.id)}
-                      className="ml-0.5 rounded-sm p-0.5 text-muted-foreground/30 hover:text-destructive/60 hover:bg-destructive/10 transition-colors cursor-pointer"
+                      className="ml-0.5 rounded-sm p-0.5 text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors cursor-pointer"
                       id={`detach-doc-${doc.id}`}
                     >
                       <X className="size-2" />
@@ -282,7 +282,7 @@ export function ChatView({
               onKeyDown={handleKeyDown}
               placeholder="메시지를 입력하세요..."
               rows={1}
-              className="w-full resize-none bg-transparent px-4 pt-3 pb-10 text-[12px] text-foreground placeholder:text-muted-foreground/40 outline-none leading-relaxed"
+              className="w-full resize-none bg-transparent px-4 pt-3 pb-10 text-sm text-foreground placeholder:text-muted-foreground outline-none leading-relaxed"
               id="chat-input-textarea"
             />
 
@@ -295,7 +295,7 @@ export function ChatView({
                       <Button
                         variant="ghost"
                         size="icon-xs"
-                        className="text-muted-foreground/40 hover:text-muted-foreground cursor-pointer"
+                        className="text-muted-foreground hover:text-foreground cursor-pointer"
                         id="chat-attach-btn"
                       >
                         <Paperclip className="size-3" />
@@ -307,7 +307,7 @@ export function ChatView({
               </div>
 
               <div className="flex items-center gap-1.5">
-                <span className="text-[8px] text-muted-foreground/30">
+                <span className="text-xs text-muted-foreground">
                   {input.length > 0 ? `${input.length}자` : ""}
                   {attachedDocs.length > 0 && ` · ${attachedDocs.length}개 파일`}
                 </span>
@@ -320,7 +320,7 @@ export function ChatView({
                     "cursor-pointer transition-all",
                     input.trim()
                       ? "bg-foreground text-background hover:bg-foreground/80"
-                      : "text-muted-foreground/30"
+                      : "text-muted-foreground"
                   )}
                   id="chat-send-btn"
                 >
@@ -330,7 +330,7 @@ export function ChatView({
             </div>
           </div>
 
-          <p className="mt-2 text-center text-[8px] text-muted-foreground/30">
+          <p className="mt-2 text-center text-xs text-muted-foreground">
             AI 에이전트는 실수할 수 있습니다. 중요한 내용은 반드시 직접 확인하세요.
           </p>
         </div>
@@ -348,15 +348,15 @@ function WelcomeScreen({ onSelectSuggestion }: { onSelectSuggestion: (text: stri
         <div className="relative">
           <div className="absolute inset-0 rounded-full bg-foreground/5 blur-xl" />
           <div className="relative flex size-14 items-center justify-center rounded-2xl border border-border/30 bg-background shadow-sm">
-            <Sparkles className="size-6 text-foreground/50" />
+            <Sparkles className="size-6 text-foreground" />
           </div>
         </div>
       </div>
 
-      <h2 className="text-sm font-semibold text-foreground/80 tracking-tight">
+      <h2 className="text-sm font-semibold text-foreground tracking-tight">
         무엇을 도와드릴까요?
       </h2>
-      <p className="mt-1 text-[10px] text-muted-foreground/40">
+      <p className="mt-1 text-xs text-muted-foreground">
         코드 작성, 리팩토링, 보안 감사 등을 지원합니다
       </p>
 
@@ -368,13 +368,13 @@ function WelcomeScreen({ onSelectSuggestion }: { onSelectSuggestion: (text: stri
             className="group flex flex-col items-start gap-1.5 rounded-xl border border-border/20 bg-background p-3.5 text-left transition-all hover:border-border/40 hover:bg-muted/20 cursor-pointer"
             id={`suggestion-${item.icon}`}
           >
-            <span className="flex size-7 items-center justify-center rounded-lg bg-muted/40 text-muted-foreground/60 transition-colors group-hover:bg-muted/60 group-hover:text-foreground/60">
+            <span className="flex size-7 items-center justify-center rounded-lg bg-muted/40 text-muted-foreground transition-colors group-hover:bg-muted/60 group-hover:text-foreground">
               {suggestionIcons[item.icon]}
             </span>
-            <span className="text-[11px] font-medium text-foreground/70 group-hover:text-foreground/90">
+            <span className="text-xs font-medium text-foreground">
               {item.label}
             </span>
-            <span className="text-[9px] text-muted-foreground/40 leading-snug">
+            <span className="text-xs text-muted-foreground leading-snug">
               {item.description}
             </span>
           </button>
@@ -402,7 +402,7 @@ function MessageBubble({ message, onToggleFeedback, onPermissionAction }: Messag
     >
       {!isUser && (
         <Avatar size="sm" className="mt-0.5 shrink-0">
-          <AvatarFallback className="bg-foreground/[0.06] text-[9px] font-semibold text-foreground/50">
+          <AvatarFallback className="bg-foreground/[0.06] text-xs font-semibold text-foreground">
             AI
           </AvatarFallback>
         </Avatar>
@@ -415,7 +415,7 @@ function MessageBubble({ message, onToggleFeedback, onPermissionAction }: Messag
             {message.attachedDocs.map((doc) => (
               <span
                 key={doc.id}
-                className="inline-flex items-center gap-1 rounded-md bg-muted/40 px-1.5 py-0.5 text-[8px] text-muted-foreground/50"
+                className="inline-flex items-center gap-1 rounded-md bg-muted/40 px-1.5 py-0.5 text-xs text-muted-foreground"
               >
                 <FileCode2 className="size-2" />
                 {doc.name}
@@ -430,10 +430,10 @@ function MessageBubble({ message, onToggleFeedback, onPermissionAction }: Messag
 
         <div
           className={cn(
-            "rounded-xl px-3.5 py-2.5 text-[11px] leading-[1.7]",
+            "rounded-xl px-3.5 py-2.5 text-sm leading-[1.7]",
             isUser
               ? "bg-foreground text-background rounded-tr-sm"
-              : "bg-muted/30 text-foreground/80 rounded-tl-sm"
+              : "bg-muted/30 text-foreground rounded-tl-sm"
           )}
         >
           <MessageContent content={message.content} />
@@ -445,7 +445,7 @@ function MessageBubble({ message, onToggleFeedback, onPermissionAction }: Messag
         )}
 
         <div className={cn("flex items-center gap-2 px-1", isUser ? "flex-row-reverse" : "flex-row")}>
-          <span className="text-[8px] text-muted-foreground/30">{message.timestamp}</span>
+          <span className="text-xs text-muted-foreground">{message.timestamp}</span>
           {!isUser && (
             <div className="flex items-center gap-0.5">
               <TooltipProvider>
@@ -456,8 +456,8 @@ function MessageBubble({ message, onToggleFeedback, onPermissionAction }: Messag
                       className={cn(
                         "rounded-md p-1 transition-colors cursor-pointer",
                         message.isLiked
-                          ? "text-foreground/60 bg-foreground/[0.05]"
-                          : "text-muted-foreground/25 hover:text-muted-foreground/50"
+                          ? "text-foreground bg-foreground/[0.05]"
+                          : "text-muted-foreground hover:text-foreground"
                       )}
                       id={`feedback-like-${message.id}`}
                     >
@@ -476,8 +476,8 @@ function MessageBubble({ message, onToggleFeedback, onPermissionAction }: Messag
                       className={cn(
                         "rounded-md p-1 transition-colors cursor-pointer",
                         message.isDisliked
-                          ? "text-destructive/60 bg-destructive/[0.05]"
-                          : "text-muted-foreground/25 hover:text-muted-foreground/50"
+                          ? "text-destructive bg-destructive/[0.05]"
+                          : "text-muted-foreground hover:text-foreground"
                       )}
                       id={`feedback-dislike-${message.id}`}
                     >
@@ -493,7 +493,7 @@ function MessageBubble({ message, onToggleFeedback, onPermissionAction }: Messag
                   <TooltipTrigger asChild>
                     <button
                       onClick={() => navigator.clipboard.writeText(message.content)}
-                      className="rounded-md p-1 text-muted-foreground/25 hover:text-muted-foreground/50 transition-colors cursor-pointer"
+                      className="rounded-md p-1 text-muted-foreground hover:text-foreground transition-colors cursor-pointer"
                       id={`feedback-copy-${message.id}`}
                     >
                       <Copy className="size-2.5" />
@@ -520,14 +520,14 @@ function ThinkingStepsBlock({ steps }: { steps: ThinkingStep[] }) {
     <Collapsible open={isOpen} onOpenChange={setIsOpen}>
       <CollapsibleTrigger asChild>
         <button
-          className="group flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-[9px] text-muted-foreground/50 hover:text-muted-foreground/70 transition-colors cursor-pointer select-none"
+          className="group flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors cursor-pointer select-none"
           id="thinking-steps-toggle"
         >
           <span className="flex size-4 items-center justify-center rounded-full bg-foreground/[0.04]">
             {isOpen ? <ChevronDown className="size-2.5" /> : <ChevronRight className="size-2.5" />}
           </span>
           <span>{steps.length}단계 사고 과정</span>
-          <span className="text-[8px] text-muted-foreground/30">
+          <span className="text-[10px] text-muted-foreground">
             {(totalMs / 1000).toFixed(1)}s
           </span>
         </button>
@@ -536,24 +536,24 @@ function ThinkingStepsBlock({ steps }: { steps: ThinkingStep[] }) {
       <CollapsibleContent>
         <div className="ml-2 space-y-0 border-l border-border/20 pl-4 py-1">
           {steps.map((step) => (
-            <div key={step.id} className="flex items-center gap-2 py-1 text-[9px]">
+            <div key={step.id} className="flex items-center gap-2 py-1 text-xs">
               <span className={cn(
                 "flex size-3.5 shrink-0 items-center justify-center rounded-full",
                 step.status === "done" && "bg-emerald-500/10 text-emerald-500",
                 step.status === "running" && "bg-amber-500/10 text-amber-500",
                 step.status === "error" && "bg-destructive/10 text-destructive",
-                step.status === "pending" && "bg-muted text-muted-foreground/40",
+                step.status === "pending" && "bg-muted text-muted-foreground",
               )}>
                 {step.status === "done" && <Check className="size-2" />}
                 {step.status === "running" && <RotateCw className="size-2 animate-spin" />}
                 {step.status === "error" && <X className="size-2" />}
                 {step.status === "pending" && <span className="size-1 rounded-full bg-current" />}
               </span>
-              <span className={cn("text-muted-foreground/60", step.status === "done" && "text-foreground/50")}>
+              <span className={cn("text-muted-foreground", step.status === "done" && "text-foreground")}>
                 {step.label}
               </span>
               {step.durationMs && (
-                <span className="ml-auto text-[8px] text-muted-foreground/25 font-mono">
+                <span className="ml-auto text-[10px] text-muted-foreground font-mono">
                   {step.durationMs}ms
                 </span>
               )}
@@ -588,30 +588,30 @@ function PermissionGateBlock({
         </span>
         <div className="min-w-0">
           <div className="flex items-center gap-2">
-            <span className="text-[11px] font-medium text-foreground/80">{gate.action}</span>
-            <Badge variant={gate.risk === "high" ? "destructive" : "outline"} className="text-[7px] px-1.5 py-0 h-3.5 uppercase">
+            <span className="text-sm font-medium text-foreground">{gate.action}</span>
+            <Badge variant={gate.risk === "high" ? "destructive" : "outline"} className="h-4 px-1.5 py-0 text-[10px] uppercase">
               {gate.risk} risk
             </Badge>
           </div>
-          <p className="mt-1 text-[9px] text-muted-foreground/50 leading-relaxed">{gate.description}</p>
+          <p className="mt-1 text-xs text-muted-foreground leading-relaxed">{gate.description}</p>
         </div>
       </div>
 
       {gate.status === "pending" ? (
         <div className="flex items-center gap-2 pt-1">
-          <Button size="sm" variant="outline" onClick={() => onAction(gate.id, "approve")} className="flex-1 cursor-pointer text-[10px] gap-1" id={`gate-approve-${gate.id}`}>
+          <Button size="sm" variant="outline" onClick={() => onAction(gate.id, "approve")} className="flex-1 cursor-pointer gap-1 text-xs" id={`gate-approve-${gate.id}`}>
             <Check className="size-3" /> 승인
           </Button>
-          <Button size="sm" variant="ghost" onClick={() => onAction(gate.id, "deny")} className="flex-1 cursor-pointer text-[10px] gap-1 text-muted-foreground" id={`gate-deny-${gate.id}`}>
+          <Button size="sm" variant="ghost" onClick={() => onAction(gate.id, "deny")} className="flex-1 cursor-pointer gap-1 text-xs text-muted-foreground" id={`gate-deny-${gate.id}`}>
             <X className="size-3" /> 거부
           </Button>
         </div>
       ) : (
-        <div className="flex items-center gap-1.5 pt-1 text-[9px]">
+        <div className="flex items-center gap-1.5 pt-1 text-xs">
           {gate.status === "approved" ? (
-            <><ShieldCheck className="size-3 text-emerald-500" /><span className="text-emerald-500/70">승인됨</span></>
+            <><ShieldCheck className="size-3 text-emerald-500" /><span className="text-emerald-500">승인됨</span></>
           ) : (
-            <><X className="size-3 text-destructive/60" /><span className="text-destructive/60">거부됨</span></>
+            <><X className="size-3 text-destructive" /><span className="text-destructive">거부됨</span></>
           )}
         </div>
       )}
@@ -634,14 +634,14 @@ function ArtifactBlock({ artifact }: { artifact: InlineArtifact }) {
     <div className="w-full overflow-hidden rounded-xl border border-border/25 bg-background">
       <div className="flex items-center justify-between border-b border-border/15 bg-muted/15 px-3 py-1.5">
         <div className="flex items-center gap-2">
-          <Code className="size-3 text-muted-foreground/40" />
-          <span className="text-[10px] font-medium text-foreground/60">{artifact.title}</span>
-          <Badge variant="outline" className="text-[7px] px-1.5 py-0 h-3.5">v{artifact.version}</Badge>
+          <Code className="size-3 text-muted-foreground" />
+          <span className="text-xs font-medium text-foreground">{artifact.title}</span>
+          <Badge variant="outline" className="h-4 px-1.5 py-0 text-[10px]">v{artifact.version}</Badge>
         </div>
         <TooltipProvider>
           <Tooltip>
             <TooltipTrigger asChild>
-              <button onClick={handleCopy} className="rounded-md p-1 text-muted-foreground/30 hover:text-muted-foreground/60 transition-colors cursor-pointer" id={`artifact-copy-${artifact.id}`}>
+              <button onClick={handleCopy} className="rounded-md p-1 text-muted-foreground hover:text-foreground transition-colors cursor-pointer" id={`artifact-copy-${artifact.id}`}>
                 {copied ? <Check className="size-3 text-emerald-500" /> : <Copy className="size-3" />}
               </button>
             </TooltipTrigger>
@@ -650,7 +650,7 @@ function ArtifactBlock({ artifact }: { artifact: InlineArtifact }) {
         </TooltipProvider>
       </div>
       <ScrollArea className="max-h-64">
-        <pre className="p-3 text-[10px] leading-relaxed text-foreground/70 font-mono">
+        <pre className="p-3 text-xs leading-relaxed text-foreground font-mono">
           <code>{artifact.code}</code>
         </pre>
       </ScrollArea>
@@ -705,7 +705,7 @@ function TypingIndicator() {
   return (
     <div className="flex gap-3" id="typing-indicator">
       <Avatar size="sm" className="mt-0.5 shrink-0">
-        <AvatarFallback className="bg-foreground/[0.06] text-[9px] font-semibold text-foreground/50">
+        <AvatarFallback className="bg-foreground/[0.06] text-xs font-semibold text-foreground">
           AI
         </AvatarFallback>
       </Avatar>
