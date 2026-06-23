@@ -267,7 +267,7 @@ export default function Page() {
 
         <ResizablePanelGroup orientation="horizontal" className="h-full w-full">
           {/* 좌측 패널: 채팅 영역 */}
-          <ResizablePanel defaultSize={isDocPanelOpen ? 65 : 100} minSize={40}>
+          <ResizablePanel defaultSize={isDocPanelOpen ? "65%" : "100%"} minSize="40%">
             <ChatView
               messages={currentMessages}
               isTyping={isTyping}
@@ -288,9 +288,9 @@ export default function Page() {
             <>
               <ResizableHandle
                 withHandle
-                className="bg-border/10 hover:bg-primary/20 transition-colors"
+                className="!w-1.5 cursor-col-resize bg-border/40 hover:bg-primary/40 transition-colors"
               />
-              <ResizablePanel defaultSize={35} minSize={20} maxSize={50}>
+              <ResizablePanel defaultSize="35%" minSize="20%" maxSize="50%">
                 <DocumentPanel
                   documents={documents}
                   onAttachToComposer={handleAttachDoc}

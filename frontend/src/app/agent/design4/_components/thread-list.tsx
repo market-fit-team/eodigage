@@ -56,7 +56,7 @@ export function ThreadList({
     <aside className="flex h-full w-64 flex-col border-r border-border/30 bg-background shrink-0">
       {/* ── 헤더 ── */}
       <div className="flex items-center justify-between px-4 pt-5 pb-2">
-        <span className="text-[11px] font-semibold tracking-wide text-foreground/80 uppercase">
+        <span className="text-xs font-semibold tracking-wide text-foreground uppercase">
           Threads
         </span>
         <TooltipProvider>
@@ -80,13 +80,13 @@ export function ThreadList({
       {/* ── 검색 ── */}
       <div className="px-3 pb-2">
         <div className="relative">
-          <Search className="absolute left-2.5 top-1/2 size-3 -translate-y-1/2 text-muted-foreground/50" />
+          <Search className="absolute left-2.5 top-1/2 size-3 -translate-y-1/2 text-muted-foreground" />
           <input
             type="text"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder="검색..."
-            className="w-full rounded-md border-0 bg-muted/40 py-1.5 pl-7 pr-3 text-[11px] text-foreground placeholder:text-muted-foreground/40 outline-none transition-colors focus:bg-muted/60"
+            className="w-full rounded-md border-0 bg-muted/40 py-1.5 pl-7 pr-3 text-xs text-foreground placeholder:text-muted-foreground outline-none transition-colors focus:bg-muted/60"
             id="thread-search-input"
           />
         </div>
@@ -97,7 +97,7 @@ export function ThreadList({
         {/* 고정된 스레드 섹션 */}
         {pinned.length > 0 && (
           <div className="mb-1">
-            <span className="px-2 py-1 text-[9px] font-medium text-muted-foreground/50 uppercase tracking-wider">
+            <span className="px-2 py-1 text-[10px] font-medium text-muted-foreground uppercase tracking-wider">
               Pinned
             </span>
             {pinned.map((thread) => (
@@ -117,7 +117,7 @@ export function ThreadList({
 
         {/* 일반 스레드 섹션 */}
         {pinned.length > 0 && unpinned.length > 0 && (
-          <span className="px-2 py-1 text-[9px] font-medium text-muted-foreground/50 uppercase tracking-wider">
+          <span className="px-2 py-1 text-[10px] font-medium text-muted-foreground uppercase tracking-wider">
             Recent
           </span>
         )}
@@ -135,7 +135,7 @@ export function ThreadList({
         ))}
 
         {filtered.length === 0 && (
-          <p className="px-3 py-8 text-center text-[10px] text-muted-foreground/40">
+          <p className="px-3 py-8 text-center text-xs text-muted-foreground">
             검색 결과가 없습니다
           </p>
         )}
@@ -148,7 +148,7 @@ export function ThreadList({
             <span className="absolute inline-flex size-full animate-ping rounded-full bg-emerald-400 opacity-75" />
             <span className="relative inline-flex size-1.5 rounded-full bg-emerald-500" />
           </span>
-          <span className="text-[9px] text-muted-foreground/60">
+          <span className="text-xs text-muted-foreground">
             Agent Online
           </span>
         </div>
@@ -197,7 +197,7 @@ function ThreadItem({
         "group relative flex w-full cursor-pointer items-start gap-2.5 rounded-lg px-2.5 py-2 text-left transition-all duration-150 select-none",
         isActive
           ? "bg-foreground/[0.04] text-foreground"
-          : "text-muted-foreground hover:bg-foreground/[0.02] hover:text-foreground/80"
+          : "text-muted-foreground hover:bg-foreground/[0.02] hover:text-foreground"
       )}
       id={`thread-item-${thread.id}`}
     >
@@ -209,23 +209,23 @@ function ThreadItem({
       {/* 아이콘 */}
       <span className="mt-0.5 shrink-0">
         {thread.isPinned ? (
-          <Pin className="size-3 text-muted-foreground/40" />
+          <Pin className="size-3 text-muted-foreground" />
         ) : (
-          <MessageSquare className="size-3 text-muted-foreground/40" />
+          <MessageSquare className="size-3 text-muted-foreground" />
         )}
       </span>
 
       {/* 텍스트 영역 */}
       <div className="min-w-0 flex-1">
-        <p className="truncate text-[11px] font-medium leading-tight">
+        <p className="truncate text-xs font-medium leading-tight">
           {thread.title}
         </p>
         {thread.subtitle && (
-          <p className="mt-0.5 truncate text-[9px] text-muted-foreground/50 leading-tight">
+          <p className="mt-0.5 truncate text-xs text-muted-foreground leading-tight">
             {thread.subtitle}
           </p>
         )}
-        <p className="mt-1 text-[8px] text-muted-foreground/35">
+        <p className="mt-1 text-xs text-muted-foreground">
           {thread.updatedAt} · {thread.messageCount}개 메시지
         </p>
       </div>
@@ -237,7 +237,7 @@ function ThreadItem({
             e.stopPropagation()
             onDelete()
           }}
-          className="absolute right-2 top-1/2 -translate-y-1/2 rounded-md p-1 text-muted-foreground/40 hover:bg-destructive/10 hover:text-destructive transition-colors cursor-pointer"
+          className="absolute right-2 top-1/2 -translate-y-1/2 rounded-md p-1 text-muted-foreground hover:bg-destructive/10 hover:text-destructive transition-colors cursor-pointer"
           id={`thread-delete-${thread.id}`}
         >
           <Trash2 className="size-3" />
