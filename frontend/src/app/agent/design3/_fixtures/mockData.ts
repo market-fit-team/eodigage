@@ -1,0 +1,284 @@
+// src/app/agent/design3/_fixtures/mockData.ts
+// 미니멀리즘 AI 에이전트 인터페이스의 가상 데이터
+
+// ─── 타입 정의 ─────────────────────────────────────────────
+
+/** 메시지에 첨부되는 파일 정보 */
+export interface MessageFile {
+  name: string
+  size: string
+  type: string
+}
+
+/** AI의 사고 과정 단계 */
+export interface ThinkingStep {
+  id: string
+  label: string
+  status: "pending" | "running" | "done" | "error"
+  durationMs?: number
+}
+
+/** AI가 사용자에게 요청하는 권한 게이트 */
+export interface PermissionGate {
+  id: string
+  action: string
+  description: string
+  risk: "low" | "medium" | "high"
+  status: "pending" | "approved" | "denied"
+}
+
+/** 인라인 코드 아티팩트 (메시지 내 코드블록) */
+export interface InlineArtifact {
+  id: string
+  title: string
+  language: string
+  code: string
+  version: number
+}
+
+/** 채팅 메시지 */
+export interface ChatMessage {
+  id: string
+  role: "user" | "assistant"
+  content: string
+  timestamp: string
+  isLiked?: boolean
+  isDisliked?: boolean
+  file?: MessageFile
+  thinkingSteps?: ThinkingStep[]
+  permissionGate?: PermissionGate
+  artifact?: InlineArtifact
+}
+
+/** 대화 스레드 */
+export interface Thread {
+  id: string
+  title: string
+  subtitle?: string
+  updatedAt: string
+  messageCount: number
+  isPinned?: boolean
+}
+
+// ─── 프롬프트 제안 ─────────────────────────────────────────
+
+export const promptSuggestions = [
+  { icon: "code", label: "코드 리팩토링", description: "기존 코드를 모던하게 개선" },
+  { icon: "shield", label: "보안 감사", description: "취약점 탐지 및 자동 수정" },
+  { icon: "layout", label: "UI 컴포넌트 생성", description: "디자인 시스템 기반 컴포넌트" },
+  { icon: "zap", label: "성능 최적화", description: "번들 사이즈 및 렌더링 개선" },
+]
+
+// ─── 스레드 목록 ───────────────────────────────────────────
+
+export const initialThreads: Thread[] = [
+  {
+    id: "thread-1",
+    title: "대시보드 컴포넌트 리팩토링",
+    subtitle: "Tailwind v4 마이그레이션 및 XSS 취약점 수정",
+    updatedAt: "방금",
+    messageCount: 4,
+    isPinned: true,
+  },
+  {
+    id: "thread-2",
+    title: "인증 플로우 설계",
+    subtitle: "OAuth 2.0 + PKCE 기반 로그인 구현",
+    updatedAt: "2시간 전",
+    messageCount: 8,
+  },
+  {
+    id: "thread-3",
+    title: "API 엔드포인트 최적화",
+    subtitle: "N+1 쿼리 해소 및 캐싱 전략",
+    updatedAt: "어제",
+    messageCount: 12,
+  },
+  {
+    id: "thread-4",
+    title: "디자인 시스템 토큰 정리",
+    subtitle: "OKLCH 색상 팔레트 및 타이포그래피 스케일",
+    updatedAt: "6월 20일",
+    messageCount: 6,
+  },
+]
+
+// ─── 대화 내역 ─────────────────────────────────────────────
+
+export const initialMessages: Record<string, ChatMessage[]> = {
+  "thread-1": [
+    {
+      id: "m1-1",
+      role: "user",
+      content: "이전 개발자가 만들어둔 대시보드 컴포넌트가 있는데, 인라인 스타일로 작성되어 있고 보안 취약점도 의심돼. 리팩토링해줘.",
+      timestamp: "오전 11:40",
+    },
+    {
+      id: "m1-2",
+      role: "assistant",
+      content: "코드를 분석한 결과, 두 가지 주요 이슈를 발견했습니다.\n\n1. **XSS 취약점** — `dangerouslySetInnerHTML`로 사용자 입력을 검증 없이 렌더링하고 있습니다.\n2. **레거시 스타일** — 인라인 `style` 속성 사용으로 유지보수가 어렵습니다.\n\n아래에 리팩토링된 코드를 첨부합니다. Tailwind CSS v4 기반으로 전환했으며, XSS 위험 요소를 완전히 제거했습니다.",
+      timestamp: "오전 11:42",
+      thinkingSteps: [
+        { id: "ts-1", label: "코드 구조 파싱 (AST 분석)", status: "done", durationMs: 200 },
+        { id: "ts-2", label: "보안 취약점 스캔", status: "done", durationMs: 450 },
+        { id: "ts-3", label: "Tailwind v4 디자인 토큰 매핑", status: "done", durationMs: 300 },
+        { id: "ts-4", label: "리팩토링 코드 생성", status: "done", durationMs: 380 },
+        { id: "ts-5", label: "타입 검증 및 린트 통과 확인", status: "done", durationMs: 250 },
+      ],
+      artifact: {
+        id: "art-1",
+        title: "ModernDashboard.tsx",
+        language: "tsx",
+        version: 2,
+        code: `"use client"
+
+import * as React from "react"
+import { TrendingUp, Plus, Sparkles } from "lucide-react"
+
+interface DashboardProps {
+  customTitle?: string
+}
+
+export function ModernDashboard({ customTitle }: DashboardProps) {
+  const [data, setData] = React.useState([12, 28, 19, 32, 25, 48, 38])
+
+  // 안전한 텍스트 렌더링 (XSS 방지)
+  const safeTitle = customTitle || "모니터링 통계"
+
+  return (
+    <div className="rounded-2xl border border-border bg-card/40 p-6">
+      <h3 className="text-sm font-semibold flex items-center gap-1.5">
+        <Sparkles className="size-4 text-primary" />
+        {safeTitle}
+      </h3>
+      <div className="flex h-36 items-end gap-3 mt-4">
+        {data.map((value, i) => (
+          <div
+            key={i}
+            style={{ height: \`\${(value / 60) * 100}%\` }}
+            className="flex-1 rounded-t bg-primary/60 hover:bg-primary transition-colors"
+          />
+        ))}
+      </div>
+    </div>
+  )
+}`,
+      },
+    },
+    {
+      id: "m1-3",
+      role: "user",
+      content: "좋아, 근데 데이터 추가 버튼도 넣어줘. 그리고 프로덕션에 배포해도 될까?",
+      timestamp: "오전 11:44",
+    },
+    {
+      id: "m1-4",
+      role: "assistant",
+      content: "데이터 추가 기능을 포함하여 코드를 업데이트했습니다.\n\n프로덕션 배포에 대해서는, 아래 작업의 승인이 필요합니다.",
+      timestamp: "오전 11:45",
+      thinkingSteps: [
+        { id: "ts-6", label: "기능 요구사항 반영", status: "done", durationMs: 150 },
+        { id: "ts-7", label: "배포 환경 안전성 평가", status: "done", durationMs: 400 },
+      ],
+      permissionGate: {
+        id: "pg-1",
+        action: "프로덕션 환경 배포",
+        description: "main 브랜치로 머지 후 CI/CD 파이프라인을 통해 프로덕션 서버에 배포합니다. 이 작업은 현재 운영 중인 서비스에 직접 영향을 미칩니다.",
+        risk: "high",
+        status: "pending",
+      },
+    },
+  ],
+  "thread-2": [
+    {
+      id: "m2-1",
+      role: "user",
+      content: "OAuth 2.0 PKCE 방식으로 소셜 로그인을 구현하고 싶어. 구글이랑 깃허브 지원해줘.",
+      timestamp: "오전 9:15",
+    },
+    {
+      id: "m2-2",
+      role: "assistant",
+      content: "OAuth 2.0 PKCE 기반의 소셜 로그인 아키텍처를 설계했습니다.\n\n**핵심 플로우:**\n1. 클라이언트에서 `code_verifier`와 `code_challenge` 생성\n2. Authorization Server로 리다이렉트 (Google / GitHub)\n3. Callback에서 authorization code + code_verifier로 토큰 교환\n4. Access Token을 HttpOnly Cookie에 저장\n\nPKCE를 사용하면 Authorization Code Interception 공격을 방지할 수 있어 SPA 환경에서 안전합니다.",
+      timestamp: "오전 9:18",
+      thinkingSteps: [
+        { id: "ts-a1", label: "OAuth 2.0 스펙 검토", status: "done", durationMs: 300 },
+        { id: "ts-a2", label: "PKCE 플로우 설계", status: "done", durationMs: 450 },
+        { id: "ts-a3", label: "보안 가이드라인 적용", status: "done", durationMs: 200 },
+      ],
+    },
+  ],
+  "thread-3": [
+    {
+      id: "m3-1",
+      role: "user",
+      content: "서비스 카탈로그 API가 느려. N+1 쿼리 문제가 있는 것 같은데 확인해줘.",
+      timestamp: "어제 오후 3:00",
+    },
+    {
+      id: "m3-2",
+      role: "assistant",
+      content: "분석 결과, `GET /api/services` 엔드포인트에서 N+1 쿼리가 확인되었습니다.\n\n**현재 문제:**\n- 서비스 목록 조회 시 각 서비스마다 개별 `findOne()` 호출 → 100개 서비스 시 101회 쿼리\n\n**개선 방안:**\n- `JOIN FETCH` 또는 DataLoader 패턴 적용으로 쿼리를 2회로 축소\n- Redis 캐시 레이어 추가 (TTL: 5분)\n\n예상 응답 시간: 1,200ms → 45ms (약 96% 개선)",
+      timestamp: "어제 오후 3:05",
+      thinkingSteps: [
+        { id: "ts-b1", label: "쿼리 로그 분석", status: "done", durationMs: 500 },
+        { id: "ts-b2", label: "N+1 패턴 탐지", status: "done", durationMs: 300 },
+        { id: "ts-b3", label: "최적화 전략 수립", status: "done", durationMs: 250 },
+      ],
+    },
+  ],
+  "thread-4": [
+    {
+      id: "m4-1",
+      role: "user",
+      content: "디자인 시스템의 색상 토큰을 OKLCH로 전환하고 싶어.",
+      timestamp: "6월 20일 오후 2:00",
+    },
+    {
+      id: "m4-2",
+      role: "assistant",
+      content: "OKLCH 색상 공간으로의 전환을 진행했습니다.\n\n**장점:**\n- 인간의 색상 인지에 기반한 균일한 밝기 (perceptual uniformity)\n- 색상 간 보간 시 의도하지 않은 탁한 중간색이 발생하지 않음\n- CSS Color Level 4 표준으로 모든 최신 브라우저 지원\n\n기존 HEX/HSL 토큰을 OKLCH로 변환한 결과를 정리했습니다.",
+      timestamp: "6월 20일 오후 2:08",
+      thinkingSteps: [
+        { id: "ts-c1", label: "기존 색상 토큰 추출", status: "done", durationMs: 200 },
+        { id: "ts-c2", label: "OKLCH 변환 및 대비비 검증", status: "done", durationMs: 350 },
+      ],
+    },
+  ],
+}
+
+// ─── AI 응답 생성 헬퍼 ─────────────────────────────────────
+
+const responsePool = [
+  {
+    content: "요청하신 변경 사항을 코드에 반영했습니다. 타입 안전성과 접근성 기준을 모두 충족하도록 구현했으며, 우측의 코드 블록에서 변경 내역을 확인하실 수 있습니다.",
+    steps: [
+      { id: "r-1", label: "요구사항 분석", status: "done" as const, durationMs: 150 },
+      { id: "r-2", label: "코드 생성 및 검증", status: "done" as const, durationMs: 300 },
+    ],
+  },
+  {
+    content: "분석을 완료했습니다. 현재 구조에서 개선할 수 있는 세 가지 포인트를 식별했습니다. 각 항목에 대한 구체적인 수정 방안을 아래에 정리했습니다.",
+    steps: [
+      { id: "r-3", label: "패턴 분석", status: "done" as const, durationMs: 200 },
+      { id: "r-4", label: "최적화 전략 생성", status: "done" as const, durationMs: 250 },
+      { id: "r-5", label: "영향도 평가", status: "done" as const, durationMs: 180 },
+    ],
+  },
+  {
+    content: "좋은 접근 방식입니다. 해당 기능을 구현하기 위해 필요한 의존성과 설정을 정리했습니다. 기존 코드베이스와의 충돌 없이 점진적으로 통합할 수 있는 구조로 설계했습니다.",
+    steps: [
+      { id: "r-6", label: "의존성 호환 검사", status: "done" as const, durationMs: 300 },
+      { id: "r-7", label: "통합 설계", status: "done" as const, durationMs: 400 },
+    ],
+  },
+]
+
+/** 가상 AI 응답 생성기 */
+export const generateBotResponse = (): { content: string; steps: ThinkingStep[] } => {
+  const idx = Math.floor(Math.random() * responsePool.length)
+  return {
+    content: responsePool[idx].content,
+    steps: responsePool[idx].steps,
+  }
+}
