@@ -62,6 +62,13 @@ export interface Thread {
   isPinned?: boolean
 }
 
+/** AI 메모리 항목 */
+export interface AiMemory {
+  id: string
+  content: string
+  createdAt: string
+}
+
 /** 문서 패널의 문서 항목 */
 export interface DocumentItem {
   id: string
@@ -181,6 +188,31 @@ export const initialThreads: Thread[] = [
     subtitle: "OKLCH 색상 팔레트 및 타이포그래피 스케일",
     updatedAt: "6월 20일",
     messageCount: 6,
+  },
+]
+
+// ─── AI 메모리 목록 ─────────────────────────────────────────
+
+export const initialMemories: AiMemory[] = [
+  {
+    id: "mem-1",
+    content: "사용자는 React와 Next.js를 기반으로 한 프론트엔드 개발을 주로 함.",
+    createdAt: "2026-06-20",
+  },
+  {
+    id: "mem-2",
+    content: "UI 디자인 시 Tailwind CSS v4를 선호하며 모던하고 미니멀한 디자인을 요구함.",
+    createdAt: "2026-06-21",
+  },
+  {
+    id: "mem-3",
+    content: "설명은 항상 간결하게 bullet point로 요약해서 제공하는 것을 좋아함.",
+    createdAt: "2026-06-22",
+  },
+  {
+    id: "mem-4",
+    content: "코드 작성 시 TypeScript를 강제하며, any 타입 사용을 지양함.",
+    createdAt: "2026-06-22",
   },
 ]
 

@@ -9,10 +9,19 @@ import {
   Pin,
   MessageSquare,
   Trash2,
+  PanelLeftClose,
+  PanelLeft,
+  MoreVertical,
 } from "lucide-react"
 
 import { Button } from "@/shared/components/ui/button"
 import { ScrollArea } from "@/shared/components/ui/scroll-area"
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/shared/components/ui/dropdown-menu"
 import {
   Tooltip,
   TooltipContent,
@@ -28,6 +37,8 @@ interface ThreadListProps {
   onSelectThread: (id: string) => void
   onCreateThread: () => void
   onDeleteThread: (id: string) => void
+  onToggleCollapse?: () => void
+  isCollapsed?: boolean
 }
 
 /** 미니멀한 스레드(대화) 목록 사이드바 */
@@ -37,6 +48,8 @@ export function ThreadList({
   onSelectThread,
   onCreateThread,
   onDeleteThread,
+  onToggleCollapse,
+  isCollapsed = false,
 }: ThreadListProps) {
   const [search, setSearch] = React.useState("")
   const [hoveredId, setHoveredId] = React.useState<string | null>(null)
@@ -53,59 +66,97 @@ export function ThreadList({
   const unpinned = filtered.filter((t) => !t.isPinned)
 
   return (
-    <aside className="flex h-full w-64 flex-col border-r border-border/30 bg-background shrink-0">
+    <aside className="flex h-full w-full flex-col border-r border-border/30 bg-background shrink-0 transition-all duration-300">
       {/* ── 헤더 ── */}
-      <div className="flex items-center justify-between px-4 pt-5 pb-2">
-        <span className="text-xs font-semibold tracking-wide text-foreground uppercase">
-          Threads
-        </span>
-        <TooltipProvider>
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <Button
-                variant="ghost"
-                size="icon-xs"
-                onClick={onCreateThread}
-                className="cursor-pointer text-muted-foreground hover:text-foreground"
-                id="thread-create-btn"
-              >
-                <Plus className="size-3.5" />
-              </Button>
-            </TooltipTrigger>
-            <TooltipContent side="right">새 대화 시작</TooltipContent>
-          </Tooltip>
-        </TooltipProvider>
-      </div>
-
-      {/* ── 검색 ── */}
-      <div className="px-3 pb-2">
-        <div className="relative">
-          <Search className="absolute left-2.5 top-1/2 size-3 -translate-y-1/2 text-muted-foreground" />
-          <input
-            type="text"
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            placeholder="검색..."
-            className="w-full rounded-md border-0 bg-muted/40 py-1.5 pl-7 pr-3 text-xs text-foreground placeholder:text-muted-foreground outline-none transition-colors focus:bg-muted/60"
-            id="thread-search-input"
-          />
+      <div className={cn("flex items-center pt-5 pb-2 transition-all duration-300", isCollapsed ? "justify-center px-2" : "justify-between px-4")}>
+        {!isCollapsed && (
+          <span className="text-xs font-semibold tracking-wide text-foreground uppercase">
+            Threads
+          </span>
+        )}
+        <div className={cn("flex items-center", isCollapsed ? "flex-col gap-3" : "gap-1")}>
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="icon-xs"
+                  onClick={onCreateThread}
+                  className="cursor-pointer text-muted-foreground hover:text-foreground"
+                  id="thread-create-btn"
+                >
+                  <Plus className="size-3.5" />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent side="right">새 대화 시작</TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+          {onToggleCollapse && (
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    size="icon-xs"
+                    onClick={onToggleCollapse}
+                    className="cursor-pointer text-muted-foreground hover:text-foreground hidden md:flex"
+                  >
+                    {isCollapsed ? <PanelLeft className="size-3.5" /> : <PanelLeftClose className="size-3.5" />}
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent side="right">{isCollapsed ? "사이드바 열기" : "사이드바 닫기"}</TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+          )}
         </div>
       </div>
 
+      {/* ── 검색 ── */}
+      <div className={cn("pb-2 flex transition-all", isCollapsed ? "px-2 justify-center" : "px-3")}>
+        {isCollapsed ? (
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button variant="ghost" size="icon-xs" className="text-muted-foreground hover:text-foreground">
+                  <Search className="size-3.5" />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent side="right">검색</TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+        ) : (
+          <div className="relative w-full">
+            <Search className="absolute left-2.5 top-1/2 size-3 -translate-y-1/2 text-muted-foreground" />
+            <input
+              type="text"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              placeholder="검색..."
+              className="w-full rounded-md border-0 bg-muted/40 py-1.5 pl-7 pr-3 text-xs text-foreground placeholder:text-muted-foreground outline-none transition-colors focus:bg-muted/60"
+              id="thread-search-input"
+            />
+          </div>
+        )}
+      </div>
+
       {/* ── 스레드 목록 ── */}
-      <ScrollArea className="flex-1 min-h-0 px-2">
+      {/* Radix ScrollArea의 내부 table 래퍼가 긴 제목 폭을 따라 커지면 리사이저블 사이드바가 다시 터진다. 아래 래퍼 보정 클래스는 제거하지 말 것. */}
+      <ScrollArea className="flex-1 min-h-0 px-2 [&_[data-slot=scroll-area-viewport]>div]:!block [&_[data-slot=scroll-area-viewport]>div]:!min-w-0 [&_[data-slot=scroll-area-viewport]>div]:!w-full">
         {/* 고정된 스레드 섹션 */}
         {pinned.length > 0 && (
           <div className="mb-1">
-            <span className="px-2 py-1 text-[10px] font-medium text-muted-foreground uppercase tracking-wider">
-              Pinned
-            </span>
+            {!isCollapsed && (
+              <span className="block px-2 py-1 text-[10px] font-medium text-muted-foreground uppercase tracking-wider">
+                Pinned
+              </span>
+            )}
             {pinned.map((thread) => (
               <ThreadItem
                 key={thread.id}
                 thread={thread}
                 isActive={thread.id === activeThreadId}
                 isHovered={thread.id === hoveredId}
+                isCollapsed={isCollapsed}
                 onSelect={() => onSelectThread(thread.id)}
                 onDelete={() => onDeleteThread(thread.id)}
                 onMouseEnter={() => setHoveredId(thread.id)}
@@ -116,8 +167,8 @@ export function ThreadList({
         )}
 
         {/* 일반 스레드 섹션 */}
-        {pinned.length > 0 && unpinned.length > 0 && (
-          <span className="px-2 py-1 text-[10px] font-medium text-muted-foreground uppercase tracking-wider">
+        {pinned.length > 0 && unpinned.length > 0 && !isCollapsed && (
+          <span className="block px-2 py-1 text-[10px] font-medium text-muted-foreground uppercase tracking-wider">
             Recent
           </span>
         )}
@@ -127,6 +178,7 @@ export function ThreadList({
             thread={thread}
             isActive={thread.id === activeThreadId}
             isHovered={thread.id === hoveredId}
+            isCollapsed={isCollapsed}
             onSelect={() => onSelectThread(thread.id)}
             onDelete={() => onDeleteThread(thread.id)}
             onMouseEnter={() => setHoveredId(thread.id)}
@@ -142,16 +194,25 @@ export function ThreadList({
       </ScrollArea>
 
       {/* ── 하단 상태 표시 ── */}
-      <div className="border-t border-border/20 px-4 py-3">
-        <div className="flex items-center gap-2">
-          <span className="relative flex size-1.5">
-            <span className="absolute inline-flex size-full animate-ping rounded-full bg-emerald-400 opacity-75" />
-            <span className="relative inline-flex size-1.5 rounded-full bg-emerald-500" />
-          </span>
-          <span className="text-xs text-muted-foreground">
-            Agent Online
-          </span>
-        </div>
+      <div className={cn("border-t border-border/20 py-3", isCollapsed ? "flex justify-center" : "px-4")}>
+        <TooltipProvider>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <div className="flex items-center gap-2 cursor-help">
+                <span className="relative flex size-1.5">
+                  <span className="absolute inline-flex size-full animate-ping rounded-full bg-emerald-400 opacity-75" />
+                  <span className="relative inline-flex size-1.5 rounded-full bg-emerald-500" />
+                </span>
+                {!isCollapsed && (
+                  <span className="text-xs text-muted-foreground">
+                    Agent Online
+                  </span>
+                )}
+              </div>
+            </TooltipTrigger>
+            {isCollapsed && <TooltipContent side="right">Agent Online</TooltipContent>}
+          </Tooltip>
+        </TooltipProvider>
       </div>
     </aside>
   )
@@ -165,6 +226,7 @@ interface ThreadItemProps {
   thread: Thread
   isActive: boolean
   isHovered: boolean
+  isCollapsed: boolean
   onSelect: () => void
   onDelete: () => void
   onMouseEnter: () => void
@@ -175,6 +237,7 @@ function ThreadItem({
   thread,
   isActive,
   isHovered,
+  isCollapsed,
   onSelect,
   onDelete,
   onMouseEnter,
@@ -194,7 +257,9 @@ function ThreadItem({
       onMouseEnter={onMouseEnter}
       onMouseLeave={onMouseLeave}
       className={cn(
-        "group relative flex w-full cursor-pointer items-start gap-2.5 rounded-lg px-2.5 py-2 text-left transition-all duration-150 select-none",
+        // 메뉴 슬롯은 고정폭, 텍스트 영역만 min-w-0/truncate로 줄어들어야 한다.
+        "group relative flex w-full max-w-full cursor-pointer items-start gap-2.5 overflow-hidden rounded-lg transition-all duration-150 select-none",
+        isCollapsed ? "justify-center px-0 py-2.5" : "px-2.5 py-2",
         isActive
           ? "bg-foreground/[0.04] text-foreground"
           : "text-muted-foreground hover:bg-foreground/[0.02] hover:text-foreground"
@@ -207,41 +272,70 @@ function ThreadItem({
       )}
 
       {/* 아이콘 */}
-      <span className="mt-0.5 shrink-0">
-        {thread.isPinned ? (
-          <Pin className="size-3 text-muted-foreground" />
-        ) : (
-          <MessageSquare className="size-3 text-muted-foreground" />
-        )}
-      </span>
+      <TooltipProvider>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <span className={cn("shrink-0 flex items-center justify-center", !isCollapsed && "mt-0.5")}>
+              {thread.isPinned ? (
+                <Pin className="size-3 text-muted-foreground" />
+              ) : (
+                <MessageSquare className="size-3 text-muted-foreground" />
+              )}
+            </span>
+          </TooltipTrigger>
+          {isCollapsed && <TooltipContent side="right">{thread.title}</TooltipContent>}
+        </Tooltip>
+      </TooltipProvider>
 
       {/* 텍스트 영역 */}
-      <div className="min-w-0 flex-1">
-        <p className="truncate text-xs font-medium leading-tight">
-          {thread.title}
-        </p>
-        {thread.subtitle && (
-          <p className="mt-0.5 truncate text-xs text-muted-foreground leading-tight">
-            {thread.subtitle}
+      {!isCollapsed && (
+        <div className="min-w-0 flex-1 pr-1">
+          <p className="truncate text-xs font-medium leading-tight">
+            {thread.title}
           </p>
-        )}
-        <p className="mt-1 text-xs text-muted-foreground">
-          {thread.updatedAt} · {thread.messageCount}개 메시지
-        </p>
-      </div>
+          {thread.subtitle && (
+            <p className="mt-0.5 truncate text-xs text-muted-foreground leading-tight">
+              {thread.subtitle}
+            </p>
+          )}
+          <p className="mt-1 text-xs text-muted-foreground">
+            {thread.updatedAt} · {thread.messageCount}개 메시지
+          </p>
+        </div>
+      )}
 
-      {/* 삭제 버튼 (호버 시 표시) */}
-      {isHovered && (
-        <button
-          onClick={(e) => {
-            e.stopPropagation()
-            onDelete()
-          }}
-          className="absolute right-2 top-1/2 -translate-y-1/2 rounded-md p-1 text-muted-foreground hover:bg-destructive/10 hover:text-destructive transition-colors cursor-pointer"
-          id={`thread-delete-${thread.id}`}
-        >
-          <Trash2 className="size-3" />
-        </button>
+      {/* 스레드 액션 메뉴 */}
+      {!isCollapsed && (
+        <div className="flex w-6 shrink-0 self-center justify-end">
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <button
+                onClick={(e) => e.stopPropagation()}
+                className={cn(
+                  "rounded-md p-1 text-muted-foreground transition-colors hover:bg-muted/60 hover:text-foreground cursor-pointer",
+                  isHovered ? "opacity-100" : "opacity-60"
+                )}
+                id={`thread-menu-${thread.id}`}
+              >
+                <MoreVertical className="size-3.5" />
+              </button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-36">
+              <DropdownMenuItem
+                variant="destructive"
+                onClick={(e) => {
+                  e.stopPropagation()
+                  onDelete()
+                }}
+                className="cursor-pointer"
+                id={`thread-delete-${thread.id}`}
+              >
+                <Trash2 className="size-3.5" />
+                <span>대화 삭제</span>
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </div>
       )}
     </div>
   )
