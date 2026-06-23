@@ -3,36 +3,44 @@
 "use client"
 
 import * as React from "react"
+import { Folder, Menu, MessageSquare, NotebookPen, X } from "lucide-react"
 import { toast } from "sonner"
-import { Menu, X } from "lucide-react"
-
 import { Button } from "@/shared/components/ui/button"
 import {
-  ResizablePanelGroup,
-  ResizablePanel,
   ResizableHandle,
+  ResizablePanel,
+  ResizablePanelGroup,
 } from "@/shared/components/ui/resizable"
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/shared/components/ui/tooltip"
 import { cn } from "@/shared/lib/utils"
-
-import { ThreadList } from "./_components/thread-list"
 import { ChatView } from "./_components/chat-view"
 import { DocumentPanel } from "./_components/document-panel"
+import { ThreadList } from "./_components/thread-list"
+import { MemoryPanel } from "./_components/memory-panel"
 import {
-  initialThreads,
-  initialMessages,
-  initialDocuments,
-  generateBotResponse,
-  type Thread,
   type ChatMessage,
-  type MessageFile,
   type DocumentItem,
+  type MessageFile,
+  type Thread,
+  type AiMemory,
+  generateBotResponse,
+  initialDocuments,
+  initialMessages,
+  initialThreads,
+  initialMemories,
 } from "./_fixtures/mock-data"
 
 /** Design4 — Adaptive Minimalism AI Agent 종합 워크스페이스 */
 export default function Page() {
   // ── 기존 상태 (design3 계승) ─────────────────────────────
   const [threads, setThreads] = React.useState<Thread[]>(initialThreads)
-  const [messages, setMessages] = React.useState<Record<string, ChatMessage[]>>(initialMessages)
+  const [messages, setMessages] =
+    React.useState<Record<string, ChatMessage[]>>(initialMessages)
   const [activeThreadId, setActiveThreadId] = React.useState<string>("thread-1")
   const [isTyping, setIsTyping] = React.useState(false)
   const [isSidebarOpen, setIsSidebarOpen] = React.useState(true)
@@ -42,10 +50,28 @@ export default function Page() {
   const [attachedDocs, setAttachedDocs] = React.useState<DocumentItem[]>([])
   const [documents] = React.useState<DocumentItem[]>(initialDocuments)
 
+  // ── 탭 상태 ──────────────────────────────────────────────
+  const [activeTab, setActiveTab] =
+    React.useState<"chat" | "folder" | "memory">("chat")
+
+  // ── AI Memory 상태 ─────────────────────────────────────────
+  const [memories, setMemories] = React.useState<AiMemory[]>(initialMemories)
+
+  const isExpanded = !isSidebarOpen && !isDocPanelOpen
+  // 리사이저블 패널 크기는 숫자로 쓰면 px로 해석된다. 임의로 숫자값으로 바꾸지 말 것.
+  const chatPanelDefaultSize = isSidebarOpen
+    ? isDocPanelOpen
+      ? "46%"
+      : "76%"
+    : isDocPanelOpen
+      ? "65%"
+      : "100%"
+  const docPanelDefaultSize = isSidebarOpen ? "30%" : "35%"
+
   // 현재 활성 스레드 정보
   const activeThread = threads.find((t) => t.id === activeThreadId)
   const activeTitle = activeThread?.title ?? "새 대화"
-  const currentMessages = activeThreadId ? messages[activeThreadId] ?? [] : []
+  const currentMessages = activeThreadId ? (messages[activeThreadId] ?? []) : []
 
   // ── 스레드 선택 ──────────────────────────────────────────
   const handleSelectThread = (id: string) => {
@@ -161,13 +187,17 @@ export default function Page() {
   }
 
   // ── 피드백 토글 ───────────────────────────────────────────
-  const handleToggleFeedback = (messageId: string, type: "like" | "dislike") => {
+  const handleToggleFeedback = (
+    messageId: string,
+    type: "like" | "dislike"
+  ) => {
     if (!activeThreadId) return
     setMessages((prev) => {
       const roomMsgs = prev[activeThreadId] ?? []
       const updated = roomMsgs.map((m) => {
         if (m.id !== messageId) return m
-        if (type === "like") return { ...m, isLiked: !m.isLiked, isDisliked: false }
+        if (type === "like")
+          return { ...m, isLiked: !m.isLiked, isDisliked: false }
         return { ...m, isDisliked: !m.isDisliked, isLiked: false }
       })
       return { ...prev, [activeThreadId]: updated }
@@ -175,7 +205,10 @@ export default function Page() {
   }
 
   // ── 권한 게이트 ───────────────────────────────────────────
-  const handlePermissionAction = (gateId: string, action: "approve" | "deny") => {
+  const handlePermissionAction = (
+    gateId: string,
+    action: "approve" | "deny"
+  ) => {
     if (!activeThreadId) return
     setMessages((prev) => {
       const roomMsgs = prev[activeThreadId] ?? []
@@ -185,7 +218,10 @@ export default function Page() {
           ...m,
           permissionGate: {
             ...m.permissionGate,
-            status: action === "approve" ? ("approved" as const) : ("denied" as const),
+            status:
+              action === "approve"
+                ? ("approved" as const)
+                : ("denied" as const),
           },
         }
       })
@@ -223,8 +259,119 @@ export default function Page() {
     setIsDocPanelOpen((prev) => !prev)
   }
 
+  /** 전체 화면 확장 토글 */
+  const handleToggleExpand = () => {
+    if (isExpanded) {
+      setIsSidebarOpen(true)
+      setIsDocPanelOpen(true)
+    } else {
+      setIsSidebarOpen(false)
+      setIsDocPanelOpen(false)
+    }
+  }
+
+  // ── AI Memory 관리 ────────────────────────────────────────
+  const handleAddMemory = (content: string) => {
+    const newMemory: AiMemory = {
+      id: `mem-${Date.now()}`,
+      content,
+      createdAt: new Date().toISOString().split("T")[0],
+    }
+    setMemories((prev) => [newMemory, ...prev])
+    toast.success("새로운 기억이 추가되었습니다.")
+  }
+
+  const handleUpdateMemory = (id: string, content: string) => {
+    setMemories((prev) =>
+      prev.map((m) => (m.id === id ? { ...m, content } : m))
+    )
+    toast.success("기억이 수정되었습니다.")
+  }
+
+  const handleDeleteMemory = (id: string) => {
+    setMemories((prev) => prev.filter((m) => m.id !== id))
+    toast("기억이 삭제되었습니다.", { icon: "🗑️" })
+  }
+
   return (
     <div className="relative flex h-[calc(100dvh-4rem)] w-full overflow-hidden bg-background text-foreground">
+      {/* ── 액티비티 바 (Far Left) ── */}
+      <div className="z-50 flex w-14 shrink-0 flex-col items-center justify-between border-r border-border/30 bg-muted/10 py-4">
+        <div className="flex flex-col gap-4">
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => {
+                    setActiveTab("chat")
+                    setIsSidebarOpen(true)
+                  }}
+                  className={cn(
+                    "cursor-pointer rounded-xl",
+                    activeTab === "chat" && isSidebarOpen
+                      ? "bg-muted text-foreground shadow-sm"
+                      : "text-muted-foreground"
+                  )}
+                >
+                  <MessageSquare className="size-5" />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent side="right">채팅 목록</TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+
+        <TooltipProvider>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => {
+                  setActiveTab("folder")
+                  setIsSidebarOpen(true)
+                }}
+                className={cn(
+                  "cursor-pointer rounded-xl",
+                  activeTab === "folder" && isSidebarOpen
+                    ? "bg-muted text-foreground shadow-sm"
+                    : "text-muted-foreground hover:bg-muted hover:text-foreground"
+                )}
+              >
+                <Folder className="size-5" />
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent side="right">프로젝트 파일</TooltipContent>
+          </Tooltip>
+        </TooltipProvider>
+
+        <TooltipProvider>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => {
+                  setActiveTab("memory")
+                  setIsSidebarOpen(true)
+                }}
+                className={cn(
+                  "cursor-pointer rounded-xl",
+                  activeTab === "memory" && isSidebarOpen
+                    ? "bg-muted text-foreground shadow-sm"
+                    : "text-muted-foreground hover:bg-muted hover:text-foreground"
+                )}
+              >
+                <NotebookPen className="size-5" />
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent side="right">AI 메모리</TooltipContent>
+          </Tooltip>
+        </TooltipProvider>
+        </div>
+      </div>
+
       {/* ── 모바일 오버레이 ── */}
       {isSidebarOpen && (
         <div
@@ -233,47 +380,79 @@ export default function Page() {
         />
       )}
 
-      {/* ── 스레드 사이드바 (고정 폭, ResizablePanel 밖) ── */}
-      <div
-        className={cn(
-          "fixed z-50 h-full transition-transform duration-200 md:relative md:z-auto",
-          isSidebarOpen ? "translate-x-0" : "-translate-x-full md:translate-x-0 md:hidden"
-        )}
-      >
-        <ThreadList
-          threads={threads}
-          activeThreadId={activeThreadId}
-          onSelectThread={(id) => {
-            handleSelectThread(id)
-            if (window.innerWidth < 768) setIsSidebarOpen(false)
-          }}
-          onCreateThread={handleCreateThread}
-          onDeleteThread={handleDeleteThread}
-        />
-      </div>
-
-      {/* ── 메인 작업 영역 (Resizable 2단: 채팅 + 문서) ── */}
-      <div className="flex flex-1 flex-col min-w-0 min-h-0 overflow-hidden">
+      {/* ── 메인 작업 영역 (Resizable 3단) ── */}
+      <div className="relative flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden">
         {/* 모바일 메뉴 버튼 */}
         <Button
           variant="ghost"
           size="icon-sm"
           onClick={() => setIsSidebarOpen(!isSidebarOpen)}
-          className="absolute left-3 top-3 z-30 md:hidden cursor-pointer"
+          className="absolute top-3 left-3 z-30 cursor-pointer md:hidden"
           id="mobile-menu-btn"
         >
-          {isSidebarOpen ? <X className="size-4" /> : <Menu className="size-4" />}
+          {isSidebarOpen ? (
+            <X className="size-4" />
+          ) : (
+            <Menu className="size-4" />
+          )}
         </Button>
 
         <ResizablePanelGroup orientation="horizontal" className="h-full w-full">
-          {/* 좌측 패널: 채팅 영역 */}
-          <ResizablePanel defaultSize={isDocPanelOpen ? "65%" : "100%"} minSize="40%">
+          {/* 좌측 패널: 스레드 목록 또는 문서 패널 */}
+          {isSidebarOpen && (
+            <>
+              {/* 아래 크기값은 react-resizable-panels v4 기준 퍼센트 문자열이다. 숫자로 되돌리면 왼쪽 패널이 px 단위로 깨진다. */}
+              <ResizablePanel defaultSize="24%" minSize="18%" maxSize="36%">
+                {activeTab === "chat" && (
+                  <ThreadList
+                    threads={threads}
+                    activeThreadId={activeThreadId}
+                    onSelectThread={(id) => {
+                      handleSelectThread(id)
+                      if (window.innerWidth < 768) setIsSidebarOpen(false)
+                    }}
+                    onCreateThread={handleCreateThread}
+                    onDeleteThread={handleDeleteThread}
+                    onToggleCollapse={() => setIsSidebarOpen(false)}
+                  />
+                )}
+                {activeTab === "folder" && (
+                  <DocumentPanel
+                    documents={documents}
+                    onAttachToComposer={handleAttachDoc}
+                    onCollapsePanel={() => setIsSidebarOpen(false)}
+                    side="left"
+                  />
+                )}
+                {activeTab === "memory" && (
+                  <MemoryPanel
+                    memories={memories}
+                    onAdd={handleAddMemory}
+                    onUpdate={handleUpdateMemory}
+                    onDelete={handleDeleteMemory}
+                    onCloseSidebar={() => setIsSidebarOpen(false)}
+                  />
+                )}
+              </ResizablePanel>
+              <ResizableHandle
+                withHandle
+                className="z-10 !w-1.5 cursor-col-resize bg-border/40 transition-colors hover:bg-primary/40"
+              />
+            </>
+          )}
+
+          {/* 중앙 패널: 채팅 영역 */}
+          <ResizablePanel defaultSize={chatPanelDefaultSize} minSize="40%">
             <ChatView
               messages={currentMessages}
               isTyping={isTyping}
               activeThreadTitle={activeTitle}
               attachedDocs={attachedDocs}
               isDocPanelOpen={isDocPanelOpen}
+              isSidebarOpen={isSidebarOpen}
+              isExpanded={isExpanded}
+              onToggleSidebar={() => setIsSidebarOpen(!isSidebarOpen)}
+              onToggleExpand={handleToggleExpand}
               onSendMessage={handleSendMessage}
               onToggleFeedback={handleToggleFeedback}
               onPermissionAction={handlePermissionAction}
@@ -288,9 +467,9 @@ export default function Page() {
             <>
               <ResizableHandle
                 withHandle
-                className="!w-1.5 cursor-col-resize bg-border/40 hover:bg-primary/40 transition-colors"
+                className="!w-1.5 cursor-col-resize bg-border/40 transition-colors hover:bg-primary/40"
               />
-              <ResizablePanel defaultSize="35%" minSize="20%" maxSize="50%">
+              <ResizablePanel defaultSize={docPanelDefaultSize} minSize="20%" maxSize="50%">
                 <DocumentPanel
                   documents={documents}
                   onAttachToComposer={handleAttachDoc}
