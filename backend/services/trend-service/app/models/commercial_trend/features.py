@@ -201,36 +201,43 @@ def compute_window_features(window: pd.Series) -> dict[str, float]:
 
 def build_training_samples(
     data_mode: str = "sample",
-) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
-    """과거 시계열을 슬라이딩하며 (피처 윈도우 -> 향후 증감) 지도학습 샘플을 만든다.
+) -> tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
+    """주제별 세그먼트 시계열을 슬라이딩해 (피처 -> log-uplift) 통합 학습 샘플을 만든다.
 
-    반환: (features, labels, asof_dates)
-    asof_dates는 각 표본의 기준 시점(윈도우 마지막 날)이며, 시간순 검증 분할에 쓴다.
+    반환: (features, labels, asof_dates, theme_codes)
+    - label = log(향후7일평균+1) - log(기준7일평균+1)  (로그 업리프트, 분포 안정)
+    - theme_code = 주제 범주형 코드(전체/남성/여성/청년/저녁). 단일 모델에 함께 학습.
+    asof_dates는 각 표본의 기준 시점이며 시간순 검증 분할에 쓴다.
     """
-    daily = load_daily_population(data_mode)
+    dailies = load_segment_dailies(data_mode)
     feature_rows: list[list[float]] = []
     labels: list[float] = []
     asof_dates: list[np.datetime64] = []
+    theme_codes: list[int] = []
 
-    for area_code in daily["area_code"].unique():
-        series = _series_for_area(daily, area_code)
-        n = len(series)
-        # as-of 시점 t: 과거 WINDOW_DAYS + 향후 HORIZON_DAYS가 모두 존재해야 한다.
-        for t in range(WINDOW_DAYS - 1, n - HORIZON_DAYS):
-            window = series.iloc[t - WINDOW_DAYS + 1 : t + 1]
-            forward = series.iloc[t + 1 : t + 1 + HORIZON_DAYS].to_numpy(dtype=float)
-            base = window.to_numpy(dtype=float)[-7:].mean() or 1.0
-            label = float(forward.mean() / base - 1.0)
+    for theme, daily in dailies.items():
+        code = THEME_CODES[theme]
+        for area_code in daily["area_code"].unique():
+            series = _series_for_area(daily, area_code)
+            n = len(series)
+            # as-of 시점 t: 과거 WINDOW_DAYS + 향후 HORIZON_DAYS가 모두 존재해야 한다.
+            for t in range(WINDOW_DAYS - 1, n - HORIZON_DAYS):
+                window = series.iloc[t - WINDOW_DAYS + 1 : t + 1]
+                forward = series.iloc[t + 1 : t + 1 + HORIZON_DAYS].to_numpy(dtype=float)
+                base = window.to_numpy(dtype=float)[-7:].mean() or 1.0
+                label = float(np.log1p(forward.mean()) - np.log1p(base))
 
-            feats = compute_window_features(window)
-            feature_rows.append([feats[name] for name in FEATURE_NAMES])
-            labels.append(label)
-            asof_dates.append(np.datetime64(series.index[t]))
+                feats = compute_window_features(window)
+                feature_rows.append([feats[name] for name in FEATURE_NAMES])
+                labels.append(label)
+                asof_dates.append(np.datetime64(series.index[t]))
+                theme_codes.append(code)
 
     return (
         np.asarray(feature_rows, dtype=float),
         np.asarray(labels, dtype=float),
         np.asarray(asof_dates, dtype="datetime64[ns]"),
+        np.asarray(theme_codes, dtype=int),
     )
 
 
@@ -268,6 +275,9 @@ SEGMENT_POSITIONS: dict[str, list[int]] = {
 }
 # 저녁 주제: 총생활인구를 17~21시(시간대구분 컬럼=위치 1)만 합산한다.
 EVENING_HOURS = {"17", "18", "19", "20", "21"}
+
+# 통합 학습용 주제 코드(범주형 피처). load_segment_dailies가 만드는 주제와 일치한다.
+THEME_CODES: dict[str, int] = {"all": 0, "male": 1, "female": 2, "youth": 3, "evening": 4}
 
 
 def _segment_data_dir(data_mode: str) -> Path:

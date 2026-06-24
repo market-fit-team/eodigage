@@ -26,7 +26,7 @@ def _compute_theme_rankings(data_mode: str) -> dict[str, list[dict[str, object]]
 
     names = load_hdong_names(data_mode)
     dailies = load_segment_dailies(data_mode)
-    return {segment: predict_trend_scores_for(daily, names) for segment, daily in dailies.items()}
+    return {segment: predict_trend_scores_for(daily, names, segment) for segment, daily in dailies.items()}
 
 
 def refresh_theme_rankings(data_mode: str = "sample") -> dict[str, list[dict[str, object]]]:
