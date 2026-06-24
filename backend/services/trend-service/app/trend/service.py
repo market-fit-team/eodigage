@@ -73,11 +73,7 @@ def _predictive_metrics(ranking: list[dict[str, object]]) -> list[TrendForecastM
 def _weekend_metrics(all_ranking: list[dict[str, object]]) -> list[TrendForecastMetric]:
     """주말 쏠림(weekend_ratio)이 의미 있는 상위 N개. 전체 주제의 신호에서 파생한다."""
     ranked = sorted(
-        (
-            item
-            for item in all_ranking
-            if _weekend_ratio(item) >= WEEKEND_STRONG_THRESHOLD
-        ),
+        (item for item in all_ranking if _weekend_ratio(item) >= WEEKEND_STRONG_THRESHOLD),
         key=_weekend_ratio,
         reverse=True,
     )
@@ -126,7 +122,7 @@ def build_banner(data_mode: str | None = None) -> TrendForecastBanner:
     else:
         title = "다음 주 뚜렷한 반등 상권이 보이지 않습니다."
 
-    description = "최근 한 달 생활인구 흐름을 주제별로 학습해 다음 주 뜨는 상권을 예측합니다."
+    description = "최근 생활인구 흐름을 주제별로 학습해 다음 주 뜨는 상권을 예측합니다."
     accuracy = _direction_accuracy()
     if accuracy is not None:
         description += f" 과거 방향 적중률 {round(accuracy * 100)}%."

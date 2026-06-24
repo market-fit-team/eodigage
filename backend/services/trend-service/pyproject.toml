@@ -20,3 +20,12 @@ dependencies = [
 [build-system]
 requires = ["setuptools>=68"]
 build-backend = "setuptools.build_meta"
+
+[tool.ruff]
+line-length = 120
+target-version = "py311"
+extend-exclude = [".venv", ".artifacts"]
+
+[tool.ruff.lint]
+# E/W: pycodestyle, F: pyflakes, I: isort(import 정렬), UP: pyupgrade, B: bugbear
+select = ["E", "W", "F", "I", "UP", "B"]

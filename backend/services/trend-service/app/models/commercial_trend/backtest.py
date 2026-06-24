@@ -86,7 +86,7 @@ def run_backtest(data_mode: str = "db") -> dict[str, object]:
 
     # Top-K는 (as-of일 × 주제)별로 본다. 주제 코드는 matrix 마지막 열.
     theme_test = x_test[:, len(FEATURE_NAMES)]
-    keys = list(zip(d_test.tolist(), theme_test.tolist()))
+    keys = list(zip(d_test.tolist(), theme_test.tolist(), strict=False))
 
     # 기준모델: 무변화 / 평균회귀(최근7일이 28일평균 대비 높으면 되돌림) / 모멘텀 지속
     predictions = {

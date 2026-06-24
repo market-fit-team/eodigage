@@ -1,9 +1,9 @@
 from __future__ import annotations
 
+from datetime import date, datetime
+
 from sqlalchemy import func, select
 from sqlalchemy.dialects.postgresql import insert as pg_insert
-
-from datetime import date, datetime
 
 from app.db.models import HdongArea, TrendScore
 from app.db.session import session_scope
@@ -29,18 +29,14 @@ def upsert_hdong_names(names: dict[str, str]) -> int:
         return 0
     payload = [{"code": code, "name": name} for code, name in names.items()]
     statement = pg_insert(HdongArea).values(payload)
-    statement = statement.on_conflict_do_update(
-        index_elements=[HdongArea.code], set_={"name": statement.excluded.name}
-    )
+    statement = statement.on_conflict_do_update(index_elements=[HdongArea.code], set_={"name": statement.excluded.name})
     with session_scope() as session:
         session.execute(statement)
         session.commit()
     return len(payload)
 
 
-def save_theme_scores(
-    rankings: dict[str, list[dict[str, object]]], run_at: datetime, as_of_date: date | None
-) -> int:
+def save_theme_scores(rankings: dict[str, list[dict[str, object]]], run_at: datetime, as_of_date: date | None) -> int:
     """주제별 예측 결과를 trend_score에 저장한다(run_at 단위 이력, theme로 구분)."""
     payload = [
         {
@@ -78,9 +74,7 @@ def load_latest_theme_scores() -> dict[str, list[dict[str, object]]]:
             return {}
         rows = (
             session.execute(
-                select(TrendScore)
-                .where(TrendScore.run_at == latest)
-                .order_by(TrendScore.theme, TrendScore.rank)
+                select(TrendScore).where(TrendScore.run_at == latest).order_by(TrendScore.theme, TrendScore.rank)
             )
             .scalars()
             .all()

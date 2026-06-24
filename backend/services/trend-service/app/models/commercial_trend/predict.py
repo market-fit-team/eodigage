@@ -74,9 +74,6 @@ def predict_from_features(frame: pd.DataFrame, theme: str) -> list[dict[str, obj
     return results
 
 
-def predict_trend_scores_for(
-    daily: pd.DataFrame, names: dict[str, str], theme: str
-) -> list[dict[str, object]]:
+def predict_trend_scores_for(daily: pd.DataFrame, names: dict[str, str], theme: str) -> list[dict[str, object]]:
     """주어진 일별 시계열(주제/세그먼트)로 예측한다."""
     return predict_from_features(latest_features_from_daily(daily, names), theme)
-

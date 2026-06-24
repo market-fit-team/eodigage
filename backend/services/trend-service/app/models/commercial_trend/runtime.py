@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import time
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 from app.models.commercial_trend.features import MODEL_FILE
 from app.models.commercial_trend.predict import load_meta
@@ -36,7 +36,7 @@ def refresh_theme_rankings(data_mode: str = "sample") -> dict[str, list[dict[str
         from app.models.commercial_trend.features import latest_source_stat_date
         from app.trend.repository import save_theme_scores
 
-        save_theme_scores(rankings, datetime.now(timezone.utc), latest_source_stat_date(data_mode))
+        save_theme_scores(rankings, datetime.now(UTC), latest_source_stat_date(data_mode))
     _theme_cache["rankings"] = rankings
     _theme_cache["at"] = time.time()
     return rankings

@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import argparse
 import json
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 import lightgbm as lgb
 import numpy as np
@@ -115,9 +115,9 @@ def train(data_mode: str = "sample") -> dict[str, object]:
         "best_iteration": best_iteration,
         "validation": validation,
         "feature_importance_gain": {
-            name: float(score) for name, score in zip(MODEL_FEATURE_NAMES, importance)
+            name: float(score) for name, score in zip(MODEL_FEATURE_NAMES, importance, strict=False)
         },
-        "trained_at": datetime.now(timezone.utc).isoformat(),
+        "trained_at": datetime.now(UTC).isoformat(),
     }
     META_FILE.parent.mkdir(parents=True, exist_ok=True)
     META_FILE.write_text(json.dumps(meta, ensure_ascii=False, indent=2), encoding="utf-8")

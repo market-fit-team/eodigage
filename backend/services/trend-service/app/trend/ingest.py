@@ -12,7 +12,7 @@ from app.models.commercial_trend.features import (
 from app.trend.repository import upsert_hdong_names
 
 
-def ingest_csv_into_db(data_dir: Path) -> dict[str, int]:
+def ingest_hdong_names_into_db(data_dir: Path) -> dict[str, int]:
     """주어진 폴더의 행정동 이름 CSV를 DB로 적재한다."""
     names = load_hdong_names_csv(data_dir / HDONG_NAME_FILE)
     inserted_names = upsert_hdong_names(names)
@@ -20,8 +20,8 @@ def ingest_csv_into_db(data_dir: Path) -> dict[str, int]:
 
 
 def ingest_bootstrap_into_db() -> dict[str, int]:
-    """부트스트랩용: .raw의 실데이터 CSV를 DB로 적재한다."""
-    return ingest_csv_into_db(RAW_DIR)
+    """부트스트랩용: .raw의 행정동 이름 CSV를 DB로 적재한다."""
+    return ingest_hdong_names_into_db(RAW_DIR)
 
 
 if __name__ == "__main__":
@@ -34,5 +34,5 @@ if __name__ == "__main__":
     )
     args = parser.parse_args()
     data_dir = SAMPLE_DIR if args.source == "sample" else RAW_DIR
-    result = ingest_csv_into_db(data_dir)
+    result = ingest_hdong_names_into_db(data_dir)
     print(f"적재 완료: 행정동 {result['areas']}개")

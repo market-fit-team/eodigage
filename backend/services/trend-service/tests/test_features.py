@@ -28,9 +28,7 @@ def test_compute_window_features_상승추세_기울기_양수() -> None:
 
 def test_달력피처_예측창_주말공휴일_수() -> None:
     # as-of 2026-05-03 → 예측 창 5/4~5/10: 어린이날(5/5) 1일, 주말(5/9·5/10) 2일
-    window = pd.Series(
-        [1.0] * WINDOW_DAYS, index=pd.date_range(end="2026-05-03", periods=WINDOW_DAYS, freq="D")
-    )
+    window = pd.Series([1.0] * WINDOW_DAYS, index=pd.date_range(end="2026-05-03", periods=WINDOW_DAYS, freq="D"))
     feats = compute_window_features(window)
     assert feats["forecast_holiday_count"] == 1.0
     assert feats["forecast_weekend_count"] == 2.0

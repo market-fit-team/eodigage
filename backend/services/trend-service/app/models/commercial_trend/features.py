@@ -68,7 +68,7 @@ def load_hdong_names_csv(path: Path) -> dict[str, str]:
     if not path.exists():
         return {}
     frame = read_csv_auto(path, dtype=str)
-    return dict(zip(frame["행정동코드"].astype(str), frame["행정동명"].astype(str)))
+    return dict(zip(frame["행정동코드"].astype(str), frame["행정동명"].astype(str), strict=False))
 
 
 def _living_files(data_dir: Path) -> list[Path]:
