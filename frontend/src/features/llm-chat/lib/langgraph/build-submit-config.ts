@@ -7,12 +7,16 @@ export type LangGraphChatContext = {
   allowed_tools: string[]
   interrupt_on: ToolPolicyState["interruptOn"]
   app_thread_id?: string
+  selected_document_ids?: string[]
+  selected_artifact_ids?: string[]
 }
 
 export const buildSubmitContext = (
   modelSelection: ChatModelSelection,
   toolPolicy: ToolPolicyState,
-  appThreadId?: string
+  appThreadId?: string,
+  selectedDocumentIds?: string[],
+  selectedArtifactIds?: string[]
 ): LangGraphChatContext => ({
   // Protocol V2 @langchain/react submit/respond는 run.start/input.respond command의
   // config.configurable로 실행 context를 전달합니다. 서버 graph는 Runtime.context에서 이 값을 읽습니다.
@@ -24,4 +28,10 @@ export const buildSubmitContext = (
   allowed_tools: toolPolicy.allowedTools,
   interrupt_on: toolPolicy.interruptOn,
   ...(appThreadId ? { app_thread_id: appThreadId } : {}),
+  ...(selectedDocumentIds && selectedDocumentIds.length > 0
+    ? { selected_document_ids: selectedDocumentIds }
+    : {}),
+  ...(selectedArtifactIds && selectedArtifactIds.length > 0
+    ? { selected_artifact_ids: selectedArtifactIds }
+    : {}),
 })

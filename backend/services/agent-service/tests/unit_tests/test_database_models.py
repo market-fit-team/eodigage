@@ -12,9 +12,9 @@ def test_workspace_tables_are_registered() -> None:
         "agent_memories",
         "agent_thread_onboarding_contexts",
         "agent_onboarding_context_events",
+        "agent_contents",
         "agent_artifacts",
         "agent_documents",
-        "agent_message_attachments",
         "agent_message_feedback",
         "agent_hitl_events",
     }

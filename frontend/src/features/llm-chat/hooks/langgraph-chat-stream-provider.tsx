@@ -2,12 +2,14 @@ import {
   type ReactNode,
   useCallback,
   useMemo,
+  useRef,
   useState,
 } from "react"
 import { useStream } from "@langchain/react"
 import { authClient } from "@/features/auth/lib/auth-client"
 import { AUTHENTIK_PROVIDER_ID } from "@/features/auth/lib/auth-constants"
 import {
+  type ChatTurnOptions,
   LangGraphChatStreamContext,
   type LangGraphChatStreamContextValue,
 } from "@/features/llm-chat/hooks/langgraph-chat-stream-context"
@@ -24,7 +26,8 @@ import { withCsrfHeaders } from "@/shared/api/csrf"
 type SendMessageOptions = Pick<
   LangGraphChatStreamContextValue,
   "modelSelection" | "toolPolicy"
->
+> &
+  ChatTurnOptions
 
 type LangGraphChatStreamProviderProps = {
   children: ReactNode
@@ -77,6 +80,7 @@ export function LangGraphChatStreamProvider({
   const [threadId, setThreadId] = useState<string | null>(
     workspaceThread?.langgraphThreadId ?? null
   )
+  const latestTurnOptionsRef = useRef<ChatTurnOptions>({})
   const activeThreadId = workspaceThread?.langgraphThreadId ?? threadId
 
   const apiUrl = useMemo(() => {
@@ -131,11 +135,17 @@ export function LangGraphChatStreamProvider({
       if (!trimmed || stream.isLoading) {
         return
       }
+      latestTurnOptionsRef.current = {
+        selectedDocumentIds: options.selectedDocumentIds,
+        selectedArtifactIds: options.selectedArtifactIds,
+      }
 
       const context = buildSubmitContext(
         options.modelSelection,
         options.toolPolicy,
-        workspaceThread?.appThreadId
+        workspaceThread?.appThreadId,
+        options.selectedDocumentIds,
+        options.selectedArtifactIds
       )
       const input = buildSubmitInput(trimmed)
 
@@ -165,7 +175,9 @@ export function LangGraphChatStreamProvider({
       const context = buildSubmitContext(
         modelSelection,
         toolPolicy,
-        workspaceThread?.appThreadId
+        workspaceThread?.appThreadId,
+        latestTurnOptionsRef.current.selectedDocumentIds,
+        latestTurnOptionsRef.current.selectedArtifactIds
       )
 
       await stream.respond(
@@ -192,6 +204,7 @@ export function LangGraphChatStreamProvider({
       await stream.stop({ cancel: true })
     }
     setThreadId(null)
+    latestTurnOptionsRef.current = {}
     toolPolicy.resetToDefault()
   }, [stream, toolPolicy])
 

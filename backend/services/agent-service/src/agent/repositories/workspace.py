@@ -9,6 +9,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from agent.db.models import (
     AgentArtifactRecord,
+    AgentContentRecord,
     AgentDocumentRecord,
     AgentMemoryRecord,
     AgentMessageFeedbackRecord,
@@ -136,6 +137,19 @@ class MemoryRepository:
             )
         )
 
+    async def count_enabled(self, session: AsyncSession, owner: str) -> int:
+        return len(
+            list(
+                await session.scalars(
+                    select(AgentMemoryRecord.id).where(
+                        AgentMemoryRecord.auth_user_uuid == owner,
+                        AgentMemoryRecord.deleted_at.is_(None),
+                        AgentMemoryRecord.is_enabled.is_(True),
+                    )
+                )
+            )
+        )
+
 
 class ArtifactRepository:
     async def list(
@@ -160,6 +174,50 @@ class ArtifactRepository:
             )
         )
 
+    async def list_by_ids(
+        self, session: AsyncSession, owner: str, artifact_ids: list[UUID]
+    ) -> list[AgentArtifactRecord]:
+        if not artifact_ids:
+            return []
+        records = list(
+            await session.scalars(
+                select(AgentArtifactRecord).where(
+                    AgentArtifactRecord.id.in_(artifact_ids),
+                    AgentArtifactRecord.auth_user_uuid == owner,
+                )
+            )
+        )
+        by_id = {record.id: record for record in records}
+        return [
+            record
+            for artifact_id in artifact_ids
+            if (record := by_id.get(artifact_id)) is not None
+        ]
+
+
+class ContentRepository:
+    async def get(self, session: AsyncSession, content_id: UUID) -> AgentContentRecord | None:
+        return await session.scalar(
+            select(AgentContentRecord).where(AgentContentRecord.id == content_id)
+        )
+
+    async def list_by_ids(
+        self, session: AsyncSession, content_ids: list[UUID]
+    ) -> list[AgentContentRecord]:
+        if not content_ids:
+            return []
+        records = list(
+            await session.scalars(
+                select(AgentContentRecord).where(AgentContentRecord.id.in_(content_ids))
+            )
+        )
+        by_id = {record.id: record for record in records}
+        return [
+            record
+            for content_id in content_ids
+            if (record := by_id.get(content_id)) is not None
+        ]
+
 
 class DocumentRepository:
     async def list(self, session: AsyncSession, owner: str) -> list[AgentDocumentRecord]:
@@ -173,6 +231,27 @@ class DocumentRepository:
                 .order_by(AgentDocumentRecord.updated_at.desc())
             )
         )
+
+    async def list_by_ids(
+        self, session: AsyncSession, owner: str, document_ids: list[UUID]
+    ) -> list[AgentDocumentRecord]:
+        if not document_ids:
+            return []
+        records = list(
+            await session.scalars(
+                select(AgentDocumentRecord).where(
+                    AgentDocumentRecord.id.in_(document_ids),
+                    AgentDocumentRecord.auth_user_uuid == owner,
+                    AgentDocumentRecord.deleted_at.is_(None),
+                )
+            )
+        )
+        by_id = {record.id: record for record in records}
+        return [
+            record
+            for document_id in document_ids
+            if (record := by_id.get(document_id)) is not None
+        ]
 
     async def get(
         self, session: AsyncSession, owner: str, document_id: UUID
@@ -243,6 +322,7 @@ thread_repository = ThreadRepository()
 thread_settings_repository = ThreadSettingsRepository()
 memory_repository = MemoryRepository()
 artifact_repository = ArtifactRepository()
+content_repository = ContentRepository()
 document_repository = DocumentRepository()
 feedback_repository = FeedbackRepository()
 onboarding_context_repository = OnboardingContextRepository()

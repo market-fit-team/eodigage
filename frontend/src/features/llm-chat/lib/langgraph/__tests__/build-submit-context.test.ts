@@ -38,6 +38,35 @@ describe("buildSubmitContext", () => {
 
     expect(context.app_thread_id).toBe("app-thread-1")
   })
+
+  it("선택 문서 ID가 있으면 실행 컨텍스트에 포함한다", () => {
+    const context = buildSubmitContext(
+      {
+        model: "gpt-5-mini",
+        reasoningEffort: "medium",
+      },
+      createToolPolicyState(),
+      undefined,
+      ["doc-1", "doc-2"]
+    )
+
+    expect(context.selected_document_ids).toEqual(["doc-1", "doc-2"])
+  })
+
+  it("선택 아티팩트 ID가 있으면 실행 컨텍스트에 포함한다", () => {
+    const context = buildSubmitContext(
+      {
+        model: "gpt-5-mini",
+        reasoningEffort: "medium",
+      },
+      createToolPolicyState(),
+      undefined,
+      undefined,
+      ["artifact-1", "artifact-2"]
+    )
+
+    expect(context.selected_artifact_ids).toEqual(["artifact-1", "artifact-2"])
+  })
 })
 
 describe("buildSubmitInput", () => {

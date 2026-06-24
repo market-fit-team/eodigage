@@ -91,18 +91,26 @@ class UpdateMemoryRequest(BaseModel):
         return self
 
 
+ContentType = Literal[
+    "commercial_report",
+    "search_report",
+    "research_report",
+    "markdown",
+    "code",
+]
+
+
 class ArtifactResponse(WorkspaceModel):
     id: UUID
     thread_id: UUID
     langgraph_thread_id: str
     source_message_id: str | None
     source_tool_call_id: str | None
-    type: str
-    title: str
+    type: ContentType
+    title: str | None
     summary: str | None
+    raw_text: str
     version: int
-    content: dict[str, Any]
-    status: str
     created_at: datetime
     updated_at: datetime
 
@@ -113,25 +121,18 @@ class ArtifactListResponse(BaseModel):
 
 class CreateArtifactRequest(BaseModel):
     thread_id: UUID
-    type: Literal[
-        "ai_report",
-        "code",
-        "markdown",
-        "search_report",
-        "personality_analysis_ref",
-    ]
-    title: str = Field(min_length=1, max_length=200)
-    summary: str | None = None
-    content: dict[str, Any] = Field(default_factory=dict)
+    type: ContentType
+    title: str | None = Field(default=None, max_length=255)
+    summary: str | None = Field(default=None, max_length=4000)
+    raw_text: str = Field(min_length=1)
     source_message_id: str | None = None
     source_tool_call_id: str | None = None
 
 
 class UpdateArtifactRequest(BaseModel):
-    title: str | None = Field(default=None, min_length=1, max_length=200)
-    summary: str | None = None
-    content: dict[str, Any] | None = None
-    status: Literal["active", "archived"] | None = None
+    title: str | None = Field(default=None, max_length=255)
+    summary: str | None = Field(default=None, max_length=4000)
+    raw_text: str | None = Field(default=None, min_length=1)
 
     @model_validator(mode="after")
     def require_change(self) -> "UpdateArtifactRequest":
@@ -142,13 +143,11 @@ class UpdateArtifactRequest(BaseModel):
 
 class DocumentResponse(WorkspaceModel):
     id: UUID
-    name: str
-    path: str
-    type: str
-    size_bytes: int | None
-    content_ref: str | None
-    external_ref: str | None
-    metadata: dict[str, Any]
+    type: ContentType
+    title: str | None
+    summary: str | None
+    raw_text: str
+    source_artifact_id: UUID | None
     created_at: datetime
     updated_at: datetime
 
@@ -158,31 +157,23 @@ class DocumentListResponse(BaseModel):
 
 
 class CreateDocumentRequest(BaseModel):
-    name: str = Field(min_length=1, max_length=255)
-    path: str = Field(min_length=1, max_length=1000)
-    type: str = Field(min_length=1, max_length=32)
-    size_bytes: int | None = Field(default=None, ge=0)
-    content_ref: str | None = Field(default=None, max_length=1000)
-    external_ref: str | None = Field(default=None, max_length=1000)
-    metadata: dict[str, Any] = Field(default_factory=dict)
+    type: ContentType
+    title: str | None = Field(default=None, max_length=255)
+    summary: str | None = Field(default=None, max_length=4000)
+    raw_text: str = Field(min_length=1)
+    source_artifact_id: UUID | None = None
 
 
-class AttachDocumentsRequest(BaseModel):
-    message_id: str = Field(min_length=1, max_length=128)
-    document_ids: list[UUID] = Field(min_length=1, max_length=20)
+class UpdateDocumentRequest(BaseModel):
+    title: str | None = Field(default=None, max_length=255)
+    summary: str | None = Field(default=None, max_length=4000)
+    raw_text: str | None = Field(default=None, min_length=1)
 
-
-class MessageAttachmentResponse(WorkspaceModel):
-    id: UUID
-    thread_id: UUID
-    message_id: str
-    document_id: UUID
-    attached_snapshot: dict[str, Any]
-    created_at: datetime
-
-
-class MessageAttachmentListResponse(BaseModel):
-    attachments: list[MessageAttachmentResponse]
+    @model_validator(mode="after")
+    def require_change(self) -> "UpdateDocumentRequest":
+        if not self.model_fields_set:
+            raise ValueError("변경할 문서 필드가 필요합니다.")
+        return self
 
 
 class MessageFeedbackRequest(BaseModel):

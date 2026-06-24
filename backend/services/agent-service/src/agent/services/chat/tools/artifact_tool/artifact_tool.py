@@ -1,14 +1,19 @@
 from __future__ import annotations
 
-from typing import Any, Literal
+from typing import Any
 from uuid import UUID
 
 from langchain_core.tools import tool
 from langgraph.prebuilt import ToolRuntime
 
-from agent.db.models import AgentArtifactRecord
+from agent.db.models import AgentArtifactRecord, AgentContentRecord, AgentDocumentRecord
 from agent.db.session import get_session_factory
-from agent.repositories.workspace import artifact_repository, thread_repository
+from agent.repositories.workspace import (
+    artifact_repository,
+    content_repository,
+    thread_repository,
+)
+from agent.schemas.workspace import ContentType
 from agent.services.chat.approvals.schemas import ApprovalDecisionType
 from agent.services.chat.tools import ChatToolError
 from agent.services.chat.tools.runtime_user import require_app_thread_id, require_runtime_user
@@ -24,6 +29,43 @@ def _uuid(value: str, label: str) -> UUID:
         raise ChatToolError(f"{label} ID 형식이 올바르지 않습니다.") from exc
 
 
+def _normalize_raw_text(raw_text: str) -> str:
+    normalized = raw_text.strip()
+    if not normalized:
+        raise ChatToolError("본문은 비어 있을 수 없습니다.")
+    return normalized
+
+
+def _artifact_payload(record: AgentArtifactRecord, content: AgentContentRecord) -> dict[str, Any]:
+    return {
+        "id": str(record.id),
+        "thread_id": str(record.thread_id),
+        "type": content.type,
+        "title": content.title,
+        "summary": content.summary,
+        "raw_text": content.raw_text,
+        "version": record.version,
+        "source_message_id": record.source_message_id,
+        "source_tool_call_id": record.source_tool_call_id,
+    }
+
+
+def _document_payload(
+    record: AgentDocumentRecord,
+    content: AgentContentRecord,
+) -> dict[str, Any]:
+    return {
+        "id": str(record.id),
+        "type": content.type,
+        "title": content.title,
+        "summary": content.summary,
+        "raw_text": content.raw_text,
+        "source_artifact_id": (
+            str(record.source_artifact_id) if record.source_artifact_id is not None else None
+        ),
+    }
+
+
 @tool
 async def artifact_get(artifact_id: str, runtime: ToolRuntime) -> dict[str, Any]:
     """현재 사용자가 소유한 저장 아티팩트를 조회합니다."""
@@ -31,31 +73,20 @@ async def artifact_get(artifact_id: str, runtime: ToolRuntime) -> dict[str, Any]
     owner, _ = require_runtime_user(runtime)
     async with get_session_factory()() as session:
         record = await artifact_repository.get(session, owner, _uuid(artifact_id, "아티팩트"))
-    if record is None:
-        raise ChatToolError("아티팩트를 찾을 수 없습니다.")
-    return {
-        "id": str(record.id),
-        "thread_id": str(record.thread_id),
-        "type": record.type,
-        "title": record.title,
-        "summary": record.summary,
-        "version": record.version,
-        "content": record.content_json,
-    }
+        if record is None:
+            raise ChatToolError("아티팩트를 찾을 수 없습니다.")
+        content = await content_repository.get(session, record.content_id)
+        if content is None:
+            raise ChatToolError("아티팩트 본문을 찾을 수 없습니다.")
+    return _artifact_payload(record, content)
 
 
 @tool
 async def artifact_create(
-    artifact_type: Literal[
-        "ai_report",
-        "code",
-        "markdown",
-        "search_report",
-        "personality_analysis_ref",
-    ],
-    title: str,
-    content: dict[str, Any],
+    artifact_type: ContentType,
+    raw_text: str,
     runtime: ToolRuntime,
+    title: str | None = None,
     summary: str | None = None,
 ) -> dict[str, Any]:
     """대화에서 만든 결과를 사용자 승인 뒤 아티팩트로 저장합니다."""
@@ -66,37 +97,35 @@ async def artifact_create(
         thread = await thread_repository.get(session, owner, app_thread_id)
         if thread is None:
             raise ChatToolError("아티팩트를 저장할 스레드를 찾을 수 없습니다.")
+        content = AgentContentRecord(
+            type=artifact_type,
+            title=title,
+            summary=summary,
+            raw_text=_normalize_raw_text(raw_text),
+        )
+        session.add(content)
+        await session.flush()
         record = AgentArtifactRecord(
             auth_user_uuid=owner,
             thread_id=thread.id,
             langgraph_thread_id=thread.langgraph_thread_id,
-            type=artifact_type,
-            title=title.strip(),
-            summary=summary,
-            content_json=content,
+            content_id=content.id,
             source_tool_call_id=runtime.tool_call_id,
         )
         session.add(record)
         await session.commit()
         await session.refresh(record)
-    return {
-        "id": str(record.id),
-        "thread_id": str(record.thread_id),
-        "type": record.type,
-        "title": record.title,
-        "summary": record.summary,
-        "version": record.version,
-        "content": record.content_json,
-    }
+        await session.refresh(content)
+    return _artifact_payload(record, content)
 
 
 @tool
 async def artifact_update(
     artifact_id: str,
-    content: dict[str, Any],
     runtime: ToolRuntime,
     title: str | None = None,
     summary: str | None = None,
+    raw_text: str | None = None,
 ) -> dict[str, Any]:
     """저장된 아티팩트 본문을 사용자 승인 뒤 새 버전으로 갱신합니다."""
 
@@ -107,38 +136,58 @@ async def artifact_update(
         )
         if record is None:
             raise ChatToolError("수정할 아티팩트를 찾을 수 없습니다.")
-        record.content_json = content
-        record.version += 1
+        content = await content_repository.get(session, record.content_id)
+        if content is None:
+            raise ChatToolError("수정할 아티팩트 본문을 찾을 수 없습니다.")
         if title is not None:
-            record.title = title.strip()
+            content.title = title
         if summary is not None:
-            record.summary = summary
+            content.summary = summary
+        if raw_text is not None:
+            normalized_raw_text = _normalize_raw_text(raw_text)
+            if normalized_raw_text != content.raw_text:
+                content.raw_text = normalized_raw_text
+                record.version += 1
         await session.commit()
         await session.refresh(record)
-    return {
-        "id": str(record.id),
-        "type": record.type,
-        "title": record.title,
-        "summary": record.summary,
-        "version": record.version,
-        "content": record.content_json,
-    }
+        await session.refresh(content)
+    return _artifact_payload(record, content)
 
 
 @tool
-async def artifact_delete(artifact_id: str, runtime: ToolRuntime) -> dict[str, str]:
-    """저장된 아티팩트를 사용자 승인 뒤 삭제합니다."""
+async def artifact_save_as_document(
+    artifact_id: str, runtime: ToolRuntime
+) -> dict[str, Any]:
+    """아티팩트를 현재 사용자의 재사용 문서로 복사 저장합니다."""
 
     owner, _ = require_runtime_user(runtime)
     async with get_session_factory()() as session:
-        record = await artifact_repository.get(
+        artifact = await artifact_repository.get(
             session, owner, _uuid(artifact_id, "아티팩트")
         )
-        if record is None:
-            raise ChatToolError("삭제할 아티팩트를 찾을 수 없습니다.")
-        await session.delete(record)
+        if artifact is None:
+            raise ChatToolError("저장할 아티팩트를 찾을 수 없습니다.")
+        artifact_content = await content_repository.get(session, artifact.content_id)
+        if artifact_content is None:
+            raise ChatToolError("아티팩트 본문을 찾을 수 없습니다.")
+        copied_content = AgentContentRecord(
+            type=artifact_content.type,
+            title=artifact_content.title,
+            summary=artifact_content.summary,
+            raw_text=artifact_content.raw_text,
+        )
+        session.add(copied_content)
+        await session.flush()
+        document = AgentDocumentRecord(
+            auth_user_uuid=owner,
+            content_id=copied_content.id,
+            source_artifact_id=artifact.id,
+        )
+        session.add(document)
         await session.commit()
-    return {"id": artifact_id, "status": "deleted"}
+        await session.refresh(document)
+        await session.refresh(copied_content)
+    return _document_payload(document, copied_content)
 
 
 ARTIFACT_TOOL_SPECS: tuple[ToolSpec, ...] = (
@@ -170,11 +219,11 @@ ARTIFACT_TOOL_SPECS: tuple[ToolSpec, ...] = (
         allowed_decisions=DECISIONS,
     ),
     ToolSpec(
-        tool=artifact_delete,
-        name="artifact_delete",
-        description="사용자 승인 뒤 저장된 아티팩트를 삭제합니다.",
+        tool=artifact_save_as_document,
+        name="artifact_save_as_document",
+        description="사용자 승인 뒤 아티팩트를 재사용 가능한 문서로 저장합니다.",
         category="document",
-        args_schema=artifact_delete.args_schema,
+        args_schema=artifact_save_as_document.args_schema,
         default_allowed=False,
         allowed_decisions=DECISIONS,
     ),

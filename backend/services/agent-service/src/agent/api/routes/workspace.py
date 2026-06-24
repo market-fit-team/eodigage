@@ -10,7 +10,6 @@ from agent.schemas.workspace import (
     AgentThreadResponse,
     ArtifactListResponse,
     ArtifactResponse,
-    AttachDocumentsRequest,
     CreateAgentThreadRequest,
     CreateArtifactRequest,
     CreateDocumentRequest,
@@ -19,7 +18,6 @@ from agent.schemas.workspace import (
     DocumentResponse,
     MemoryListResponse,
     MemoryResponse,
-    MessageAttachmentListResponse,
     MessageFeedbackRequest,
     MessageFeedbackResponse,
     OnboardingContextResponse,
@@ -27,6 +25,7 @@ from agent.schemas.workspace import (
     ThreadSettingsResponse,
     UpdateAgentThreadRequest,
     UpdateArtifactRequest,
+    UpdateDocumentRequest,
     UpdateMemoryRequest,
     UpdateThreadSettingsRequest,
 )
@@ -227,18 +226,18 @@ async def update_artifact(
     )
 
 
-@router.delete(
-    "/artifacts/{artifact_id}",
-    status_code=status.HTTP_204_NO_CONTENT,
+@router.post(
+    "/artifacts/{artifact_id}/save-as-document",
+    response_model=DocumentResponse,
+    status_code=status.HTTP_201_CREATED,
     tags=["agent-artifacts"],
 )
-async def delete_artifact(
+async def save_artifact_as_document(
     artifact_id: UUID, user: CurrentApiUser, session: DbSession
-) -> Response:
-    await workspace_service.delete_artifact(
+) -> DocumentResponse:
+    return await workspace_service.save_artifact_as_document(
         session, owner=user.identity, artifact_id=artifact_id
     )
-    return Response(status_code=status.HTTP_204_NO_CONTENT)
 
 
 @router.get("/documents", response_model=DocumentListResponse, tags=["agent-documents"])
@@ -264,6 +263,35 @@ async def create_document(
     )
 
 
+@router.get(
+    "/documents/{document_id}",
+    response_model=DocumentResponse,
+    tags=["agent-documents"],
+)
+async def get_document(
+    document_id: UUID, user: CurrentApiUser, session: DbSession
+) -> DocumentResponse:
+    return await workspace_service.get_document(
+        session, owner=user.identity, document_id=document_id
+    )
+
+
+@router.patch(
+    "/documents/{document_id}",
+    response_model=DocumentResponse,
+    tags=["agent-documents"],
+)
+async def update_document(
+    document_id: UUID,
+    body: UpdateDocumentRequest,
+    user: CurrentApiUser,
+    session: DbSession,
+) -> DocumentResponse:
+    return await workspace_service.update_document(
+        session, owner=user.identity, document_id=document_id, request=body
+    )
+
+
 @router.delete(
     "/documents/{document_id}",
     status_code=status.HTTP_204_NO_CONTENT,
@@ -276,25 +304,6 @@ async def delete_document(
         session, owner=user.identity, document_id=document_id
     )
     return Response(status_code=status.HTTP_204_NO_CONTENT)
-
-
-@router.post(
-    "/threads/{thread_id}/attachments",
-    response_model=MessageAttachmentListResponse,
-    status_code=status.HTTP_201_CREATED,
-    tags=["agent-documents"],
-)
-async def attach_documents(
-    thread_id: UUID,
-    body: AttachDocumentsRequest,
-    user: CurrentApiUser,
-    session: DbSession,
-) -> MessageAttachmentListResponse:
-    return MessageAttachmentListResponse(
-        attachments=await workspace_service.attach_documents(
-            session, owner=user.identity, thread_id=thread_id, request=body
-        )
-    )
 
 
 @router.post(

@@ -95,11 +95,13 @@ Authorization: Bearer <JWT>
 ```py
 builder = StateGraph(ChatState, context_schema=ChatRuntimeContext)
 
+builder.add_node("prepare_system_context_state", prepare_system_context_state)
 builder.add_node("chat_model", call_chat_model)
 builder.add_node("approval_gate", approval_gate)
 builder.add_node("tools", call_tools_with_approval)
 
-builder.add_edge(START, "chat_model")
+builder.add_edge(START, "prepare_system_context_state")
+builder.add_edge("prepare_system_context_state", "chat_model")
 builder.add_conditional_edges(
     "chat_model",
     route_after_chat_model,
@@ -108,7 +110,7 @@ builder.add_conditional_edges(
         END: END,
     },
 )
-builder.add_edge("tools", "chat_model")
+builder.add_edge("tools", "prepare_system_context_state")
 ```
 
 상태와 runtime context는 아래 shape다.
@@ -117,15 +119,20 @@ builder.add_edge("tools", "chat_model")
 class ChatState(TypedDict):
     messages: Annotated[list[AnyMessage], add_messages]
     tool_approval_decisions: NotRequired[list[ApprovalDecision]]
+    system_context: NotRequired[SystemContextState]
+    system_context_refresh: NotRequired[SystemContextRefreshState]
 
 class ChatRuntimeContext(TypedDict):
     model: NotRequired[str]
     reasoning_effort: NotRequired[ReasoningEffort]
     allowed_tools: NotRequired[list[str]]
     interrupt_on: NotRequired[InterruptOnConfig]
+    selected_document_ids: NotRequired[list[str]]
+    selected_artifact_ids: NotRequired[list[str]]
 ```
 
-`call_chat_model()`은 `SystemMessage("도구 호출이 완료된 뒤에는 결과를 사용자에게 보고해야 합니다.")`를 앞에 붙이고, `CHAT_TOOLS`를 bind한다.  
+`prepare_system_context_state()`는 세션 스냅샷형 `system_context`를 lazy init하고, 선택 문서/아티팩트는 turn input으로 overwrite한다.  
+`call_chat_model()`은 `SystemMessage("도구 호출이 완료된 뒤에는 결과를 사용자에게 보고해야 합니다.")`를 앞에 붙이고, state의 `system_context`를 최신 사용자 메시지 하단 XML로 붙인 뒤 `CHAT_TOOLS`를 bind한다.  
 `approval_gate()`가 HITL interrupt를 만들고, `call_tools_with_approval()`이 approve/edit/reject/respond 결정을 정리한다.
 
 ## src/agent/services/chat/toolkits/chat_toolkit.py

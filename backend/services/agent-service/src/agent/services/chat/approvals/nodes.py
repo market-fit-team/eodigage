@@ -28,6 +28,7 @@ from agent.services.chat.approvals.schemas import (
 )
 from agent.services.chat.context import ChatRuntimeContext
 from agent.services.chat.state import ChatState
+from agent.services.chat.system_context_state import clean_system_context_refresh_state
 from agent.services.chat.tools import ChatToolError
 from agent.services.chat.toolkits.chat_toolkit import CHAT_TOOLS
 
@@ -40,12 +41,26 @@ def _handle_chat_tool_error(error: Exception) -> str:
 
 _tool_node = ToolNode(CHAT_TOOLS, handle_tool_errors=_handle_chat_tool_error)
 
+MEMORY_MUTATION_TOOLS = {"memory_create", "memory_update", "memory_delete"}
+ONBOARDING_MUTATION_TOOLS = {"onboarding_commit_profile_update"}
+
 
 def _require_tool_call_id(tool_call: ToolCall) -> str:
     tool_call_id = tool_call["id"]
     if tool_call_id is None:
         raise ValueError(f"tool call id is required: {tool_call['name']}")
     return tool_call_id
+
+
+def _system_context_refresh_update_for_tool_calls(state: ChatState, tool_calls: list[ToolCall]) -> dict[str, bool]:
+    refresh_state = state.get("system_context_refresh", clean_system_context_refresh_state())
+    tool_names = {tool_call["name"] for tool_call in tool_calls}
+    return {
+        "memory_summary_dirty": refresh_state["memory_summary_dirty"]
+        or bool(tool_names & MEMORY_MUTATION_TOOLS),
+        "onboarding_summary_dirty": refresh_state["onboarding_summary_dirty"]
+        or bool(tool_names & ONBOARDING_MUTATION_TOOLS),
+    }
 
 
 def approval_gate(
@@ -104,7 +119,7 @@ def approval_gate(
 async def call_tools_with_approval(
     state: ChatState,
     config: RunnableConfig,
-) -> dict[str, list[AnyMessage] | list[ApprovalDecision]]:
+) -> dict[str, list[AnyMessage] | list[ApprovalDecision] | dict[str, bool]]:
     """승인된 tool call을 실행하고 reject/respond 결정은 ToolMessage로 합성합니다.
 
     실제 실행은 LangGraph ToolNode에 맡깁니다. 이 node는 HITL 검토 후 실행 가능한 call을
@@ -114,7 +129,13 @@ async def call_tools_with_approval(
     messages = list(state["messages"])
     ai_message = get_latest_ai_message_with_tool_calls(messages)
     if ai_message is None:
-        return {"messages": [], "tool_approval_decisions": []}
+        return {
+            "messages": [],
+            "tool_approval_decisions": [],
+            "system_context_refresh": state.get(
+                "system_context_refresh", clean_system_context_refresh_state()
+            ),
+        }
 
     runtime = get_runtime(ChatRuntimeContext)
     context = runtime.context
@@ -188,4 +209,10 @@ async def call_tools_with_approval(
         if message is not None:
             ordered_messages.append(message)
 
-    return {"messages": ordered_messages, "tool_approval_decisions": []}
+    return {
+        "messages": ordered_messages,
+        "tool_approval_decisions": [],
+        "system_context_refresh": _system_context_refresh_update_for_tool_calls(
+            state, executable_calls
+        ),
+    }

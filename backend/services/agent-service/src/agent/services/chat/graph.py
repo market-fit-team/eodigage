@@ -4,7 +4,7 @@ from langgraph.graph import END, START, StateGraph
 
 from agent.services.chat.approvals.nodes import approval_gate, call_tools_with_approval
 from agent.services.chat.context import ChatRuntimeContext
-from agent.services.chat.nodes import call_chat_model
+from agent.services.chat.nodes import call_chat_model, prepare_system_context_state
 from agent.services.chat.routing import route_after_chat_model
 from agent.services.chat.state import ChatState
 
@@ -14,11 +14,13 @@ def _build_chat_graph() -> Any:
 
     builder = StateGraph(ChatState, context_schema=ChatRuntimeContext)
 
+    builder.add_node("prepare_system_context_state", prepare_system_context_state)
     builder.add_node("chat_model", call_chat_model)
     builder.add_node("approval_gate", approval_gate)
     builder.add_node("tools", call_tools_with_approval)
 
-    builder.add_edge(START, "chat_model")
+    builder.add_edge(START, "prepare_system_context_state")
+    builder.add_edge("prepare_system_context_state", "chat_model")
     builder.add_conditional_edges(
         "chat_model",
         route_after_chat_model,
@@ -27,7 +29,7 @@ def _build_chat_graph() -> Any:
             END: END,
         },
     )
-    builder.add_edge("tools", "chat_model")
+    builder.add_edge("tools", "prepare_system_context_state")
 
     # 상태 관리(persistence)는 Agent Server의 thread/checkpoint에 위임하므로 checkpointer를 지정하지 않습니다.
     return builder.compile()

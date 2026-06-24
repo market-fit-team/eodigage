@@ -151,12 +151,20 @@ class AgentArtifactRecord(TimestampMixin, Base):
     langgraph_thread_id: Mapped[str] = mapped_column(String(128), nullable=False)
     source_message_id: Mapped[str | None] = mapped_column(String(128))
     source_tool_call_id: Mapped[str | None] = mapped_column(String(128))
-    type: Mapped[str] = mapped_column(String(48), nullable=False)
-    title: Mapped[str] = mapped_column(String(200), nullable=False)
-    summary: Mapped[str | None] = mapped_column(Text)
+    content_id: Mapped[UUID] = mapped_column(
+        ForeignKey("agent_contents.id", ondelete="CASCADE"), nullable=False
+    )
     version: Mapped[int] = mapped_column(Integer, nullable=False, default=1)
-    content_json: Mapped[dict[str, Any]] = mapped_column(JSON, nullable=False, default=dict)
-    status: Mapped[str] = mapped_column(String(32), nullable=False, default="active")
+
+
+class AgentContentRecord(TimestampMixin, Base):
+    __tablename__ = "agent_contents"
+
+    id: Mapped[UUID] = mapped_column(primary_key=True, default=uuid4)
+    type: Mapped[str] = mapped_column(String(32), nullable=False)
+    title: Mapped[str | None] = mapped_column(String(255))
+    summary: Mapped[str | None] = mapped_column(Text)
+    raw_text: Mapped[str] = mapped_column(Text, nullable=False)
 
 
 class AgentDocumentRecord(TimestampMixin, Base):
@@ -165,44 +173,13 @@ class AgentDocumentRecord(TimestampMixin, Base):
 
     id: Mapped[UUID] = mapped_column(primary_key=True, default=uuid4)
     auth_user_uuid: Mapped[str] = mapped_column(String(128), nullable=False)
-    name: Mapped[str] = mapped_column(String(255), nullable=False)
-    path: Mapped[str] = mapped_column(String(1000), nullable=False)
-    type: Mapped[str] = mapped_column(String(32), nullable=False)
-    size_bytes: Mapped[int | None] = mapped_column(Integer)
-    content_ref: Mapped[str | None] = mapped_column(String(1000))
-    external_ref: Mapped[str | None] = mapped_column(String(1000))
-    metadata_json: Mapped[dict[str, Any]] = mapped_column(JSON, nullable=False, default=dict)
+    content_id: Mapped[UUID] = mapped_column(
+        ForeignKey("agent_contents.id", ondelete="CASCADE"), nullable=False
+    )
+    source_artifact_id: Mapped[UUID | None] = mapped_column(
+        ForeignKey("agent_artifacts.id", ondelete="SET NULL")
+    )
     deleted_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
-
-
-class AgentMessageAttachmentRecord(Base):
-    __tablename__ = "agent_message_attachments"
-    __table_args__ = (
-        UniqueConstraint(
-            "auth_user_uuid",
-            "thread_id",
-            "message_id",
-            "document_id",
-            name="uq_agent_message_attachment",
-        ),
-    )
-
-    id: Mapped[UUID] = mapped_column(primary_key=True, default=uuid4)
-    auth_user_uuid: Mapped[str] = mapped_column(String(128), nullable=False)
-    thread_id: Mapped[UUID] = mapped_column(
-        ForeignKey("agent_threads.id", ondelete="CASCADE"), nullable=False
-    )
-    langgraph_thread_id: Mapped[str] = mapped_column(String(128), nullable=False)
-    message_id: Mapped[str] = mapped_column(String(128), nullable=False)
-    document_id: Mapped[UUID] = mapped_column(
-        ForeignKey("agent_documents.id", ondelete="CASCADE"), nullable=False
-    )
-    attached_snapshot_json: Mapped[dict[str, Any]] = mapped_column(
-        JSON, nullable=False, default=dict
-    )
-    created_at: Mapped[datetime] = mapped_column(
-        DateTime(timezone=True), nullable=False, default=_utc_now
-    )
 
 
 class AgentMessageFeedbackRecord(TimestampMixin, Base):

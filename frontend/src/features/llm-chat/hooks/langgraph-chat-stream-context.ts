@@ -26,6 +26,11 @@ export type ToolPolicyControls = ToolPolicyState & {
   resetToDefault: () => void
 }
 
+export type ChatTurnOptions = {
+  selectedDocumentIds?: string[]
+  selectedArtifactIds?: string[]
+}
+
 export type LangGraphChatStreamContextValue = {
   tools: LlmToolDefinition[]
   models: ChatModelOption[]
@@ -43,7 +48,7 @@ export type LangGraphChatStreamContextValue = {
   localNotice: string | null
   isBusy: boolean
   streamStatus: LlmChatStreamStatus
-  sendMessage: (content: string) => Promise<void>
+  sendMessage: (content: string, options?: ChatTurnOptions) => Promise<void>
   resume: (decisions: HitlDecision[]) => Promise<void>
   resetChat: () => Promise<void>
 }

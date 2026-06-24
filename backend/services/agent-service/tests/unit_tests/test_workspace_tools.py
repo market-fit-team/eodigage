@@ -1,4 +1,5 @@
 from agent.services.chat.toolkits.chat_toolkit import CHAT_TOOL_SPECS_BY_NAME
+from agent.services.chat.approvals.nodes import _system_context_refresh_update_for_tool_calls
 
 
 def test_workspace_read_tools_are_allowed_by_default() -> None:
@@ -26,10 +27,35 @@ def test_workspace_mutation_tools_are_default_deny() -> None:
         "memory_delete",
         "artifact_create",
         "artifact_update",
-        "artifact_delete",
+        "artifact_save_as_document",
+        "document_create",
+        "document_update",
         "document_delete",
         "onboarding_commit_profile_update",
     ):
         spec = CHAT_TOOL_SPECS_BY_NAME[tool_name]
         assert spec.default_allowed is False
         assert spec.allowed_decisions == ["approve", "edit", "reject", "respond"]
+
+
+def test_system_context_refresh_flags_follow_memory_and_onboarding_mutations() -> None:
+    """메모리·온보딩 변경 도구 실행은 해당 summary dirty flag를 올린다."""
+
+    result = _system_context_refresh_update_for_tool_calls(
+        {
+            "messages": [],
+            "system_context_refresh": {
+                "memory_summary_dirty": False,
+                "onboarding_summary_dirty": False,
+            },
+        },
+        [
+            {"id": "tool-1", "name": "memory_create", "args": {}},
+            {"id": "tool-2", "name": "onboarding_commit_profile_update", "args": {}},
+        ],
+    )
+
+    assert result == {
+        "memory_summary_dirty": True,
+        "onboarding_summary_dirty": True,
+    }

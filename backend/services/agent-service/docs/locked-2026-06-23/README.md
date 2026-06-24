@@ -36,9 +36,9 @@ agent_user_preferences
 agent_memories
 agent_thread_onboarding_contexts
 agent_onboarding_context_events
+agent_contents
 agent_artifacts
 agent_documents
-agent_message_attachments
 agent_message_feedback
 agent_hitl_events
 ```
@@ -74,12 +74,13 @@ GET    /api/v1/agent/artifacts
 POST   /api/v1/agent/artifacts
 GET    /api/v1/agent/artifacts/{artifact_id}
 PATCH  /api/v1/agent/artifacts/{artifact_id}
-DELETE /api/v1/agent/artifacts/{artifact_id}
+POST   /api/v1/agent/artifacts/{artifact_id}/save-as-document
 
 GET    /api/v1/agent/documents
 POST   /api/v1/agent/documents
+GET    /api/v1/agent/documents/{document_id}
+PATCH  /api/v1/agent/documents/{document_id}
 DELETE /api/v1/agent/documents/{document_id}
-POST   /api/v1/agent/threads/{thread_id}/attachments
 
 POST   /api/v1/agent/messages/{message_id}/feedback
 
@@ -121,7 +122,9 @@ memory_update
 memory_delete
 artifact_create
 artifact_update
-artifact_delete
+artifact_save_as_document
+document_create
+document_update
 document_delete
 onboarding_commit_profile_update
 ```
@@ -134,6 +137,21 @@ onboarding_commit_profile_update
 
 `artifact_create`와 `onboarding_commit_profile_update`는
 `Runtime.context.app_thread_id`로 앱 스레드를 찾고 다시 소유권을 검사한다.
+
+`agent_contents`는 artifact와 document가 공통으로 참조하는 본문 테이블이다.
+artifact와 document 응답은 모두 이 공통 본문을 join해서 `type`, `title`,
+`summary`, `raw_text`를 평탄화해 반환한다.
+
+채팅 실행 컨텍스트는 `selected_document_ids`, `selected_artifact_ids`를 받을 수 있다.
+서버는 이 turn input을 세션 state의 `system_context.selected_*`에 overwrite한다.
+`system_context.memory_summary`, `system_context.onboarding_summary`는 첫 chat run에서
+lazy init되는 세션 스냅샷이다.
+모델 호출 직전에는 이 state를 읽어 최신 사용자 메시지의 `<system_context>`를 만들고,
+원문이 필요할 때만 `document_read`, `artifact_get`, `memory_search`, `onboarding_*`
+도구를 쓰게 한다.
+
+현재 로컬/개발 DB는 `create_all`만 쓰므로 기존 컬럼을 자동 변경하지 않는다.
+스키마가 바뀐 뒤에는 개발 DB를 drop/recreate하거나 수동 정리해야 한다.
 
 ## 성향 갱신
 

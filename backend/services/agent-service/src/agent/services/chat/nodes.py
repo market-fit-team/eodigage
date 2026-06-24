@@ -5,10 +5,30 @@ from langgraph.runtime import get_runtime
 from agent.services.chat.context import ChatRuntimeContext, resolve_chat_model_context
 from agent.services.chat.models import get_chat_model
 from agent.services.chat.state import ChatState
+from agent.services.chat.system_context import (
+    append_system_context_to_latest_human_message,
+    build_system_context,
+)
+from agent.services.chat.system_context_state import prepare_system_context_state_update
 from agent.services.chat.toolkits.chat_toolkit import CHAT_TOOLS
 
 
 CHAT_SYSTEM_PROMPT = "도구 호출이 완료된 뒤에는 결과를 사용자에게 보고해야 합니다."
+
+
+async def prepare_system_context_state(
+    state: ChatState,
+    config: RunnableConfig,
+) -> dict[str, object]:
+    """세션 스냅샷형 system_context 상태를 초기화·갱신합니다."""
+
+    runtime = get_runtime(ChatRuntimeContext)
+    return await prepare_system_context_state_update(
+        state.get("system_context"),
+        state.get("system_context_refresh"),
+        config=config,
+        context=runtime.context,
+    )
 
 
 async def call_chat_model(
@@ -19,12 +39,16 @@ async def call_chat_model(
 
     runtime = get_runtime(ChatRuntimeContext)
     context = resolve_chat_model_context(runtime.context)
+    input_messages = append_system_context_to_latest_human_message(
+        list(state["messages"]),
+        build_system_context(state.get("system_context")),
+    )
     model = get_chat_model(
         model=context["model"],
         reasoning_effort=context["reasoning_effort"],
     ).bind_tools(CHAT_TOOLS)
     response: AnyMessage = await model.ainvoke(
-        [SystemMessage(content=CHAT_SYSTEM_PROMPT), *state["messages"]],
+        [SystemMessage(content=CHAT_SYSTEM_PROMPT), *input_messages],
         config=config,
     )
     return {"messages": [response]}

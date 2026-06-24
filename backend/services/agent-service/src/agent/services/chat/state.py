@@ -6,6 +6,43 @@ from langgraph.graph import add_messages
 from agent.services.chat.approvals.schemas import ApprovalDecision
 
 
+class SelectedDocumentContextState(TypedDict):
+    id: str
+    type: str
+    title: str | None
+    summary: str | None
+
+
+class SelectedArtifactContextState(TypedDict):
+    id: str
+    type: str
+    title: str | None
+    summary: str | None
+    version: int
+
+
+class MemorySummary(TypedDict):
+    has_memories: bool
+    memory_count: int
+
+
+class OnboardingSummary(TypedDict):
+    has_default_profile: bool
+    has_thread_context: bool
+
+
+class SystemContextState(TypedDict):
+    selected_documents: list[SelectedDocumentContextState]
+    selected_artifacts: list[SelectedArtifactContextState]
+    memory_summary: MemorySummary | None
+    onboarding_summary: OnboardingSummary | None
+
+
+class SystemContextRefreshState(TypedDict):
+    memory_summary_dirty: bool
+    onboarding_summary_dirty: bool
+
+
 class ChatState(TypedDict):
     """LangGraph chat/tool/HITL loop 상태입니다.
 
@@ -16,3 +53,5 @@ class ChatState(TypedDict):
 
     messages: Annotated[list[AnyMessage], add_messages]
     tool_approval_decisions: NotRequired[list[ApprovalDecision]]
+    system_context: NotRequired[SystemContextState]
+    system_context_refresh: NotRequired[SystemContextRefreshState]

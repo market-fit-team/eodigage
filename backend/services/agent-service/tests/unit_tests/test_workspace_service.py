@@ -9,11 +9,13 @@ from agent.db.base import Base
 from agent.schemas.workspace import (
     CreateAgentThreadRequest,
     CreateArtifactRequest,
+    CreateDocumentRequest,
     CreateMemoryRequest,
     MessageFeedbackRequest,
     SetOnboardingContextRequest,
     UpdateAgentThreadRequest,
     UpdateArtifactRequest,
+    UpdateDocumentRequest,
 )
 from agent.services.workspace.service import WorkspaceService
 
@@ -103,9 +105,9 @@ async def test_artifact_update_increments_version_only_for_content(
         owner="user-a",
         request=CreateArtifactRequest(
             thread_id=thread.id,
-            type="ai_report",
+            type="commercial_report",
             title="상권 리포트",
-            content={"blocks": []},
+            raw_text="# 첫 버전",
         ),
     )
     renamed = await service.update_artifact(
@@ -118,11 +120,96 @@ async def test_artifact_update_increments_version_only_for_content(
         session,
         owner="user-a",
         artifact_id=artifact.id,
-        request=UpdateArtifactRequest(content={"blocks": [{"kind": "markdown"}]}),
+        request=UpdateArtifactRequest(raw_text="# 두 번째 버전"),
     )
 
     assert renamed.version == 1
     assert revised.version == 2
+    assert revised.raw_text == "# 두 번째 버전"
+
+
+async def test_artifact_save_as_document_copies_content(
+    service: WorkspaceService, session: AsyncSession
+) -> None:
+    """아티팩트를 문서로 저장하면 본문은 복사되고 이후 수정은 서로 독립적이다."""
+
+    thread = await _create_thread(service, session, "user-a")
+    artifact = await service.create_artifact(
+        session,
+        owner="user-a",
+        request=CreateArtifactRequest(
+            thread_id=thread.id,
+            type="research_report",
+            title="원본 아티팩트",
+            raw_text="# 조사 초안",
+        ),
+    )
+    document = await service.save_artifact_as_document(
+        session, owner="user-a", artifact_id=artifact.id
+    )
+
+    assert document.source_artifact_id == artifact.id
+    assert document.raw_text == "# 조사 초안"
+
+    updated_artifact = await service.update_artifact(
+        session,
+        owner="user-a",
+        artifact_id=artifact.id,
+        request=UpdateArtifactRequest(raw_text="# 아티팩트 수정본"),
+    )
+    unchanged_document = await service.get_document(
+        session, owner="user-a", document_id=document.id
+    )
+
+    assert updated_artifact.raw_text == "# 아티팩트 수정본"
+    assert unchanged_document.raw_text == "# 조사 초안"
+
+
+async def test_document_crud_is_scoped_and_soft_deleted(
+    service: WorkspaceService, session: AsyncSession
+) -> None:
+    """문서는 소유자 기준으로 CRUD되고 삭제 후 목록에서 숨겨진다."""
+
+    thread = await _create_thread(service, session, "user-a")
+    artifact = await service.create_artifact(
+        session,
+        owner="user-a",
+        request=CreateArtifactRequest(
+            thread_id=thread.id,
+            type="commercial_report",
+            title="원본 아티팩트",
+            raw_text="# 초안",
+        ),
+    )
+    document = await service.create_document(
+        session,
+        owner="user-a",
+        request=CreateDocumentRequest(
+            type="commercial_report",
+            title="상권 분석 리포트",
+            summary="요약",
+            raw_text="# 리포트",
+            source_artifact_id=artifact.id,
+        ),
+    )
+
+    assert document.source_artifact_id == artifact.id
+    assert document.raw_text == "# 리포트"
+
+    updated = await service.update_document(
+        session,
+        owner="user-a",
+        document_id=document.id,
+        request=UpdateDocumentRequest(summary="수정된 요약"),
+    )
+    assert updated.summary == "수정된 요약"
+
+    with pytest.raises(HTTPException) as exc_info:
+        await service.get_document(session, owner="user-b", document_id=document.id)
+    assert exc_info.value.status_code == 404
+
+    await service.delete_document(session, owner="user-a", document_id=document.id)
+    assert await service.list_documents(session, "user-a") == []
 
 
 async def test_feedback_is_upserted_per_message(

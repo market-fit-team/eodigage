@@ -1,0 +1,244 @@
+from __future__ import annotations
+
+from collections.abc import AsyncIterator
+
+import pytest
+from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
+
+from agent.db.base import Base
+from agent.db.models import (
+    AgentArtifactRecord,
+    AgentContentRecord,
+    AgentDocumentRecord,
+    AgentMemoryRecord,
+    AgentThreadOnboardingContextRecord,
+    AgentThreadRecord,
+)
+from agent.services.chat.system_context_state import (
+    prepare_system_context_state_update,
+)
+
+
+class FakeOnboardingClient:
+    def __init__(self, *, default_profile: dict[str, object] | None = None, fail: bool = False) -> None:
+        self.default_profile = default_profile
+        self.fail = fail
+        self.calls = 0
+
+    async def get_default_profile(self, access_token: str) -> dict[str, object] | None:
+        self.calls += 1
+        assert access_token == "token"
+        if self.fail:
+            raise RuntimeError("boom")
+        return self.default_profile
+
+
+@pytest.fixture
+async def session_factory() -> AsyncIterator[async_sessionmaker[AsyncSession]]:
+    engine = create_async_engine("sqlite+aiosqlite:///:memory:")
+    async with engine.begin() as connection:
+        await connection.run_sync(Base.metadata.create_all)
+    factory = async_sessionmaker(engine, expire_on_commit=False)
+    yield factory
+    await engine.dispose()
+
+
+async def _seed_workspace(
+    session_factory: async_sessionmaker[AsyncSession],
+) -> tuple[str, str, str]:
+    async with session_factory() as session:
+        thread = AgentThreadRecord(
+            auth_user_uuid="user-a",
+            langgraph_thread_id="langgraph-thread-1",
+            title="테스트 대화",
+        )
+        session.add(thread)
+        await session.flush()
+
+        document_content = AgentContentRecord(
+            type="commercial_report",
+            title="문서 제목",
+            summary="문서 요약",
+            raw_text="# 문서",
+        )
+        artifact_content = AgentContentRecord(
+            type="research_report",
+            title="아티팩트 제목",
+            summary="아티팩트 요약",
+            raw_text="# 아티팩트",
+        )
+        session.add_all([document_content, artifact_content])
+        await session.flush()
+
+        artifact = AgentArtifactRecord(
+            auth_user_uuid="user-a",
+            thread_id=thread.id,
+            langgraph_thread_id=thread.langgraph_thread_id,
+            content_id=artifact_content.id,
+            version=2,
+        )
+        session.add(artifact)
+        await session.flush()
+
+        document = AgentDocumentRecord(
+            auth_user_uuid="user-a",
+            content_id=document_content.id,
+            source_artifact_id=artifact.id,
+        )
+        memory = AgentMemoryRecord(
+            auth_user_uuid="user-a",
+            content="메모 하나",
+            source="manual",
+            is_enabled=True,
+        )
+        onboarding_context = AgentThreadOnboardingContextRecord(
+            auth_user_uuid="user-a",
+            thread_id=thread.id,
+            result_code="result-1",
+            source="manual_attach",
+        )
+        session.add_all([document, memory, onboarding_context])
+        await session.commit()
+        return str(thread.id), str(document.id), str(artifact.id)
+
+
+@pytest.mark.asyncio
+async def test_prepare_system_context_state_lazy_initializes_and_overwrites_selected_resources(
+    session_factory: async_sessionmaker[AsyncSession], monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """첫 run에서는 요약을 초기화하고 선택 문서·아티팩트를 현재 turn 기준으로 덮어쓴다."""
+
+    from agent.services.chat import system_context_state as module
+
+    thread_id, document_id, artifact_id = await _seed_workspace(session_factory)
+    fake_onboarding_client = FakeOnboardingClient(default_profile={"id": "profile-1"})
+    monkeypatch.setattr(module, "get_session_factory", lambda: session_factory)
+    monkeypatch.setattr(module, "onboarding_service_client", fake_onboarding_client)
+
+    result = await prepare_system_context_state_update(
+        None,
+        None,
+        config={
+            "configurable": {
+                "langgraph_auth_user": {
+                    "identity": "user-a",
+                    "access_token": "token",
+                }
+            }
+        },
+        context={
+            "app_thread_id": thread_id,
+            "selected_document_ids": [document_id],
+            "selected_artifact_ids": [artifact_id],
+        },
+    )
+
+    system_context = result["system_context"]
+    assert system_context["selected_documents"][0]["id"] == document_id
+    assert system_context["selected_artifacts"][0]["id"] == artifact_id
+    assert system_context["memory_summary"] == {
+        "has_memories": True,
+        "memory_count": 1,
+    }
+    assert system_context["onboarding_summary"] == {
+        "has_default_profile": True,
+        "has_thread_context": True,
+    }
+    assert result["system_context_refresh"] == {
+        "memory_summary_dirty": False,
+        "onboarding_summary_dirty": False,
+    }
+
+
+@pytest.mark.asyncio
+async def test_prepare_system_context_state_refreshes_only_dirty_summary(
+    session_factory: async_sessionmaker[AsyncSession], monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """dirty flag가 켜진 summary만 다시 계산하고 나머지는 유지한다."""
+
+    from agent.services.chat import system_context_state as module
+
+    thread_id, _, _ = await _seed_workspace(session_factory)
+    fake_onboarding_client = FakeOnboardingClient(default_profile={"id": "profile-1"})
+    monkeypatch.setattr(module, "get_session_factory", lambda: session_factory)
+    monkeypatch.setattr(module, "onboarding_service_client", fake_onboarding_client)
+
+    async with session_factory() as session:
+        session.add(
+            AgentMemoryRecord(
+                auth_user_uuid="user-a",
+                content="메모 둘",
+                source="manual",
+                is_enabled=True,
+            )
+        )
+        await session.commit()
+
+    result = await prepare_system_context_state_update(
+        {
+            "selected_documents": [],
+            "selected_artifacts": [],
+            "memory_summary": {"has_memories": False, "memory_count": 0},
+            "onboarding_summary": {
+                "has_default_profile": False,
+                "has_thread_context": False,
+            },
+        },
+        {
+            "memory_summary_dirty": True,
+            "onboarding_summary_dirty": False,
+        },
+        config={
+            "configurable": {
+                "langgraph_auth_user": {
+                    "identity": "user-a",
+                    "access_token": "token",
+                }
+            }
+        },
+        context={"app_thread_id": thread_id},
+    )
+
+    assert result["system_context"]["memory_summary"] == {
+        "has_memories": True,
+        "memory_count": 2,
+    }
+    assert result["system_context"]["onboarding_summary"] == {
+        "has_default_profile": False,
+        "has_thread_context": False,
+    }
+    assert fake_onboarding_client.calls == 0
+
+
+@pytest.mark.asyncio
+async def test_prepare_system_context_state_keeps_chat_running_when_onboarding_init_fails(
+    session_factory: async_sessionmaker[AsyncSession], monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """온보딩 초기화 실패는 채팅을 막지 않고 summary만 비운다."""
+
+    from agent.services.chat import system_context_state as module
+
+    thread_id, _, _ = await _seed_workspace(session_factory)
+    fake_onboarding_client = FakeOnboardingClient(fail=True)
+    monkeypatch.setattr(module, "get_session_factory", lambda: session_factory)
+    monkeypatch.setattr(module, "onboarding_service_client", fake_onboarding_client)
+
+    result = await prepare_system_context_state_update(
+        None,
+        None,
+        config={
+            "configurable": {
+                "langgraph_auth_user": {
+                    "identity": "user-a",
+                    "access_token": "token",
+                }
+            }
+        },
+        context={"app_thread_id": thread_id},
+    )
+
+    assert result["system_context"]["memory_summary"] == {
+        "has_memories": True,
+        "memory_count": 1,
+    }
+    assert result["system_context"]["onboarding_summary"] is None

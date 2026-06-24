@@ -26,6 +26,8 @@ class ChatRuntimeContext(TypedDict):
     auth_user_uuid: NotRequired[str]
     access_token: NotRequired[str]
     app_thread_id: NotRequired[str]
+    selected_document_ids: NotRequired[list[str]]
+    selected_artifact_ids: NotRequired[list[str]]
 
 
 class ResolvedChatRuntimeContext(TypedDict):
