@@ -4,7 +4,7 @@ import { getTrendForecastBanner } from "@/features/trend/lib/trend-forecast-serv
 import { Badge } from "@/shared/components/ui/badge"
 
 // 트렌드 기능의 진입 배너다. 주제(전체·주말·남성·여성·청년)를 나눠 보여준다.
-// 데이터는 trend-service 예측 결과에서 가져오고, 서비스가 없으면 정적 폴백으로 대체된다.
+// 데이터는 trend-service 예측 결과에서 가져오고, 서비스가 없으면 섹션을 생략한다.
 export async function TrendForecastBannerWidget() {
   const trendForecastBanner = await getTrendForecastBanner()
 

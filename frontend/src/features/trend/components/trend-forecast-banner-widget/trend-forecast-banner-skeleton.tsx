@@ -14,7 +14,7 @@ export function TrendForecastBannerSkeleton() {
             <Skeleton key={index} className="h-8 w-20 rounded-full" />
           ))}
         </div>
-        <div className="grid grid-cols-3 gap-3 sm:gap-5">
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-3 sm:gap-5">
           {Array.from({ length: 3 }).map((_, index) => (
             <Skeleton key={index} className="h-32 rounded-lg" />
           ))}
