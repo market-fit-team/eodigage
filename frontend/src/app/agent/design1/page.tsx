@@ -3,24 +3,26 @@
 
 import * as React from "react"
 import { toast } from "sonner"
-
-import { ChatSidebar } from "./_components/ChatSidebar"
 import { ChatArea } from "./_components/ChatArea"
+import { ChatSidebar } from "./_components/ChatSidebar"
 import {
-  initialRooms,
-  initialMessages,
-  ChatRoom,
   ChatMessage,
+  ChatRoom,
   MessageFile,
   getRandomBotResponse,
+  initialMessages,
+  initialRooms,
 } from "./_fixtures/chatMockData"
 
 // Next.js App Router의 전역 타입 헬퍼 PageProps 사용
 // (타입이 전역에 제공되므로, 타입 에러를 피하기 위해 string 제네릭 또는 dynamic type 캐스팅)
 export default function Design1Page() {
   const [rooms, setRooms] = React.useState<ChatRoom[]>(initialRooms)
-  const [messages, setMessages] = React.useState<Record<string, ChatMessage[]>>(initialMessages)
-  const [activeRoomId, setActiveRoomId] = React.useState<string | null>("room-1")
+  const [messages, setMessages] =
+    React.useState<Record<string, ChatMessage[]>>(initialMessages)
+  const [activeRoomId, setActiveRoomId] = React.useState<string | null>(
+    "room-1"
+  )
   const [isTyping, setIsTyping] = React.useState<boolean>(false)
   const [isDarkMode, setIsDarkMode] = React.useState<boolean>(false)
 
@@ -126,7 +128,9 @@ export default function Design1Page() {
         r.id === activeRoomId
           ? {
               ...r,
-              lastMessage: file ? `[파일 첨부] ${content || file.name}` : content,
+              lastMessage: file
+                ? `[파일 첨부] ${content || file.name}`
+                : content,
               updatedAt: timeStr,
             }
           : r
@@ -170,7 +174,10 @@ export default function Design1Page() {
   }
 
   // 메시지 피드백 토글 (좋아요/싫어요)
-  const handleToggleFeedback = (messageId: string, type: "like" | "dislike") => {
+  const handleToggleFeedback = (
+    messageId: string,
+    type: "like" | "dislike"
+  ) => {
     if (!activeRoomId) return
 
     setMessages((prev) => {
@@ -204,7 +211,7 @@ export default function Design1Page() {
   const currentMessages = activeRoomId ? messages[activeRoomId] || [] : []
 
   return (
-    <main className="flex h-[calc(100vh-3.5rem)] w-full overflow-hidden border border-border/20 rounded-xl bg-background shadow-sm max-w-[1400px] mx-auto my-4">
+    <main className="mx-auto my-4 flex h-[calc(100vh-3.5rem)] w-full max-w-[1400px] overflow-hidden rounded-xl border border-border/20 bg-background shadow-sm">
       {/* 룸 리스트 사이드바 */}
       <ChatSidebar
         rooms={rooms}
@@ -226,8 +233,11 @@ export default function Design1Page() {
           activeRoomTitle={activeRoomTitle}
         />
       ) : (
-        <div className="flex flex-1 flex-col items-center justify-center text-center p-6 bg-background">
-          <p className="text-xs text-muted-foreground">활성화된 대화방이 없습니다. 왼쪽 사이드바에서 새 대화를 시작해 보세요.</p>
+        <div className="flex flex-1 flex-col items-center justify-center bg-background p-6 text-center">
+          <p className="text-xs text-muted-foreground">
+            활성화된 대화방이 없습니다. 왼쪽 사이드바에서 새 대화를 시작해
+            보세요.
+          </p>
         </div>
       )}
     </main>

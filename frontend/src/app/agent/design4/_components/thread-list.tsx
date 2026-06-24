@@ -4,24 +4,23 @@
 
 import * as React from "react"
 import {
+  MessageSquare,
+  MoreVertical,
+  PanelLeft,
+  PanelLeftClose,
+  Pin,
   Plus,
   Search,
-  Pin,
-  MessageSquare,
   Trash2,
-  PanelLeftClose,
-  PanelLeft,
-  MoreVertical,
 } from "lucide-react"
-
 import { Button } from "@/shared/components/ui/button"
-import { ScrollArea } from "@/shared/components/ui/scroll-area"
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/shared/components/ui/dropdown-menu"
+import { ScrollArea } from "@/shared/components/ui/scroll-area"
 import {
   Tooltip,
   TooltipContent,
@@ -66,15 +65,25 @@ export function ThreadList({
   const unpinned = filtered.filter((t) => !t.isPinned)
 
   return (
-    <aside className="flex h-full w-full flex-col border-r border-border/30 bg-background shrink-0 transition-all duration-300">
+    <aside className="flex h-full w-full shrink-0 flex-col border-r border-border/30 bg-background transition-all duration-300">
       {/* ── 헤더 ── */}
-      <div className={cn("flex items-center pt-5 pb-2 transition-all duration-300", isCollapsed ? "justify-center px-2" : "justify-between px-4")}>
+      <div
+        className={cn(
+          "flex items-center pt-5 pb-2 transition-all duration-300",
+          isCollapsed ? "justify-center px-2" : "justify-between px-4"
+        )}
+      >
         {!isCollapsed && (
           <span className="text-xs font-semibold tracking-wide text-foreground uppercase">
             Threads
           </span>
         )}
-        <div className={cn("flex items-center", isCollapsed ? "flex-col gap-3" : "gap-1")}>
+        <div
+          className={cn(
+            "flex items-center",
+            isCollapsed ? "flex-col gap-3" : "gap-1"
+          )}
+        >
           <TooltipProvider>
             <Tooltip>
               <TooltipTrigger asChild>
@@ -99,12 +108,18 @@ export function ThreadList({
                     variant="ghost"
                     size="icon-xs"
                     onClick={onToggleCollapse}
-                    className="cursor-pointer text-muted-foreground hover:text-foreground hidden md:flex"
+                    className="hidden cursor-pointer text-muted-foreground hover:text-foreground md:flex"
                   >
-                    {isCollapsed ? <PanelLeft className="size-3.5" /> : <PanelLeftClose className="size-3.5" />}
+                    {isCollapsed ? (
+                      <PanelLeft className="size-3.5" />
+                    ) : (
+                      <PanelLeftClose className="size-3.5" />
+                    )}
                   </Button>
                 </TooltipTrigger>
-                <TooltipContent side="right">{isCollapsed ? "사이드바 열기" : "사이드바 닫기"}</TooltipContent>
+                <TooltipContent side="right">
+                  {isCollapsed ? "사이드바 열기" : "사이드바 닫기"}
+                </TooltipContent>
               </Tooltip>
             </TooltipProvider>
           )}
@@ -112,12 +127,21 @@ export function ThreadList({
       </div>
 
       {/* ── 검색 ── */}
-      <div className={cn("pb-2 flex transition-all", isCollapsed ? "px-2 justify-center" : "px-3")}>
+      <div
+        className={cn(
+          "flex pb-2 transition-all",
+          isCollapsed ? "justify-center px-2" : "px-3"
+        )}
+      >
         {isCollapsed ? (
           <TooltipProvider>
             <Tooltip>
               <TooltipTrigger asChild>
-                <Button variant="ghost" size="icon-xs" className="text-muted-foreground hover:text-foreground">
+                <Button
+                  variant="ghost"
+                  size="icon-xs"
+                  className="text-muted-foreground hover:text-foreground"
+                >
                   <Search className="size-3.5" />
                 </Button>
               </TooltipTrigger>
@@ -126,13 +150,13 @@ export function ThreadList({
           </TooltipProvider>
         ) : (
           <div className="relative w-full">
-            <Search className="absolute left-2.5 top-1/2 size-3 -translate-y-1/2 text-muted-foreground" />
+            <Search className="absolute top-1/2 left-2.5 size-3 -translate-y-1/2 text-muted-foreground" />
             <input
               type="text"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               placeholder="검색..."
-              className="w-full rounded-md border-0 bg-muted/40 py-1.5 pl-7 pr-3 text-xs text-foreground placeholder:text-muted-foreground outline-none transition-colors focus:bg-muted/60"
+              className="w-full rounded-md border-0 bg-muted/40 py-1.5 pr-3 pl-7 text-xs text-foreground transition-colors outline-none placeholder:text-muted-foreground focus:bg-muted/60"
               id="thread-search-input"
             />
           </div>
@@ -141,12 +165,12 @@ export function ThreadList({
 
       {/* ── 스레드 목록 ── */}
       {/* Radix ScrollArea의 내부 table 래퍼가 긴 제목 폭을 따라 커지면 리사이저블 사이드바가 다시 터진다. 아래 래퍼 보정 클래스는 제거하지 말 것. */}
-      <ScrollArea className="flex-1 min-h-0 px-2 [&_[data-slot=scroll-area-viewport]>div]:!block [&_[data-slot=scroll-area-viewport]>div]:!min-w-0 [&_[data-slot=scroll-area-viewport]>div]:!w-full">
+      <ScrollArea className="min-h-0 flex-1 px-2 [&_[data-slot=scroll-area-viewport]>div]:!block [&_[data-slot=scroll-area-viewport]>div]:!w-full [&_[data-slot=scroll-area-viewport]>div]:!min-w-0">
         {/* 고정된 스레드 섹션 */}
         {pinned.length > 0 && (
           <div className="mb-1">
             {!isCollapsed && (
-              <span className="block px-2 py-1 text-[10px] font-medium text-muted-foreground uppercase tracking-wider">
+              <span className="block px-2 py-1 text-[10px] font-medium tracking-wider text-muted-foreground uppercase">
                 Pinned
               </span>
             )}
@@ -168,7 +192,7 @@ export function ThreadList({
 
         {/* 일반 스레드 섹션 */}
         {pinned.length > 0 && unpinned.length > 0 && !isCollapsed && (
-          <span className="block px-2 py-1 text-[10px] font-medium text-muted-foreground uppercase tracking-wider">
+          <span className="block px-2 py-1 text-[10px] font-medium tracking-wider text-muted-foreground uppercase">
             Recent
           </span>
         )}
@@ -194,11 +218,16 @@ export function ThreadList({
       </ScrollArea>
 
       {/* ── 하단 상태 표시 ── */}
-      <div className={cn("border-t border-border/20 py-3", isCollapsed ? "flex justify-center" : "px-4")}>
+      <div
+        className={cn(
+          "border-t border-border/20 py-3",
+          isCollapsed ? "flex justify-center" : "px-4"
+        )}
+      >
         <TooltipProvider>
           <Tooltip>
             <TooltipTrigger asChild>
-              <div className="flex items-center gap-2 cursor-help">
+              <div className="flex cursor-help items-center gap-2">
                 <span className="relative flex size-1.5">
                   <span className="absolute inline-flex size-full animate-ping rounded-full bg-emerald-400 opacity-75" />
                   <span className="relative inline-flex size-1.5 rounded-full bg-emerald-500" />
@@ -210,7 +239,9 @@ export function ThreadList({
                 )}
               </div>
             </TooltipTrigger>
-            {isCollapsed && <TooltipContent side="right">Agent Online</TooltipContent>}
+            {isCollapsed && (
+              <TooltipContent side="right">Agent Online</TooltipContent>
+            )}
           </Tooltip>
         </TooltipProvider>
       </div>
@@ -268,14 +299,19 @@ function ThreadItem({
     >
       {/* 활성 인디케이터 */}
       {isActive && (
-        <span className="absolute left-0 top-1/2 h-5 w-[2px] -translate-y-1/2 rounded-r-full bg-foreground/60" />
+        <span className="absolute top-1/2 left-0 h-5 w-[2px] -translate-y-1/2 rounded-r-full bg-foreground/60" />
       )}
 
       {/* 아이콘 */}
       <TooltipProvider>
         <Tooltip>
           <TooltipTrigger asChild>
-            <span className={cn("shrink-0 flex items-center justify-center", !isCollapsed && "mt-0.5")}>
+            <span
+              className={cn(
+                "flex shrink-0 items-center justify-center",
+                !isCollapsed && "mt-0.5"
+              )}
+            >
               {thread.isPinned ? (
                 <Pin className="size-3 text-muted-foreground" />
               ) : (
@@ -283,18 +319,20 @@ function ThreadItem({
               )}
             </span>
           </TooltipTrigger>
-          {isCollapsed && <TooltipContent side="right">{thread.title}</TooltipContent>}
+          {isCollapsed && (
+            <TooltipContent side="right">{thread.title}</TooltipContent>
+          )}
         </Tooltip>
       </TooltipProvider>
 
       {/* 텍스트 영역 */}
       {!isCollapsed && (
         <div className="min-w-0 flex-1 pr-1">
-          <p className="truncate text-xs font-medium leading-tight">
+          <p className="truncate text-xs leading-tight font-medium">
             {thread.title}
           </p>
           {thread.subtitle && (
-            <p className="mt-0.5 truncate text-xs text-muted-foreground leading-tight">
+            <p className="mt-0.5 truncate text-xs leading-tight text-muted-foreground">
               {thread.subtitle}
             </p>
           )}
@@ -306,13 +344,13 @@ function ThreadItem({
 
       {/* 스레드 액션 메뉴 */}
       {!isCollapsed && (
-        <div className="flex w-6 shrink-0 self-center justify-end">
+        <div className="flex w-6 shrink-0 justify-end self-center">
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <button
                 onClick={(e) => e.stopPropagation()}
                 className={cn(
-                  "rounded-md p-1 text-muted-foreground transition-colors hover:bg-muted/60 hover:text-foreground cursor-pointer",
+                  "cursor-pointer rounded-md p-1 text-muted-foreground transition-colors hover:bg-muted/60 hover:text-foreground",
                   isHovered ? "opacity-100" : "opacity-60"
                 )}
                 id={`thread-menu-${thread.id}`}

@@ -1,18 +1,17 @@
 "use client"
 
 import * as React from "react"
-import { Trash2, Edit2, Check, X } from "lucide-react"
-
+import { Check, Edit2, Trash2, X } from "lucide-react"
+import { Button } from "@/shared/components/ui/button"
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogHeader,
   DialogTitle,
-  DialogDescription,
 } from "@/shared/components/ui/dialog"
-import { Button } from "@/shared/components/ui/button"
-import { ScrollArea } from "@/shared/components/ui/scroll-area"
 import { Input } from "@/shared/components/ui/input"
+import { ScrollArea } from "@/shared/components/ui/scroll-area"
 import type { AiMemory } from "../_fixtures/mock-data"
 
 interface MemorySettingsModalProps {
@@ -61,7 +60,8 @@ export function MemorySettingsModal({
         <DialogHeader>
           <DialogTitle>AI Memory 관리</DialogTitle>
           <DialogDescription>
-            AI가 대화에서 기억하고 있는 사용자 정보, 취향, 컨텍스트입니다. 이 정보들은 새로운 대화 시 맞춤형 응답을 제공하는 데 사용됩니다.
+            AI가 대화에서 기억하고 있는 사용자 정보, 취향, 컨텍스트입니다. 이
+            정보들은 새로운 대화 시 맞춤형 응답을 제공하는 데 사용됩니다.
           </DialogDescription>
         </DialogHeader>
 
@@ -77,13 +77,15 @@ export function MemorySettingsModal({
                 if (e.key === "Enter") handleAdd()
               }}
             />
-            <Button onClick={handleAdd} size="sm">추가</Button>
+            <Button onClick={handleAdd} size="sm">
+              추가
+            </Button>
           </div>
 
           {/* 메모리 목록 */}
           <ScrollArea className="h-[300px] rounded-md border border-border/40 bg-muted/20 p-4">
             {memories.length === 0 ? (
-              <p className="text-center text-sm text-muted-foreground mt-10">
+              <p className="mt-10 text-center text-sm text-muted-foreground">
                 기억된 정보가 없습니다.
               </p>
             ) : (
@@ -95,7 +97,7 @@ export function MemorySettingsModal({
                   >
                     <div className="flex items-start justify-between gap-4">
                       {editingId === memory.id ? (
-                        <div className="flex-1 flex items-center gap-2">
+                        <div className="flex flex-1 items-center gap-2">
                           <Input
                             autoFocus
                             value={editValue}
@@ -105,23 +107,41 @@ export function MemorySettingsModal({
                               if (e.key === "Escape") setEditingId(null)
                             }}
                           />
-                          <Button size="icon-sm" variant="ghost" onClick={() => handleEditSave(memory.id)}>
+                          <Button
+                            size="icon-sm"
+                            variant="ghost"
+                            onClick={() => handleEditSave(memory.id)}
+                          >
                             <Check className="size-4 text-emerald-500" />
                           </Button>
-                          <Button size="icon-sm" variant="ghost" onClick={() => setEditingId(null)}>
+                          <Button
+                            size="icon-sm"
+                            variant="ghost"
+                            onClick={() => setEditingId(null)}
+                          >
                             <X className="size-4" />
                           </Button>
                         </div>
                       ) : (
-                        <p className="flex-1 text-sm leading-relaxed">{memory.content}</p>
+                        <p className="flex-1 text-sm leading-relaxed">
+                          {memory.content}
+                        </p>
                       )}
 
                       {editingId !== memory.id && (
-                        <div className="flex items-center gap-1 shrink-0">
-                          <Button size="icon-xs" variant="ghost" onClick={() => handleEditStart(memory)}>
+                        <div className="flex shrink-0 items-center gap-1">
+                          <Button
+                            size="icon-xs"
+                            variant="ghost"
+                            onClick={() => handleEditStart(memory)}
+                          >
                             <Edit2 className="size-3.5 text-muted-foreground hover:text-foreground" />
                           </Button>
-                          <Button size="icon-xs" variant="ghost" onClick={() => onDelete(memory.id)}>
+                          <Button
+                            size="icon-xs"
+                            variant="ghost"
+                            onClick={() => onDelete(memory.id)}
+                          >
                             <Trash2 className="size-3.5 text-muted-foreground hover:text-destructive" />
                           </Button>
                         </div>

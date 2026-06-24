@@ -1,7 +1,6 @@
 "use client"
 
 import * as React from "react"
-import { toast } from "sonner"
 import {
   BrainCircuit,
   Check,
@@ -11,11 +10,7 @@ import {
   Trash2,
   X,
 } from "lucide-react"
-
-import { Button } from "@/shared/components/ui/button"
-import { ScrollArea } from "@/shared/components/ui/scroll-area"
-import { Input } from "@/shared/components/ui/input"
-import { Textarea } from "@/shared/components/ui/textarea"
+import { toast } from "sonner"
 import {
   AlertDialog,
   AlertDialogAction,
@@ -28,6 +23,10 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/shared/components/ui/alert-dialog"
+import { Button } from "@/shared/components/ui/button"
+import { Input } from "@/shared/components/ui/input"
+import { ScrollArea } from "@/shared/components/ui/scroll-area"
+import { Textarea } from "@/shared/components/ui/textarea"
 import {
   Tooltip,
   TooltipContent,
@@ -52,7 +51,9 @@ export function MemoryPanel({
   onCloseSidebar,
 }: MemoryPanelProps) {
   const [newValue, setNewValue] = React.useState("")
-  const [editingMemory, setEditingMemory] = React.useState<AiMemory | null>(null)
+  const [editingMemory, setEditingMemory] = React.useState<AiMemory | null>(
+    null
+  )
   const [editValue, setEditValue] = React.useState("")
 
   const handleAdd = () => {
@@ -79,7 +80,7 @@ export function MemoryPanel({
   }
 
   return (
-    <aside className="flex h-full min-w-0 w-full shrink-0 flex-col overflow-hidden border-r border-border/30 bg-background">
+    <aside className="flex h-full w-full min-w-0 shrink-0 flex-col overflow-hidden border-r border-border/30 bg-background">
       {/* ── 헤더 ── */}
       <div className="flex items-center justify-between gap-2 px-4 pt-5 pb-2">
         <span className="flex min-w-0 items-center gap-1.5 truncate text-xs font-semibold tracking-wide text-foreground uppercase">
@@ -93,7 +94,7 @@ export function MemoryPanel({
                 variant="ghost"
                 size="icon-xs"
                 onClick={onCloseSidebar}
-                className="cursor-pointer text-muted-foreground hover:text-foreground hidden md:flex"
+                className="hidden cursor-pointer text-muted-foreground hover:text-foreground md:flex"
               >
                 <PanelLeftClose className="size-3.5" />
               </Button>
@@ -135,7 +136,7 @@ export function MemoryPanel({
 
       {/* ── 메모리 목록 ── */}
       {/* Radix ScrollArea의 내부 table 래퍼가 긴 메모리 문장 폭을 따라 커지면 왼쪽 패널이 다시 터진다. 아래 래퍼 보정 클래스는 제거하지 말 것. */}
-      <ScrollArea className="flex-1 min-h-0 px-2 [&_[data-slot=scroll-area-viewport]>div]:!block [&_[data-slot=scroll-area-viewport]>div]:!min-w-0 [&_[data-slot=scroll-area-viewport]>div]:!w-full">
+      <ScrollArea className="min-h-0 flex-1 px-2 [&_[data-slot=scroll-area-viewport]>div]:!block [&_[data-slot=scroll-area-viewport]>div]:!w-full [&_[data-slot=scroll-area-viewport]>div]:!min-w-0">
         {memories.length === 0 ? (
           <p className="px-3 py-8 text-center text-xs text-muted-foreground">
             기억된 정보가 없습니다
@@ -186,14 +187,14 @@ export function MemoryPanel({
                     </div>
                   </div>
                 ) : (
-                  <p className="min-w-0 break-words pr-6 text-xs leading-relaxed text-foreground">
+                  <p className="min-w-0 pr-6 text-xs leading-relaxed break-words text-foreground">
                     {memory.content}
                   </p>
                 )}
                 <p className="text-[10px] text-muted-foreground">
                   {memory.createdAt}
                 </p>
-                
+
                 {/* 액션 버튼 (호버 시 표시) */}
                 {editingMemory?.id !== memory.id && (
                   <div className="absolute top-2 right-2 flex flex-col gap-1 opacity-0 transition-opacity group-hover:opacity-100 focus-within:opacity-100">
@@ -223,7 +224,9 @@ export function MemoryPanel({
                           <AlertDialogMedia>
                             <Trash2 className="size-4 text-destructive" />
                           </AlertDialogMedia>
-                          <AlertDialogTitle>기억을 삭제할까요?</AlertDialogTitle>
+                          <AlertDialogTitle>
+                            기억을 삭제할까요?
+                          </AlertDialogTitle>
                           <AlertDialogDescription>
                             이 기억은 AI 개인화 컨텍스트에서 제거됩니다. 삭제한
                             뒤에는 되돌릴 수 없습니다.
@@ -250,7 +253,6 @@ export function MemoryPanel({
           </div>
         )}
       </ScrollArea>
-
     </aside>
   )
 }

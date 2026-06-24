@@ -50,8 +50,8 @@ import type {
   InlineArtifact,
   MessageFile,
   PermissionGate,
-  ThinkingStep,
   RightPanelContent,
+  ThinkingStep,
   WebSearchResult,
 } from "../_fixtures/mock-data"
 import { promptSuggestions } from "../_fixtures/mock-data"
@@ -261,9 +261,9 @@ export function ChatView({
       {/* ── 메시지 영역 ── */}
       <ScrollArea
         ref={scrollRef}
-        className="min-h-0 flex-1 [&_[data-slot=scroll-area-viewport]>div]:!block [&_[data-slot=scroll-area-viewport]>div]:!min-w-0 [&_[data-slot=scroll-area-viewport]>div]:!w-full"
+        className="min-h-0 flex-1 [&_[data-slot=scroll-area-viewport]>div]:!block [&_[data-slot=scroll-area-viewport]>div]:!w-full [&_[data-slot=scroll-area-viewport]>div]:!min-w-0"
       >
-        <div className="mx-auto min-w-0 max-w-2xl px-4 py-6 sm:px-6">
+        <div className="mx-auto max-w-2xl min-w-0 px-4 py-6 sm:px-6">
           {isWelcomeScreen ? (
             <WelcomeScreen
               onSelectSuggestion={(text) => {
@@ -455,16 +455,15 @@ function MessageBubble({
 
   return (
     <div
-      className={cn(
-        "flex min-w-0",
-        isUser ? "justify-end" : "justify-start"
-      )}
+      className={cn("flex min-w-0", isUser ? "justify-end" : "justify-start")}
       id={`message-${message.id}`}
     >
       <div
         className={cn(
           "flex min-w-0 flex-col gap-1.5",
-          isUser ? "w-fit max-w-[85%] items-end" : "w-full max-w-full items-start",
+          isUser
+            ? "w-fit max-w-[85%] items-end"
+            : "w-full max-w-full items-start"
         )}
       >
         {/* 첨부된 문서 표시 */}
@@ -483,16 +482,29 @@ function MessageBubble({
         )}
 
         {message.thinkingSteps && message.thinkingSteps.length > 0 && (
-          <ThinkingStepsBlock steps={message.thinkingSteps} onOpen={() => onOpenInPanel({ type: "thinking", data: message.thinkingSteps! })} />
+          <ThinkingStepsBlock
+            steps={message.thinkingSteps}
+            onOpen={() =>
+              onOpenInPanel({ type: "thinking", data: message.thinkingSteps! })
+            }
+          />
         )}
 
         {message.searchResults && message.searchResults.length > 0 && (
-          <SearchResultsBlock results={message.searchResults} onOpen={() => onOpenInPanel({ type: "search_result", data: message.searchResults! })} />
+          <SearchResultsBlock
+            results={message.searchResults}
+            onOpen={() =>
+              onOpenInPanel({
+                type: "search_result",
+                data: message.searchResults!,
+              })
+            }
+          />
         )}
 
         <div
           className={cn(
-            "max-w-full break-words rounded-xl px-3.5 py-2.5 text-sm leading-[1.7]",
+            "max-w-full rounded-xl px-3.5 py-2.5 text-sm leading-[1.7] break-words",
             isUser
               ? "rounded-tr-sm bg-foreground text-background"
               : "rounded-tl-sm bg-muted/30 text-foreground"
@@ -501,7 +513,14 @@ function MessageBubble({
           <MessageContent content={message.content} />
         </div>
 
-        {message.artifact && <ArtifactBlock artifact={message.artifact} onOpen={() => onOpenInPanel({ type: "artifact", data: message.artifact! })} />}
+        {message.artifact && (
+          <ArtifactBlock
+            artifact={message.artifact}
+            onOpen={() =>
+              onOpenInPanel({ type: "artifact", data: message.artifact! })
+            }
+          />
+        )}
         {message.permissionGate && (
           <PermissionGateBlock
             gate={message.permissionGate}
@@ -586,7 +605,13 @@ function MessageBubble({
 
 // ─── Thinking Steps ───────────────────────────────────────
 
-function ThinkingStepsBlock({ steps, onOpen }: { steps: ThinkingStep[], onOpen: () => void }) {
+function ThinkingStepsBlock({
+  steps,
+  onOpen,
+}: {
+  steps: ThinkingStep[]
+  onOpen: () => void
+}) {
   const [isOpen, setIsOpen] = React.useState(false)
   const totalMs = steps.reduce((acc, s) => acc + (s.durationMs || 0), 0)
 
@@ -614,8 +639,8 @@ function ThinkingStepsBlock({ steps, onOpen }: { steps: ThinkingStep[], onOpen: 
           </span>
         </button>
       </CollapsibleTrigger>
-      
-      <button 
+
+      <button
         onClick={onOpen}
         className="flex cursor-pointer items-center justify-center rounded-md p-1.5 text-muted-foreground transition-colors hover:bg-muted/50 hover:text-foreground"
         title="패널에서 자세히 보기"
@@ -626,7 +651,10 @@ function ThinkingStepsBlock({ steps, onOpen }: { steps: ThinkingStep[], onOpen: 
       <CollapsibleContent className="w-full min-w-0">
         <div className="ml-2 min-w-0 space-y-0 border-l border-border/20 py-1 pl-4">
           {steps.map((step) => (
-            <div key={step.id} className="flex min-w-0 items-center gap-2 py-1 text-xs">
+            <div
+              key={step.id}
+              className="flex min-w-0 items-center gap-2 py-1 text-xs"
+            >
               <span
                 className={cn(
                   "flex size-3.5 shrink-0 items-center justify-center rounded-full",
@@ -699,7 +727,7 @@ function PermissionGateBlock({
         </span>
         <div className="min-w-0 flex-1">
           <div className="flex min-w-0 flex-wrap items-center gap-2">
-            <span className="min-w-0 break-words text-sm font-medium text-foreground">
+            <span className="min-w-0 text-sm font-medium break-words text-foreground">
               {gate.action}
             </span>
             <Badge
@@ -709,7 +737,7 @@ function PermissionGateBlock({
               {gate.risk} risk
             </Badge>
           </div>
-          <p className="mt-1 break-words text-xs leading-relaxed text-muted-foreground">
+          <p className="mt-1 text-xs leading-relaxed break-words text-muted-foreground">
             {gate.description}
           </p>
         </div>
@@ -757,7 +785,13 @@ function PermissionGateBlock({
 
 // ─── Inline Artifact ──────────────────────────────────────
 
-function ArtifactBlock({ artifact, onOpen }: { artifact: InlineArtifact, onOpen: () => void }) {
+function ArtifactBlock({
+  artifact,
+  onOpen,
+}: {
+  artifact: InlineArtifact
+  onOpen: () => void
+}) {
   const [copied, setCopied] = React.useState(false)
   const previewText = getArtifactPreviewText(artifact)
   const copyText = getArtifactCopyText(artifact)
@@ -776,7 +810,10 @@ function ArtifactBlock({ artifact, onOpen }: { artifact: InlineArtifact, onOpen:
           <span className="min-w-0 truncate text-xs font-medium text-foreground">
             {artifact.title}
           </span>
-          <Badge variant="outline" className="h-4 shrink-0 px-1.5 py-0 text-[10px]">
+          <Badge
+            variant="outline"
+            className="h-4 shrink-0 px-1.5 py-0 text-[10px]"
+          >
             v{artifact.version}
           </Badge>
         </div>
@@ -815,14 +852,14 @@ function ArtifactBlock({ artifact, onOpen }: { artifact: InlineArtifact, onOpen:
           </TooltipProvider>
         </div>
       </div>
-      <ScrollArea className="max-h-64 [&_[data-slot=scroll-area-viewport]>div]:!block [&_[data-slot=scroll-area-viewport]>div]:!min-w-0 [&_[data-slot=scroll-area-viewport]>div]:!w-full">
+      <ScrollArea className="max-h-64 [&_[data-slot=scroll-area-viewport]>div]:!block [&_[data-slot=scroll-area-viewport]>div]:!w-full [&_[data-slot=scroll-area-viewport]>div]:!min-w-0">
         {artifact.type === "code" ? (
           <pre className="max-w-full overflow-x-auto p-3 font-mono text-xs leading-relaxed text-foreground">
             <code>{artifact.code}</code>
           </pre>
         ) : (
           <div className="space-y-2 p-3">
-            <p className="break-words text-xs leading-relaxed text-muted-foreground">
+            <p className="text-xs leading-relaxed break-words text-muted-foreground">
               {previewText}
             </p>
             <div className="inline-flex max-w-full items-center gap-1 rounded-md bg-muted/40 px-2 py-1 text-[10px] font-medium text-muted-foreground">
@@ -894,12 +931,18 @@ function MessageContent({ content }: { content: string }) {
 
 // ─── Web Search Results ───────────────────────────────────
 
-function SearchResultsBlock({ results, onOpen }: { results: WebSearchResult[], onOpen: () => void }) {
-  if (results.length === 0) return null;
-  const firstResult = results[0];
+function SearchResultsBlock({
+  results,
+  onOpen,
+}: {
+  results: WebSearchResult[]
+  onOpen: () => void
+}) {
+  if (results.length === 0) return null
+  const firstResult = results[0]
 
   return (
-    <div className="w-full overflow-hidden rounded-xl border border-border/30 bg-background/50 flex flex-col">
+    <div className="flex w-full flex-col overflow-hidden rounded-xl border border-border/30 bg-background/50">
       <div className="flex items-center justify-between border-b border-border/15 bg-muted/10 px-3 py-2">
         <div className="flex items-center gap-2">
           <GlobeIcon className="size-3.5 text-muted-foreground" />
@@ -909,14 +952,16 @@ function SearchResultsBlock({ results, onOpen }: { results: WebSearchResult[], o
         </div>
         <button
           onClick={onOpen}
-          className="flex items-center gap-1 text-[10px] font-medium text-primary hover:underline cursor-pointer"
+          className="flex cursor-pointer items-center gap-1 text-[10px] font-medium text-primary hover:underline"
         >
           패널에서 열기 <ChevronRight className="size-3" />
         </button>
       </div>
       <div className="px-3 py-2.5">
-        <h4 className="text-sm font-semibold text-foreground mb-1 truncate">{firstResult.title}</h4>
-        <p className="text-xs text-muted-foreground line-clamp-2 leading-relaxed">
+        <h4 className="mb-1 truncate text-sm font-semibold text-foreground">
+          {firstResult.title}
+        </h4>
+        <p className="line-clamp-2 text-xs leading-relaxed text-muted-foreground">
           {firstResult.snippet}
         </p>
       </div>

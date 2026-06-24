@@ -164,12 +164,9 @@ export function OnboardingResultCategoryExplorer({
             </CarouselContent>
             <CarouselPrevious
               size="icon-lg"
-              className="z-10 -left-10 size-10"
+              className="-left-10 z-10 size-10"
             />
-            <CarouselNext
-              size="icon-lg"
-              className="z-10 -right-10 size-10"
-            />
+            <CarouselNext size="icon-lg" className="-right-10 z-10 size-10" />
           </Carousel>
         </div>
       </div>

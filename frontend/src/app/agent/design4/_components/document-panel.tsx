@@ -4,32 +4,24 @@
 
 import * as React from "react"
 import {
+  Eye,
   FileCode2,
+  FileCog,
   FileJson,
   FileText,
-  FileCog,
   FileType,
-  MoreVertical,
-  MessageSquarePlus,
-  Eye,
-  Trash2,
-  GripVertical,
-  PanelRightClose,
-  PanelLeftClose,
   FolderOpen,
-  List,
+  GripVertical,
   LayoutGrid,
+  List,
+  MessageSquarePlus,
+  MoreVertical,
+  PanelLeftClose,
+  PanelRightClose,
+  Trash2,
 } from "lucide-react"
-
-import { Button } from "@/shared/components/ui/button"
-import { ScrollArea } from "@/shared/components/ui/scroll-area"
 import { Badge } from "@/shared/components/ui/badge"
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "@/shared/components/ui/tooltip"
+import { Button } from "@/shared/components/ui/button"
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -37,8 +29,14 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/shared/components/ui/dropdown-menu"
+import { ScrollArea } from "@/shared/components/ui/scroll-area"
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/shared/components/ui/tooltip"
 import { cn } from "@/shared/lib/utils"
-
 import type { DocumentItem } from "../_fixtures/mock-data"
 
 // ─── 파일 타입별 아이콘 매핑 ────────────────────────────────
@@ -73,7 +71,7 @@ export function DocumentPanel({
   const [viewMode, setViewMode] = React.useState<"list" | "grid">("list")
 
   return (
-    <div className="flex h-full flex-col min-h-0 overflow-hidden bg-background border-l border-border/20">
+    <div className="flex h-full min-h-0 flex-col overflow-hidden border-l border-border/20 bg-background">
       {/* ── 헤더 ── */}
       <div className="flex h-12 shrink-0 items-center justify-between border-b border-border/20 px-4">
         <div className="flex items-center gap-2">
@@ -86,12 +84,17 @@ export function DocumentPanel({
           </Badge>
         </div>
         <div className="flex items-center gap-1">
-          <div className="flex items-center mr-1 gap-0.5 rounded-md border border-border/40 p-0.5 bg-muted/20">
+          <div className="mr-1 flex items-center gap-0.5 rounded-md border border-border/40 bg-muted/20 p-0.5">
             <Button
               variant="ghost"
               size="icon-xs"
               onClick={() => setViewMode("list")}
-              className={cn("h-5 w-5 rounded-sm cursor-pointer", viewMode === "list" ? "bg-background shadow-sm text-foreground" : "text-muted-foreground")}
+              className={cn(
+                "h-5 w-5 cursor-pointer rounded-sm",
+                viewMode === "list"
+                  ? "bg-background text-foreground shadow-sm"
+                  : "text-muted-foreground"
+              )}
             >
               <List className="size-3" />
             </Button>
@@ -99,7 +102,12 @@ export function DocumentPanel({
               variant="ghost"
               size="icon-xs"
               onClick={() => setViewMode("grid")}
-              className={cn("h-5 w-5 rounded-sm cursor-pointer", viewMode === "grid" ? "bg-background shadow-sm text-foreground" : "text-muted-foreground")}
+              className={cn(
+                "h-5 w-5 cursor-pointer rounded-sm",
+                viewMode === "grid"
+                  ? "bg-background text-foreground shadow-sm"
+                  : "text-muted-foreground"
+              )}
             >
               <LayoutGrid className="size-3" />
             </Button>
@@ -111,13 +119,19 @@ export function DocumentPanel({
                   variant="ghost"
                   size="icon-xs"
                   onClick={onCollapsePanel}
-                  className="cursor-pointer text-muted-foreground hover:text-foreground ml-1"
+                  className="ml-1 cursor-pointer text-muted-foreground hover:text-foreground"
                   id="doc-panel-collapse-btn"
                 >
-                  {side === "left" ? <PanelLeftClose className="size-3.5" /> : <PanelRightClose className="size-3.5" />}
+                  {side === "left" ? (
+                    <PanelLeftClose className="size-3.5" />
+                  ) : (
+                    <PanelRightClose className="size-3.5" />
+                  )}
                 </Button>
               </TooltipTrigger>
-              <TooltipContent side={side === "left" ? "right" : "left"}>패널 접기</TooltipContent>
+              <TooltipContent side={side === "left" ? "right" : "left"}>
+                패널 접기
+              </TooltipContent>
             </Tooltip>
           </TooltipProvider>
         </div>
@@ -125,9 +139,16 @@ export function DocumentPanel({
 
       {/* ── 문서 목록 ── */}
       {/* 왼쪽 리사이저블 패널에서도 쓰인다. ScrollArea 내부 래퍼가 긴 경로 폭을 따라 커지지 않도록 아래 보정 클래스는 유지한다. */}
-      <ScrollArea className="flex-1 min-h-0 [&_[data-slot=scroll-area-viewport]>div]:!block [&_[data-slot=scroll-area-viewport]>div]:!min-w-0 [&_[data-slot=scroll-area-viewport]>div]:!w-full">
-        <div className={cn("p-2", viewMode === "list" ? "space-y-0.5" : "grid grid-cols-[repeat(auto-fill,minmax(110px,1fr))] gap-2 p-3")}>
-          {documents.map((doc) => (
+      <ScrollArea className="min-h-0 flex-1 [&_[data-slot=scroll-area-viewport]>div]:!block [&_[data-slot=scroll-area-viewport]>div]:!w-full [&_[data-slot=scroll-area-viewport]>div]:!min-w-0">
+        <div
+          className={cn(
+            "p-2",
+            viewMode === "list"
+              ? "space-y-0.5"
+              : "grid grid-cols-[repeat(auto-fill,minmax(110px,1fr))] gap-2 p-3"
+          )}
+        >
+          {documents.map((doc) =>
             viewMode === "list" ? (
               <DocumentRow
                 key={doc.id}
@@ -147,13 +168,13 @@ export function DocumentPanel({
                 onDragEnd={() => setDraggedId(null)}
               />
             )
-          ))}
+          )}
         </div>
       </ScrollArea>
 
       {/* ── 하단 안내 ── */}
       <div className="shrink-0 border-t border-border/15 px-4 py-2.5">
-        <p className="text-xs text-muted-foreground leading-relaxed">
+        <p className="text-xs leading-relaxed text-muted-foreground">
           파일을 채팅 입력창에 드래그하거나 ⋮ 메뉴에서 추가할 수 있습니다
         </p>
       </div>
@@ -189,33 +210,29 @@ function DocumentRow({
       }}
       onDragEnd={onDragEnd}
       className={cn(
-        "group flex items-center gap-2 rounded-lg px-2 py-2 transition-all cursor-grab active:cursor-grabbing",
-        isDragging
-          ? "opacity-40 scale-95"
-          : "hover:bg-muted/30"
+        "group flex cursor-grab items-center gap-2 rounded-lg px-2 py-2 transition-all active:cursor-grabbing",
+        isDragging ? "scale-95 opacity-40" : "hover:bg-muted/30"
       )}
       id={`doc-row-${doc.id}`}
     >
       {/* 드래그 핸들 */}
-      <GripVertical className="size-3 shrink-0 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity" />
+      <GripVertical className="size-3 shrink-0 text-muted-foreground opacity-0 transition-opacity group-hover:opacity-100" />
 
       {/* 파일 아이콘 */}
-      <span className="shrink-0">
-        {fileTypeIcons[doc.type]}
-      </span>
+      <span className="shrink-0">{fileTypeIcons[doc.type]}</span>
 
       {/* 파일 정보 */}
       <div className="min-w-0 flex-1">
-        <p className="truncate text-xs font-medium text-foreground leading-tight">
+        <p className="truncate text-xs leading-tight font-medium text-foreground">
           {doc.name}
         </p>
-        <p className="truncate text-xs text-muted-foreground mt-0.5">
+        <p className="mt-0.5 truncate text-xs text-muted-foreground">
           {doc.path} · {doc.size}
         </p>
       </div>
 
       {/* 업데이트 시간 */}
-      <span className="shrink-0 text-xs text-muted-foreground hidden group-hover:hidden sm:block">
+      <span className="hidden shrink-0 text-xs text-muted-foreground group-hover:hidden sm:block">
         {doc.updatedAt}
       </span>
 
@@ -223,7 +240,7 @@ function DocumentRow({
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
           <button
-            className="shrink-0 rounded-md p-1 text-muted-foreground opacity-0 group-hover:opacity-100 hover:bg-muted/50 hover:text-foreground transition-all cursor-pointer"
+            className="shrink-0 cursor-pointer rounded-md p-1 text-muted-foreground opacity-0 transition-all group-hover:opacity-100 hover:bg-muted/50 hover:text-foreground"
             id={`doc-menu-${doc.id}`}
           >
             <MoreVertical className="size-3" />
@@ -268,21 +285,19 @@ function DocumentGridCard({
       }}
       onDragEnd={onDragEnd}
       className={cn(
-        "group relative flex flex-col items-center justify-center gap-2 rounded-lg border border-border/20 p-4 transition-all cursor-grab active:cursor-grabbing",
-        isDragging ? "opacity-40 scale-95" : "hover:bg-muted/30"
+        "group relative flex cursor-grab flex-col items-center justify-center gap-2 rounded-lg border border-border/20 p-4 transition-all active:cursor-grabbing",
+        isDragging ? "scale-95 opacity-40" : "hover:bg-muted/30"
       )}
       id={`doc-grid-${doc.id}`}
     >
       {/* 윗부분 파일 아이콘 */}
-      <div className="scale-[1.5] mb-1">
-        {fileTypeIcons[doc.type]}
-      </div>
-      
-      <div className="text-center min-w-0 w-full">
+      <div className="mb-1 scale-[1.5]">{fileTypeIcons[doc.type]}</div>
+
+      <div className="w-full min-w-0 text-center">
         <p className="truncate text-xs font-medium text-foreground">
           {doc.name}
         </p>
-        <p className="truncate text-[10px] text-muted-foreground mt-0.5">
+        <p className="mt-0.5 truncate text-[10px] text-muted-foreground">
           {doc.size}
         </p>
       </div>
@@ -292,7 +307,7 @@ function DocumentGridCard({
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <button
-              className="shrink-0 rounded-md p-1 text-muted-foreground opacity-0 group-hover:opacity-100 hover:bg-muted/50 hover:text-foreground transition-all cursor-pointer"
+              className="shrink-0 cursor-pointer rounded-md p-1 text-muted-foreground opacity-0 transition-all group-hover:opacity-100 hover:bg-muted/50 hover:text-foreground"
               id={`doc-menu-grid-${doc.id}`}
             >
               <MoreVertical className="size-3" />
