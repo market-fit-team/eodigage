@@ -12,6 +12,7 @@ from app.trend.contracts import (
 
 # 주제당 노출할 상권 수
 TOP_N = 3
+WEEKEND_STRONG_THRESHOLD = 0.12
 
 # 노출 순서와 라벨. all/male/female/youth는 예측 증감률, weekend는 주말 쏠림(전체에서 파생).
 PREDICTIVE_THEMES = [
@@ -30,7 +31,7 @@ def _metric_description(signals: dict[str, float]) -> str:
     wow = signals.get("wow_change", 0.0)
     slope = signals.get("slope_28", 0.0)
 
-    if weekend >= 0.12:
+    if weekend >= WEEKEND_STRONG_THRESHOLD:
         return "주말 유입 강세"
     if wow >= 0.03:
         return "최근 1주 방문 급증"
@@ -42,6 +43,14 @@ def _metric_description(signals: dict[str, float]) -> str:
 def _format_growth(pred_growth: float) -> str:
     """예측 증감률을 부호 있는 퍼센트로(예: '▲ +6.0%')."""
     return f"▲ +{pred_growth * 100:.1f}%"
+
+
+def _weekend_ratio(item: dict[str, object]) -> float:
+    """랭킹 항목에서 주말 쏠림 비율을 꺼낸다."""
+    signals = item.get("signals", {})
+    if not isinstance(signals, dict):
+        return 0.0
+    return float(signals.get("weekend_ratio", 0.0))
 
 
 def _predictive_metrics(ranking: list[dict[str, object]]) -> list[TrendForecastMetric]:
@@ -62,15 +71,19 @@ def _predictive_metrics(ranking: list[dict[str, object]]) -> list[TrendForecastM
 
 
 def _weekend_metrics(all_ranking: list[dict[str, object]]) -> list[TrendForecastMetric]:
-    """주말 쏠림(weekend_ratio) 상위 N개. 전체 주제의 신호에서 파생한다."""
+    """주말 쏠림(weekend_ratio)이 의미 있는 상위 N개. 전체 주제의 신호에서 파생한다."""
     ranked = sorted(
-        all_ranking,
-        key=lambda item: float(item.get("signals", {}).get("weekend_ratio", 0.0)),  # type: ignore[union-attr]
+        (
+            item
+            for item in all_ranking
+            if _weekend_ratio(item) >= WEEKEND_STRONG_THRESHOLD
+        ),
+        key=_weekend_ratio,
         reverse=True,
     )
     metrics: list[TrendForecastMetric] = []
     for item in ranked[:TOP_N]:
-        ratio = float(item.get("signals", {}).get("weekend_ratio", 0.0))  # type: ignore[union-attr]
+        ratio = _weekend_ratio(item)
         metrics.append(
             TrendForecastMetric(
                 label=str(item["area_name"]),

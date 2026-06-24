@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react"
 import { TrendingUp } from "lucide-react"
-import type { TrendForecastTheme } from "@/features/trend/types/trend-forecast"
+import type { TrendForecastThemeOutput } from "@/shared/api/generated/trend/schemas"
 import { Badge } from "@/shared/components/ui/badge"
 import {
   Card,
@@ -28,7 +28,7 @@ const AUTOPLAY_MS = 4500
 export function TrendThemeCarousel({
   themes,
 }: {
-  themes: TrendForecastTheme[]
+  themes: TrendForecastThemeOutput[]
 }) {
   const [api, setApi] = useState<CarouselApi>()
   const [current, setCurrent] = useState(0)
@@ -77,7 +77,7 @@ export function TrendThemeCarousel({
         <CarouselContent>
           {themes.map((theme) => (
             <CarouselItem key={theme.key}>
-              <div className="grid grid-cols-3 gap-3 sm:gap-5">
+              <div className="grid grid-cols-1 gap-3 sm:grid-cols-3 sm:gap-5">
                 {theme.metrics.map((metric, index) => (
                   <Card key={metric.label}>
                     <CardHeader>
