@@ -3,27 +3,26 @@
 "use client"
 
 import * as React from "react"
-import { toast } from "sonner"
 import { Menu, X } from "lucide-react"
-
+import { toast } from "sonner"
 import { Button } from "@/shared/components/ui/button"
 import { cn } from "@/shared/lib/utils"
-
-import { ThreadList } from "./_components/ThreadList"
 import { ChatView } from "./_components/ChatView"
+import { ThreadList } from "./_components/ThreadList"
 import {
-  initialThreads,
-  initialMessages,
-  generateBotResponse,
-  type Thread,
   type ChatMessage,
   type MessageFile,
+  type Thread,
+  generateBotResponse,
+  initialMessages,
+  initialThreads,
 } from "./_fixtures/mockData"
 
 /** Design3 — Adaptive Minimalism AI Agent */
 export default function Page() {
   const [threads, setThreads] = React.useState<Thread[]>(initialThreads)
-  const [messages, setMessages] = React.useState<Record<string, ChatMessage[]>>(initialMessages)
+  const [messages, setMessages] =
+    React.useState<Record<string, ChatMessage[]>>(initialMessages)
   const [activeThreadId, setActiveThreadId] = React.useState<string>("thread-1")
   const [isTyping, setIsTyping] = React.useState(false)
   const [isSidebarOpen, setIsSidebarOpen] = React.useState(true)
@@ -31,7 +30,7 @@ export default function Page() {
   // 현재 활성 스레드 정보
   const activeThread = threads.find((t) => t.id === activeThreadId)
   const activeTitle = activeThread?.title ?? "새 대화"
-  const currentMessages = activeThreadId ? messages[activeThreadId] ?? [] : []
+  const currentMessages = activeThreadId ? (messages[activeThreadId] ?? []) : []
 
   // ── 스레드 선택 ──────────────────────────────────────────
   const handleSelectThread = (id: string) => {
@@ -146,7 +145,10 @@ export default function Page() {
   }
 
   // ── 피드백 토글 ───────────────────────────────────────────
-  const handleToggleFeedback = (messageId: string, type: "like" | "dislike") => {
+  const handleToggleFeedback = (
+    messageId: string,
+    type: "like" | "dislike"
+  ) => {
     if (!activeThreadId) return
 
     setMessages((prev) => {
@@ -164,7 +166,10 @@ export default function Page() {
   }
 
   // ── 권한 게이트 승인/거부 ─────────────────────────────────
-  const handlePermissionAction = (gateId: string, action: "approve" | "deny") => {
+  const handlePermissionAction = (
+    gateId: string,
+    action: "approve" | "deny"
+  ) => {
     if (!activeThreadId) return
 
     setMessages((prev) => {
@@ -175,7 +180,10 @@ export default function Page() {
           ...m,
           permissionGate: {
             ...m.permissionGate,
-            status: action === "approve" ? ("approved" as const) : ("denied" as const),
+            status:
+              action === "approve"
+                ? ("approved" as const)
+                : ("denied" as const),
           },
         }
       })
@@ -203,7 +211,9 @@ export default function Page() {
       <div
         className={cn(
           "fixed z-50 h-full transition-transform duration-200 md:relative md:z-auto",
-          isSidebarOpen ? "translate-x-0" : "-translate-x-full md:translate-x-0 md:hidden"
+          isSidebarOpen
+            ? "translate-x-0"
+            : "-translate-x-full md:hidden md:translate-x-0"
         )}
       >
         <ThreadList
@@ -222,16 +232,20 @@ export default function Page() {
       </div>
 
       {/* ── 메인 채팅 영역 ── */}
-      <div className="flex flex-1 flex-col min-w-0 min-h-0 overflow-hidden">
+      <div className="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden">
         {/* 모바일 메뉴 버튼 */}
         <Button
           variant="ghost"
           size="icon-sm"
           onClick={() => setIsSidebarOpen(!isSidebarOpen)}
-          className="absolute left-3 top-3 z-30 md:hidden cursor-pointer"
+          className="absolute top-3 left-3 z-30 cursor-pointer md:hidden"
           id="mobile-menu-btn"
         >
-          {isSidebarOpen ? <X className="size-4" /> : <Menu className="size-4" />}
+          {isSidebarOpen ? (
+            <X className="size-4" />
+          ) : (
+            <Menu className="size-4" />
+          )}
         </Button>
 
         <ChatView

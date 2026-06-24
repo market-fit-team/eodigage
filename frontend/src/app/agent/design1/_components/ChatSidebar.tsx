@@ -2,13 +2,16 @@
 "use client"
 
 import * as React from "react"
-import { Plus, MessageSquare, Trash2, Sun, Moon } from "lucide-react"
-
+import { MessageSquare, Moon, Plus, Sun, Trash2 } from "lucide-react"
+import {
+  Avatar,
+  AvatarFallback,
+  AvatarImage,
+} from "@/shared/components/ui/avatar"
 import { Button } from "@/shared/components/ui/button"
-import { Avatar, AvatarImage, AvatarFallback } from "@/shared/components/ui/avatar"
 import { Separator } from "@/shared/components/ui/separator"
-import { ChatRoom } from "../_fixtures/chatMockData"
 import { cn } from "@/shared/lib/utils"
+import { ChatRoom } from "../_fixtures/chatMockData"
 
 interface ChatSidebarProps {
   rooms: ChatRoom[]
@@ -35,7 +38,9 @@ export function ChatSidebar({
       {/* 상단 헤더: 앱 타이틀 및 새 대화 버튼 */}
       <div className="flex flex-col gap-4 p-4 pb-3">
         <div className="flex items-center justify-between">
-          <span className="text-sm font-semibold tracking-tight text-foreground/80">Antigravity AI</span>
+          <span className="text-sm font-semibold tracking-tight text-foreground/80">
+            Antigravity AI
+          </span>
           <Button
             variant="ghost"
             size="icon-sm"
@@ -43,7 +48,11 @@ export function ChatSidebar({
             title={isDarkMode ? "라이트 모드로 변경" : "다크 모드로 변경"}
             className="text-muted-foreground hover:text-foreground"
           >
-            {isDarkMode ? <Sun className="size-4" /> : <Moon className="size-4" />}
+            {isDarkMode ? (
+              <Sun className="size-4" />
+            ) : (
+              <Moon className="size-4" />
+            )}
           </Button>
         </div>
         <Button
@@ -59,7 +68,7 @@ export function ChatSidebar({
       <Separator className="bg-border/30" />
 
       {/* 중간: 대화방 리스트 */}
-      <div className="flex-1 overflow-y-auto px-2 py-3 space-y-0.5">
+      <div className="flex-1 space-y-0.5 overflow-y-auto px-2 py-3">
         <span className="px-3 text-[10px] font-medium tracking-wider text-muted-foreground/60 uppercase">
           최근 대화
         </span>
@@ -72,7 +81,9 @@ export function ChatSidebar({
                 onClick={() => onSelectRoom(room.id)}
                 className={cn(
                   "group relative flex cursor-pointer items-center justify-between rounded-md px-3 py-2 text-xs transition-all hover:bg-muted/40",
-                  isActive ? "bg-muted/60 text-foreground font-medium" : "text-muted-foreground hover:text-foreground"
+                  isActive
+                    ? "bg-muted/60 font-medium text-foreground"
+                    : "text-muted-foreground hover:text-foreground"
                 )}
               >
                 <div className="flex items-center gap-2 overflow-hidden pr-6">
@@ -82,7 +93,7 @@ export function ChatSidebar({
                 {/* 대화 삭제 버튼 (호버 시에만 표시) */}
                 <button
                   onClick={(e) => onDeleteRoom(room.id, e)}
-                  className="absolute right-2 opacity-0 group-hover:opacity-100 p-1 hover:text-destructive text-muted-foreground/50 transition-opacity"
+                  className="absolute right-2 p-1 text-muted-foreground/50 opacity-0 transition-opacity group-hover:opacity-100 hover:text-destructive"
                   title="대화 삭제"
                 >
                   <Trash2 className="size-3.5" />
@@ -101,14 +112,20 @@ export function ChatSidebar({
       <Separator className="bg-border/30" />
 
       {/* 하단: 가상 사용자 프로필 */}
-      <div className="p-4 flex items-center gap-3">
+      <div className="flex items-center gap-3 p-4">
         <Avatar size="sm">
           <AvatarImage src="" />
-          <AvatarFallback className="bg-primary/5 text-primary text-[10px] font-semibold">User</AvatarFallback>
+          <AvatarFallback className="bg-primary/5 text-[10px] font-semibold text-primary">
+            User
+          </AvatarFallback>
         </Avatar>
-        <div className="flex flex-col min-w-0">
-          <span className="text-xs font-medium text-foreground/80 truncate">홍길동 (사용자)</span>
-          <span className="text-[10px] text-muted-foreground/70 truncate">Developer</span>
+        <div className="flex min-w-0 flex-col">
+          <span className="truncate text-xs font-medium text-foreground/80">
+            홍길동 (사용자)
+          </span>
+          <span className="truncate text-[10px] text-muted-foreground/70">
+            Developer
+          </span>
         </div>
       </div>
     </aside>

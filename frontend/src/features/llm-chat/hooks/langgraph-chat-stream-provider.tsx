@@ -1,10 +1,4 @@
-import {
-  type ReactNode,
-  useCallback,
-  useMemo,
-  useRef,
-  useState,
-} from "react"
+import { type ReactNode, useCallback, useMemo, useRef, useState } from "react"
 import { useStream } from "@langchain/react"
 import { authClient } from "@/features/auth/lib/auth-client"
 import { AUTHENTIK_PROVIDER_ID } from "@/features/auth/lib/auth-constants"
@@ -23,18 +17,13 @@ import type { LlmChatGraphState } from "@/features/llm-chat/types/langgraph-chat
 import type { LlmToolDefinition } from "@/features/llm-chat/types/llm-tool-definition"
 import { withCsrfHeaders } from "@/shared/api/csrf"
 
-type SendMessageOptions = Pick<
-  LangGraphChatStreamContextValue,
-  "modelSelection" | "toolPolicy"
-> &
-  ChatTurnOptions
-
 type LangGraphChatStreamProviderProps = {
   children: ReactNode
   tools: LlmToolDefinition[]
   models: LangGraphChatStreamContextValue["models"]
   modelSelection: LangGraphChatStreamContextValue["modelSelection"]
   toolPolicy: LangGraphChatStreamContextValue["toolPolicy"]
+  initialValues?: LlmChatGraphState
   workspaceThread?: {
     appThreadId: string
     langgraphThreadId: string
@@ -75,6 +64,7 @@ export function LangGraphChatStreamProvider({
   models,
   modelSelection,
   toolPolicy,
+  initialValues,
   workspaceThread,
 }: LangGraphChatStreamProviderProps) {
   const [threadId, setThreadId] = useState<string | null>(
@@ -112,6 +102,7 @@ export function LangGraphChatStreamProvider({
     assistantId: "chat",
     fetch: langGraphFetch,
     messagesKey: "messages",
+    initialValues,
     optimistic: true,
     transport: "sse",
     threadId: activeThreadId,
@@ -127,10 +118,7 @@ export function LangGraphChatStreamProvider({
     : null
 
   const sendMessage = useCallback(
-    async (
-      content: string,
-      options: SendMessageOptions = { modelSelection, toolPolicy }
-    ) => {
+    async (content: string, options: ChatTurnOptions = {}) => {
       const trimmed = content.trim()
       if (!trimmed || stream.isLoading) {
         return
@@ -141,8 +129,8 @@ export function LangGraphChatStreamProvider({
       }
 
       const context = buildSubmitContext(
-        options.modelSelection,
-        options.toolPolicy,
+        modelSelection,
+        toolPolicy,
         workspaceThread?.appThreadId,
         options.selectedDocumentIds,
         options.selectedArtifactIds

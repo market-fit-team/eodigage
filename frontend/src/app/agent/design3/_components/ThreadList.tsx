@@ -4,14 +4,13 @@
 
 import * as React from "react"
 import {
+  MessageSquare,
+  MoreHorizontal,
+  Pin,
   Plus,
   Search,
-  Pin,
-  MessageSquare,
   Trash2,
-  MoreHorizontal,
 } from "lucide-react"
-
 import { Button } from "@/shared/components/ui/button"
 import { ScrollArea } from "@/shared/components/ui/scroll-area"
 import {
@@ -81,13 +80,13 @@ export function ThreadList({
       {/* ── 검색 ── */}
       <div className="px-3 pb-2">
         <div className="relative">
-          <Search className="absolute left-2.5 top-1/2 size-3 -translate-y-1/2 text-muted-foreground/50" />
+          <Search className="absolute top-1/2 left-2.5 size-3 -translate-y-1/2 text-muted-foreground/50" />
           <input
             type="text"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder="검색..."
-            className="w-full rounded-md border-0 bg-muted/40 py-1.5 pl-7 pr-3 text-[11px] text-foreground placeholder:text-muted-foreground/40 outline-none transition-colors focus:bg-muted/60"
+            className="w-full rounded-md border-0 bg-muted/40 py-1.5 pr-3 pl-7 text-[11px] text-foreground transition-colors outline-none placeholder:text-muted-foreground/40 focus:bg-muted/60"
             id="thread-search-input"
           />
         </div>
@@ -98,7 +97,7 @@ export function ThreadList({
         {/* 고정된 스레드 섹션 */}
         {pinned.length > 0 && (
           <div className="mb-1">
-            <span className="px-2 py-1 text-[9px] font-medium text-muted-foreground/50 uppercase tracking-wider">
+            <span className="px-2 py-1 text-[9px] font-medium tracking-wider text-muted-foreground/50 uppercase">
               Pinned
             </span>
             {pinned.map((thread) => (
@@ -118,7 +117,7 @@ export function ThreadList({
 
         {/* 일반 스레드 섹션 */}
         {pinned.length > 0 && unpinned.length > 0 && (
-          <span className="px-2 py-1 text-[9px] font-medium text-muted-foreground/50 uppercase tracking-wider">
+          <span className="px-2 py-1 text-[9px] font-medium tracking-wider text-muted-foreground/50 uppercase">
             Recent
           </span>
         )}
@@ -194,7 +193,7 @@ function ThreadItem({
     >
       {/* 활성 인디케이터 */}
       {isActive && (
-        <span className="absolute left-0 top-1/2 h-5 w-[2px] -translate-y-1/2 rounded-r-full bg-foreground/60" />
+        <span className="absolute top-1/2 left-0 h-5 w-[2px] -translate-y-1/2 rounded-r-full bg-foreground/60" />
       )}
 
       {/* 아이콘 */}
@@ -208,11 +207,11 @@ function ThreadItem({
 
       {/* 텍스트 영역 */}
       <div className="min-w-0 flex-1">
-        <p className="truncate text-[11px] font-medium leading-tight">
+        <p className="truncate text-[11px] leading-tight font-medium">
           {thread.title}
         </p>
         {thread.subtitle && (
-          <p className="mt-0.5 truncate text-[9px] text-muted-foreground/50 leading-tight">
+          <p className="mt-0.5 truncate text-[9px] leading-tight text-muted-foreground/50">
             {thread.subtitle}
           </p>
         )}
@@ -228,7 +227,7 @@ function ThreadItem({
             e.stopPropagation()
             onDelete()
           }}
-          className="absolute right-2 top-1/2 -translate-y-1/2 rounded-md p-1 text-muted-foreground/40 hover:bg-destructive/10 hover:text-destructive transition-colors cursor-pointer"
+          className="absolute top-1/2 right-2 -translate-y-1/2 cursor-pointer rounded-md p-1 text-muted-foreground/40 transition-colors hover:bg-destructive/10 hover:text-destructive"
           id={`thread-delete-${thread.id}`}
         >
           <Trash2 className="size-3" />

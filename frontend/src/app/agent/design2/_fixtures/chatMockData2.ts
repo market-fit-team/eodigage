@@ -1,57 +1,57 @@
 // src/app/agent/design2/_fixtures/chatMockData2.ts
 
 export interface MessageFile {
-  name: string;
-  size: string;
-  type: string;
+  name: string
+  size: string
+  type: string
 }
 
 export interface ThoughtStep {
-  id: string;
-  label: string;
-  status: "idle" | "running" | "completed" | "error";
-  duration?: string;
-  details?: string;
+  id: string
+  label: string
+  status: "idle" | "running" | "completed" | "error"
+  duration?: string
+  details?: string
 }
 
 export interface ChatMessage {
-  id: string;
-  sender: "user" | "bot";
-  content: string;
-  timestamp: string;
-  isLiked?: boolean;
-  isDisliked?: boolean;
-  file?: MessageFile;
-  artifactId?: string; // 이 메시지와 연결된 아티팩트 ID
-  thoughtSteps?: ThoughtStep[]; // AI의 생각 과정 단계를 표시하는 필드
+  id: string
+  sender: "user" | "bot"
+  content: string
+  timestamp: string
+  isLiked?: boolean
+  isDisliked?: boolean
+  file?: MessageFile
+  artifactId?: string // 이 메시지와 연결된 아티팩트 ID
+  thoughtSteps?: ThoughtStep[] // AI의 생각 과정 단계를 표시하는 필드
 }
 
 export interface ChatRoom {
-  id: string;
-  title: string;
-  updatedAt: string;
-  lastMessage?: string;
+  id: string
+  title: string
+  updatedAt: string
+  lastMessage?: string
 }
 
 export interface SecurityIssue {
-  id: string;
-  severity: "low" | "medium" | "high";
-  title: string;
-  description: string;
-  status: "detected" | "resolved" | "safe";
+  id: string
+  severity: "low" | "medium" | "high"
+  title: string
+  description: string
+  status: "detected" | "resolved" | "safe"
 }
 
 export interface ArtifactData {
-  id: string;
-  title: string;
-  version: number;
-  language: string;
-  originalCode: string;
-  modifiedCode: string;
-  accepted: boolean | null; // null: 미정, true: 수락, false: 반려
-  consoleLogs: string[];
-  securityScore: number; // 0 ~ 100
-  securityIssues: SecurityIssue[];
+  id: string
+  title: string
+  version: number
+  language: string
+  originalCode: string
+  modifiedCode: string
+  accepted: boolean | null // null: 미정, true: 수락, false: 반려
+  consoleLogs: string[]
+  securityScore: number // 0 ~ 100
+  securityIssues: SecurityIssue[]
 }
 
 // 1. 대화방 목록 데이터
@@ -60,7 +60,8 @@ export const mockRooms: ChatRoom[] = [
     id: "room-dash",
     title: "성능 대시보드 최적화 및 보안 강화",
     updatedAt: "오전 11:45",
-    lastMessage: "대시보드 코드에 모던 UI 스타일을 적용하고 보안 취약점을 해결했습니다. 확인해 보세요.",
+    lastMessage:
+      "대시보드 코드에 모던 UI 스타일을 적용하고 보안 취약점을 해결했습니다. 확인해 보세요.",
   },
   {
     id: "room-landing",
@@ -68,7 +69,7 @@ export const mockRooms: ChatRoom[] = [
     updatedAt: "어제",
     lastMessage: "배경 그라데이션과 블러 효과가 반영된 로그인 컴포넌트입니다.",
   },
-];
+]
 
 // 2. 가상 아티팩트 데이터
 export const mockArtifacts: Record<string, ArtifactData> = {
@@ -197,7 +198,8 @@ export function ModernAnalyticsDashboard({ customTitle }: DashboardProps) {
         id: "sec-1",
         severity: "high",
         title: "위험한 HTML 삽입 차단",
-        description: "기존의 dangerouslySetInnerHTML 구조가 사용자의 customTitle 값을 여과 없이 렌더링하고 있었습니다. 이를 일반 React text binding으로 수정하여 DOM 기반 XSS 위협을 제거했습니다.",
+        description:
+          "기존의 dangerouslySetInnerHTML 구조가 사용자의 customTitle 값을 여과 없이 렌더링하고 있었습니다. 이를 일반 React text binding으로 수정하여 DOM 기반 XSS 위협을 제거했습니다.",
         status: "resolved",
       },
     ],
@@ -287,7 +289,7 @@ export function GlassmorphismLogin() {
     securityScore: 100,
     securityIssues: [],
   },
-};
+}
 
 // 3. 생각 흐름 데이터 (Thought Steps)
 export const initialThoughtSteps: ThoughtStep[] = [
@@ -296,28 +298,32 @@ export const initialThoughtSteps: ThoughtStep[] = [
     label: "기존 컴포넌트 코드 구문 분석 (AST)",
     status: "completed",
     duration: "0.2초",
-    details: "dangerouslySetInnerHTML를 사용하는 지점을 포함하여 컴포넌트 구조의 스타일 상태 및 데이터 수명주기를 검사함.",
+    details:
+      "dangerouslySetInnerHTML를 사용하는 지점을 포함하여 컴포넌트 구조의 스타일 상태 및 데이터 수명주기를 검사함.",
   },
   {
     id: "step-2",
     label: "보안 취약점 및 린트 감사",
     status: "completed",
     duration: "0.5초",
-    details: "DOM XSS 취약점 감지됨: props.customTitle이 안전 검증 없이 렌더링됨. React 표준 바인딩이나 DOMPurify 필수 사용 대상.",
+    details:
+      "DOM XSS 취약점 감지됨: props.customTitle이 안전 검증 없이 렌더링됨. React 표준 바인딩이나 DOMPurify 필수 사용 대상.",
   },
   {
     id: "step-3",
     label: "Tailwind CSS v4 디자인 시스템 맵핑",
     status: "completed",
     duration: "0.3초",
-    details: "디렉토리의 globals.css의 CSS 변수, 테마 설정값을 바탕으로 oklch 색상 및 글래스모피즘(Card, border, ring) 클래스를 선별.",
+    details:
+      "디렉토리의 globals.css의 CSS 변수, 테마 설정값을 바탕으로 oklch 색상 및 글래스모피즘(Card, border, ring) 클래스를 선별.",
   },
   {
     id: "step-4",
     label: "리팩토링 코드 대안 설계 및 비교 검증",
     status: "completed",
     duration: "0.4초",
-    details: "기존 JSX 코드를 TSX로 변환하며 React 19 호환 훅 스타일 적용, 데이터 추가 함수 내의 무작위 생성 한계 보완.",
+    details:
+      "기존 JSX 코드를 TSX로 변환하며 React 19 호환 훅 스타일 적용, 데이터 추가 함수 내의 무작위 생성 한계 보완.",
   },
   {
     id: "step-5",
@@ -326,7 +332,7 @@ export const initialThoughtSteps: ThoughtStep[] = [
     duration: "0.3초",
     details: "TypeScript 컴파일러 진단 완료. 경고 0건, 에러 0건.",
   },
-];
+]
 
 // 4. 대화 내역 데이터
 export const mockMessages: Record<string, ChatMessage[]> = {
@@ -334,13 +340,15 @@ export const mockMessages: Record<string, ChatMessage[]> = {
     {
       id: "msg-d-1",
       sender: "user",
-      content: "이전 개발자분이 짜둔 대시보드 파일이 있는데, 스타일도 투박하고 보안 위험도 있어 보여. 리팩토링해서 안전하고 현대적인 UI로 변경해줘.",
+      content:
+        "이전 개발자분이 짜둔 대시보드 파일이 있는데, 스타일도 투박하고 보안 위험도 있어 보여. 리팩토링해서 안전하고 현대적인 UI로 변경해줘.",
       timestamp: "오전 11:41",
     },
     {
       id: "msg-d-2",
       sender: "bot",
-      content: "요청하신 대시보드 컴포넌트 코드의 분석을 완료했습니다. \n\n기존 코드에서 XSS 취약점(사용자 제목 파라미터 무단 출력)을 감지하였고, 인라인 스타일로 구현된 레거시 차트 영역을 세련된 Tailwind CSS v4 기반의 글래스모피즘 대시보드로 다시 설계했습니다. \n\n우측 아티팩트 창에 반영된 소스코드를 확인해 보세요. 변경된 내용이 마음에 드시면 **'수락(Accept)'** 버튼을 눌러 프로젝트에 반영하실 수 있습니다.",
+      content:
+        "요청하신 대시보드 컴포넌트 코드의 분석을 완료했습니다. \n\n기존 코드에서 XSS 취약점(사용자 제목 파라미터 무단 출력)을 감지하였고, 인라인 스타일로 구현된 레거시 차트 영역을 세련된 Tailwind CSS v4 기반의 글래스모피즘 대시보드로 다시 설계했습니다. \n\n우측 아티팩트 창에 반영된 소스코드를 확인해 보세요. 변경된 내용이 마음에 드시면 **'수락(Accept)'** 버튼을 눌러 프로젝트에 반영하실 수 있습니다.",
       timestamp: "오전 11:45",
       artifactId: "art-dash",
       thoughtSteps: initialThoughtSteps,
@@ -350,22 +358,34 @@ export const mockMessages: Record<string, ChatMessage[]> = {
     {
       id: "msg-l-1",
       sender: "user",
-      content: "글래스모피즘을 입힌 로그인 화면을 만들어줘. 배경이 어두울 때 뒤의 그라데이션이 비쳐 보이게 하고 싶어.",
+      content:
+        "글래스모피즘을 입힌 로그인 화면을 만들어줘. 배경이 어두울 때 뒤의 그라데이션이 비쳐 보이게 하고 싶어.",
       timestamp: "어제 오후 5:30",
     },
     {
       id: "msg-l-2",
       sender: "bot",
-      content: "어두운 배경이나 그라데이션 레이어 위에 배치했을 때 아름답게 조화되는 **Glassmorphism 로그인 폼** 아티팩트를 제작했습니다.\n\n적용된 기술:\n- `backdrop-blur-md` 와 `bg-white/5` 조합\n- 얇은 화이트 보더라인 테두리로 프리미엄 느낌 강조\n- Lucide 아이콘 적용 및 미세한 스케일 모션\n\n우측 **Preview 탭**에서 로그인 폼을 즉시 조작해 보실 수 있습니다.",
+      content:
+        "어두운 배경이나 그라데이션 레이어 위에 배치했을 때 아름답게 조화되는 **Glassmorphism 로그인 폼** 아티팩트를 제작했습니다.\n\n적용된 기술:\n- `backdrop-blur-md` 와 `bg-white/5` 조합\n- 얇은 화이트 보더라인 테두리로 프리미엄 느낌 강조\n- Lucide 아이콘 적용 및 미세한 스케일 모션\n\n우측 **Preview 탭**에서 로그인 폼을 즉시 조작해 보실 수 있습니다.",
       timestamp: "어제 오후 5:32",
       artifactId: "art-landing",
       thoughtSteps: [
-        { id: "sl-1", label: "글래스모피즘 핵심 속성 설정", status: "completed", duration: "0.1초" },
-        { id: "sl-2", label: "아이콘 인라인 배치 구조 검증", status: "completed", duration: "0.2초" },
+        {
+          id: "sl-1",
+          label: "글래스모피즘 핵심 속성 설정",
+          status: "completed",
+          duration: "0.1초",
+        },
+        {
+          id: "sl-2",
+          label: "아이콘 인라인 배치 구조 검증",
+          status: "completed",
+          duration: "0.2초",
+        },
       ],
     },
   ],
-};
+}
 
 // 프롬프트 가이드 목록
 export const promptSuggestions = [
@@ -373,32 +393,52 @@ export const promptSuggestions = [
   "로그인 컴포넌트에 '비밀번호 찾기' 링크 추가해줘",
   "생성한 코드의 보안 린트를 정밀 검사해줘",
   "반응형 모바일 레이아웃에 최적화되게 다듬어줘",
-];
+]
 
 // 가상 봇 응답 생성기 헬퍼 (사용자가 무언가 물어봤을 때 가상의 답변 제공)
-export const getBotResponse = (prompt: string): { content: string; steps: ThoughtStep[] } => {
+export const getBotResponse = (
+  prompt: string
+): { content: string; steps: ThoughtStep[] } => {
   const steps: ThoughtStep[] = [
-    { id: "gs-1", label: "컨텍스트 분석", status: "completed", duration: "0.1s" },
-    { id: "gs-2", label: "대안 설계 생성", status: "completed", duration: "0.3s" },
-    { id: "gs-3", label: "코드 안정성 검증", status: "completed", duration: "0.2s" },
-  ];
+    {
+      id: "gs-1",
+      label: "컨텍스트 분석",
+      status: "completed",
+      duration: "0.1s",
+    },
+    {
+      id: "gs-2",
+      label: "대안 설계 생성",
+      status: "completed",
+      duration: "0.3s",
+    },
+    {
+      id: "gs-3",
+      label: "코드 안정성 검증",
+      status: "completed",
+      duration: "0.2s",
+    },
+  ]
 
   if (prompt.includes("보안") || prompt.includes("취약점")) {
     return {
-      content: "생성된 코드의 입력 유효성 및 보안 필터 레이어를 다시 스캔했습니다. DOM XSS가 해결된 상태이며, 안전한 React Text Node 바인딩 처리가 완벽히 적용되었습니다.",
+      content:
+        "생성된 코드의 입력 유효성 및 보안 필터 레이어를 다시 스캔했습니다. DOM XSS가 해결된 상태이며, 안전한 React Text Node 바인딩 처리가 완벽히 적용되었습니다.",
       steps,
-    };
+    }
   }
-  
+
   if (prompt.includes("차트") || prompt.includes("색상")) {
     return {
-      content: "차트의 색상 팔레트를 바이올렛 톤(OKLCH 기준 어울리는 보라색 스펙트럼)으로 미세 조정했습니다. 아티팩트의 코드가 업데이트되었으니 확인해 보세요.",
+      content:
+        "차트의 색상 팔레트를 바이올렛 톤(OKLCH 기준 어울리는 보라색 스펙트럼)으로 미세 조정했습니다. 아티팩트의 코드가 업데이트되었으니 확인해 보세요.",
       steps,
-    };
+    }
   }
 
   return {
-    content: "전달해주신 피드백을 기반으로 컴포넌트를 리팩토링했습니다. 코드의 유연성과 안정성을 동시에 확보하도록 개선되었으며, 가상 컴포넌트 프리뷰 탭에서 바로 실행 확인이 가능합니다.",
+    content:
+      "전달해주신 피드백을 기반으로 컴포넌트를 리팩토링했습니다. 코드의 유연성과 안정성을 동시에 확보하도록 개선되었으며, 가상 컴포넌트 프리뷰 탭에서 바로 실행 확인이 가능합니다.",
     steps,
-  };
-};
+  }
+}

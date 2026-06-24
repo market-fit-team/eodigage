@@ -21,20 +21,20 @@ import { cn } from "@/shared/lib/utils"
 import { ChatView } from "./_components/chat-view"
 import { DocumentPanel } from "./_components/document-panel"
 import { DynamicPanel } from "./_components/dynamic-panel"
-import { ThreadList } from "./_components/thread-list"
 import { MemoryPanel } from "./_components/memory-panel"
+import { ThreadList } from "./_components/thread-list"
 import {
+  type AiMemory,
   type ChatMessage,
   type DocumentItem,
   type MessageFile,
-  type Thread,
-  type AiMemory,
   type RightPanelContent,
+  type Thread,
   generateBotResponse,
   initialDocuments,
+  initialMemories,
   initialMessages,
   initialThreads,
-  initialMemories,
 } from "./_fixtures/mock-data"
 
 /** Design4 — Adaptive Minimalism AI Agent 종합 워크스페이스 */
@@ -49,13 +49,15 @@ export default function Page() {
 
   // ── 신규 상태 (design4 추가) ─────────────────────────────
   const [documents] = React.useState<DocumentItem[]>(initialDocuments)
-  const [rightPanelContent, setRightPanelContent] = React.useState<RightPanelContent>({ type: "document", data: documents })
+  const [rightPanelContent, setRightPanelContent] =
+    React.useState<RightPanelContent>({ type: "document", data: documents })
   const isDocPanelOpen = rightPanelContent !== null
   const [attachedDocs, setAttachedDocs] = React.useState<DocumentItem[]>([])
 
   // ── 탭 상태 ──────────────────────────────────────────────
-  const [activeTab, setActiveTab] =
-    React.useState<"chat" | "folder" | "memory">("chat")
+  const [activeTab, setActiveTab] = React.useState<
+    "chat" | "folder" | "memory"
+  >("chat")
 
   // ── AI Memory 상태 ─────────────────────────────────────────
   const [memories, setMemories] = React.useState<AiMemory[]>(initialMemories)
@@ -263,7 +265,9 @@ export default function Page() {
 
   /** 문서 패널 접기/펴기 토글 */
   const handleToggleDocPanel = () => {
-    setRightPanelContent((prev) => prev ? null : { type: "document", data: documents })
+    setRightPanelContent((prev) =>
+      prev ? null : { type: "document", data: documents }
+    )
   }
 
   /** 전체 화면 확장 토글 */
@@ -329,53 +333,53 @@ export default function Page() {
             </Tooltip>
           </TooltipProvider>
 
-        <TooltipProvider>
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={() => {
-                  setActiveTab("folder")
-                  setIsSidebarOpen(true)
-                }}
-                className={cn(
-                  activityButtonClassName,
-                  activeTab === "folder" && isSidebarOpen
-                    ? activeActivityButtonClassName
-                    : "hover:bg-muted/70"
-                )}
-              >
-                <Folder className="size-4" />
-              </Button>
-            </TooltipTrigger>
-            <TooltipContent side="right">프로젝트 파일</TooltipContent>
-          </Tooltip>
-        </TooltipProvider>
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => {
+                    setActiveTab("folder")
+                    setIsSidebarOpen(true)
+                  }}
+                  className={cn(
+                    activityButtonClassName,
+                    activeTab === "folder" && isSidebarOpen
+                      ? activeActivityButtonClassName
+                      : "hover:bg-muted/70"
+                  )}
+                >
+                  <Folder className="size-4" />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent side="right">프로젝트 파일</TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
 
-        <TooltipProvider>
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={() => {
-                  setActiveTab("memory")
-                  setIsSidebarOpen(true)
-                }}
-                className={cn(
-                  activityButtonClassName,
-                  activeTab === "memory" && isSidebarOpen
-                    ? activeActivityButtonClassName
-                    : "hover:bg-muted/70"
-                )}
-              >
-                <NotebookPen className="size-4" />
-              </Button>
-            </TooltipTrigger>
-            <TooltipContent side="right">AI 메모리</TooltipContent>
-          </Tooltip>
-        </TooltipProvider>
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => {
+                    setActiveTab("memory")
+                    setIsSidebarOpen(true)
+                  }}
+                  className={cn(
+                    activityButtonClassName,
+                    activeTab === "memory" && isSidebarOpen
+                      ? activeActivityButtonClassName
+                      : "hover:bg-muted/70"
+                  )}
+                >
+                  <NotebookPen className="size-4" />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent side="right">AI 메모리</TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
         </div>
       </div>
 
@@ -478,7 +482,11 @@ export default function Page() {
                 withHandle
                 className="!w-1.5 cursor-col-resize bg-border/40 transition-colors hover:bg-primary/40"
               />
-              <ResizablePanel defaultSize={docPanelDefaultSize} minSize="20%" maxSize="50%">
+              <ResizablePanel
+                defaultSize={docPanelDefaultSize}
+                minSize="20%"
+                maxSize="50%"
+              >
                 <DynamicPanel
                   content={rightPanelContent}
                   onClose={() => setRightPanelContent(null)}
