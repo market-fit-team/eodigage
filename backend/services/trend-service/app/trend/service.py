@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from app.core.config import settings
+from app.models.commercial_trend.features import HORIZON_DAYS
 from app.models.commercial_trend.predict import load_meta
 from app.models.commercial_trend.runtime import get_theme_rankings
 from app.trend.contracts import (
@@ -26,18 +27,30 @@ WEEKEND_LABEL = "주말 인기"
 
 
 def _metric_description(signals: dict[str, float]) -> str:
-    """지배적인 신호를 골라 사람이 읽을 설명 문구로 바꾼다(규칙 기반, LLM 아님)."""
+    """지배적인 '지역 고유' 신호를 골라 사람이 읽을 설명 문구로 바꾼다(규칙 기반, LLM 아님).
+
+    달력(공휴일·주말 수)은 모든 동에 동일해 구분이 안 되므로 카드 문구엔 쓰지 않는다.
+    """
     weekend = signals.get("weekend_ratio", 0.0)
     wow = signals.get("wow_change", 0.0)
-    slope = signals.get("slope_28", 0.0)
+    mom = signals.get("mom_change", 0.0)
+    slope_28 = signals.get("slope_28", 0.0)
+    slope_7 = signals.get("slope_7", 0.0)
+    recent_vs_prior = signals.get("recent_vs_prior", 0.0)
 
-    if weekend >= WEEKEND_STRONG_THRESHOLD:
-        return "주말 유입 강세"
     if wow >= 0.03:
-        return "최근 1주 방문 급증"
-    if slope > 0:
-        return "꾸준한 유동인구 상승세"
-    return "하락 후 반등 신호"
+        return "지난주 방문 급증세"
+    if mom >= 0.03:
+        return "한 달째 상승 흐름"
+    if weekend >= WEEKEND_STRONG_THRESHOLD:
+        return "주말 유입 강한 동네"
+    if slope_7 > 0 and slope_28 > 0:
+        return "꾸준한 상승 추세"
+    if slope_7 > 0:
+        return "최근 반등 조짐"
+    if recent_vs_prior < 0:
+        return "저점에서 회복 흐름"
+    return "완만한 상승 예상"
 
 
 def _format_growth(pred_growth: float) -> str:
@@ -110,11 +123,16 @@ def build_banner(data_mode: str | None = None) -> TrendForecastBanner:
     for key, label in PREDICTIVE_THEMES:
         metrics = _predictive_metrics(rankings.get(key, []))
         if metrics:
-            themes.append(TrendForecastTheme(key=key, label=label, metrics=metrics))
-    # 주말 인기: 전체 주제의 weekend_ratio에서 파생
+            themes.append(TrendForecastTheme(key=key, label=label, score_type="forecast", metrics=metrics))
+    # 주말 인기: 전체 주제의 weekend_ratio에서 파생(예측 아님 → weekend_affinity)
     weekend_metrics = _weekend_metrics(rankings.get("all", []))
     if weekend_metrics:
-        themes.insert(1, TrendForecastTheme(key="weekend", label=WEEKEND_LABEL, metrics=weekend_metrics))
+        themes.insert(
+            1,
+            TrendForecastTheme(
+                key="weekend", label=WEEKEND_LABEL, score_type="weekend_affinity", metrics=weekend_metrics
+            ),
+        )
 
     all_metrics = themes[0].metrics if themes else []
     if all_metrics:
@@ -135,4 +153,16 @@ def build_banner(data_mode: str | None = None) -> TrendForecastBanner:
         secondary_cta=TrendForecastCta(label="성향 분석 먼저 하기", href="/onboarding"),
         metrics=all_metrics,
         themes=themes,
+        as_of_date=_data_as_of(mode),
+        forecast_days=HORIZON_DAYS,
     )
+
+
+def _data_as_of(data_mode: str) -> str | None:
+    """배너에 표시할 데이터 기준일(예측이 쓰는 최신 데이터 일자)."""
+    if data_mode != "db":
+        return None
+    from app.trend.repository import last_trained_as_of
+
+    as_of = last_trained_as_of()
+    return str(as_of) if as_of is not None else None

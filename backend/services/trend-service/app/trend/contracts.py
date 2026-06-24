@@ -16,8 +16,12 @@ class TrendForecastMetric(BaseModel):
 
 class TrendForecastTheme(BaseModel):
     # key=세그먼트 식별자, label=노출 제목, metrics=주제당 상위 N개
+    # score_type: forecast(다음 7일 예측 증감률) / weekend_affinity(주말 쏠림, 예측 아님)
+    model_config = ConfigDict(populate_by_name=True)
+
     key: str
     label: str
+    score_type: str = Field(alias="scoreType")
     metrics: list[TrendForecastMetric]
 
 
@@ -32,3 +36,5 @@ class TrendForecastBanner(BaseModel):
     secondary_cta: TrendForecastCta = Field(alias="secondaryCta")
     metrics: list[TrendForecastMetric]  # 하위호환: 전체 주제의 상위 N개
     themes: list[TrendForecastTheme]  # 주제별 섹션(전체·주말·남성·여성·20·30대)
+    as_of_date: str | None = Field(alias="asOfDate", default=None)  # 데이터 기준일(신선도 표시)
+    forecast_days: int = Field(alias="forecastDays", default=7)  # 예측 지평(다음 N일)

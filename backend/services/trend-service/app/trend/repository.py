@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from datetime import date, datetime
 
-from sqlalchemy import func, select
+from sqlalchemy import delete, func, select
 from sqlalchemy.dialects.postgresql import insert as pg_insert
 
 from app.db.models import HdongArea, TrendScore
@@ -91,3 +91,20 @@ def load_latest_theme_scores() -> dict[str, list[dict[str, object]]]:
             }
         )
     return result
+
+
+def last_trained_as_of() -> date | None:
+    """trend_score에 저장된 최신 예측 기준일. '새 데이터 있는지' 판단에 쓴다."""
+    with session_scope() as session:
+        return session.scalar(select(func.max(TrendScore.as_of_date)))
+
+
+def prune_old_runs() -> int:
+    """최신 run_at 외의 옛 예측 이력을 삭제한다(무한 누적 방지). 삭제 행수 반환."""
+    with session_scope() as session:
+        latest = session.scalar(select(func.max(TrendScore.run_at)))
+        if latest is None:
+            return 0
+        result = session.execute(delete(TrendScore).where(TrendScore.run_at < latest))
+        session.commit()
+        return result.rowcount or 0

@@ -3,12 +3,14 @@ from __future__ import annotations
 import argparse
 import json
 from datetime import UTC, datetime
+from pathlib import Path
 
 import lightgbm as lgb
 import numpy as np
 
 from app.models.commercial_trend.features import (
     FEATURE_NAMES,
+    HORIZON_DAYS,
     META_FILE,
     MODEL_FILE,
     THEME_CODES,
@@ -44,13 +46,22 @@ FALLBACK_ROUNDS = 200
 def _chronological_split(
     features: np.ndarray, target: np.ndarray, dates: np.ndarray, valid_fraction: float
 ) -> tuple[np.ndarray, np.ndarray, np.ndarray | None, np.ndarray | None]:
-    """기준 시점 오름차순으로 정렬해 뒤쪽 valid_fraction을 검증셋으로 분리한다."""
-    order = np.argsort(dates)
-    features, target = features[order], target[order]
-    n_valid = int(len(target) * valid_fraction)
+    """as-of '일자' 기준으로 시간순 분리한다(행 기준 X).
+
+    한 기준일에 동×주제 표본이 함께 있으므로 고유 일자로 자르고, 학습/검증 사이에
+    HORIZON_DAYS purge gap을 둬 타깃(향후 7일) 구간이 겹치지 않게 한다.
+    """
+    unique_dates = np.unique(dates)
+    n_valid = int(len(unique_dates) * valid_fraction)
     if n_valid < 1:
         return features, target, None, None
-    return features[:-n_valid], target[:-n_valid], features[-n_valid:], target[-n_valid:]
+    valid_start = unique_dates[-n_valid]
+    train_cutoff = valid_start - np.timedelta64(HORIZON_DAYS, "D")
+    train_mask = dates < train_cutoff
+    valid_mask = dates >= valid_start
+    if not train_mask.any() or not valid_mask.any():
+        return features, target, None, None
+    return features[train_mask], target[train_mask], features[valid_mask], target[valid_mask]
 
 
 def _metrics(y_true: np.ndarray, y_pred: np.ndarray) -> dict[str, float]:
@@ -67,8 +78,15 @@ def _metrics(y_true: np.ndarray, y_pred: np.ndarray) -> dict[str, float]:
     }
 
 
-def train(data_mode: str = "sample") -> dict[str, object]:
-    """LightGBM으로 향후 7일 증감을 회귀 학습하고 부스터+메타를 저장한다."""
+def train(
+    data_mode: str = "sample",
+    model_file: Path = MODEL_FILE,
+    meta_file: Path = META_FILE,
+) -> dict[str, object]:
+    """LightGBM으로 향후 7일 증감을 회귀 학습하고 부스터+메타를 저장한다.
+
+    model_file/meta_file을 지정하면 챔피언-챌린저용 임시 경로에 저장할 수 있다.
+    """
     features, target, dates, theme_codes = build_training_samples(data_mode)
     if len(features) == 0:
         raise ValueError("학습 샘플이 비어 있다. 데이터 일수가 윈도우/지평보다 충분한지 확인한다.")
@@ -96,12 +114,12 @@ def train(data_mode: str = "sample") -> dict[str, object]:
         best_iteration = int(booster.best_iteration or booster.num_trees())
         validation = _metrics(y_valid, booster.predict(x_valid, num_iteration=best_iteration))
         # 최적 라운드까지만 저장해 추론 시 그대로 사용한다.
-        booster.save_model(str(MODEL_FILE), num_iteration=best_iteration)
+        booster.save_model(str(model_file), num_iteration=best_iteration)
     else:
         booster = lgb.train(LGB_PARAMS, train_set, num_boost_round=FALLBACK_ROUNDS, callbacks=callbacks)
         validation = None
         best_iteration = int(booster.num_trees())
-        booster.save_model(str(MODEL_FILE))
+        booster.save_model(str(model_file))
 
     importance = booster.feature_importance(importance_type="gain")
     meta: dict[str, object] = {
@@ -119,8 +137,8 @@ def train(data_mode: str = "sample") -> dict[str, object]:
         },
         "trained_at": datetime.now(UTC).isoformat(),
     }
-    META_FILE.parent.mkdir(parents=True, exist_ok=True)
-    META_FILE.write_text(json.dumps(meta, ensure_ascii=False, indent=2), encoding="utf-8")
+    meta_file.parent.mkdir(parents=True, exist_ok=True)
+    meta_file.write_text(json.dumps(meta, ensure_ascii=False, indent=2), encoding="utf-8")
     return meta
 
 
