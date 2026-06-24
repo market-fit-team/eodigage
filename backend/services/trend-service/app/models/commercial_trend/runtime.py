@@ -19,7 +19,7 @@ def ensure_model(data_mode: str = "sample") -> None:
 
 
 def _compute_theme_rankings(data_mode: str) -> dict[str, list[dict[str, object]]]:
-    """CSV 한 번 읽어 전체/남성/여성/청년/저녁 세그먼트별 예측 랭킹을 만든다."""
+    """CSV 한 번 읽어 전체/남성/여성/20·30대/저녁 세그먼트별 예측 랭킹을 만든다."""
     ensure_model(data_mode)
     from app.models.commercial_trend.features import load_hdong_names, load_segment_dailies
     from app.models.commercial_trend.predict import predict_trend_scores_for

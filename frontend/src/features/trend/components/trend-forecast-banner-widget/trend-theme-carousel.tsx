@@ -23,7 +23,7 @@ import { cn } from "@/shared/lib/utils"
 // 자동 슬라이드 간격(ms)
 const AUTOPLAY_MS = 4500
 
-// '편집장의 선택'처럼 주제(전체·주말·남성·여성·청년)를 탭으로 나누고
+// '편집장의 선택'처럼 주제(전체·주말·남성·여성·20·30대)를 탭으로 나누고
 // 각 주제당 상위 3개를 카드로 보여준다. 일정 간격으로 다음 주제로 자동 슬라이드한다.
 export function TrendThemeCarousel({
   themes,
@@ -32,6 +32,7 @@ export function TrendThemeCarousel({
 }) {
   const [api, setApi] = useState<CarouselApi>()
   const [current, setCurrent] = useState(0)
+  const [isPaused, setIsPaused] = useState(false)
 
   useEffect(() => {
     if (!api) return
@@ -46,23 +47,32 @@ export function TrendThemeCarousel({
 
   useEffect(() => {
     if (!api) return
+    if (isPaused) return
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return
+
     const timer = setInterval(() => api.scrollNext(), AUTOPLAY_MS)
     return () => clearInterval(timer)
-  }, [api])
+  }, [api, isPaused])
 
   if (themes.length === 0) return null
 
   return (
-    <div>
+    <div
+      onFocusCapture={() => setIsPaused(true)}
+      onBlurCapture={() => setIsPaused(false)}
+      onPointerEnter={() => setIsPaused(true)}
+      onPointerLeave={() => setIsPaused(false)}
+    >
       {/* 주제 탭 */}
       <div className="mb-5 flex flex-wrap gap-2">
         {themes.map((theme, index) => (
           <button
             key={theme.key}
             type="button"
+            aria-pressed={index === current}
             onClick={() => api?.scrollTo(index)}
             className={cn(
-              "rounded-full px-3.5 py-1.5 text-sm font-medium transition",
+              "rounded-full px-3.5 py-1.5 text-sm font-medium transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
               index === current
                 ? "bg-foreground text-background"
                 : "bg-muted text-muted-foreground hover:bg-muted/70"
@@ -74,14 +84,19 @@ export function TrendThemeCarousel({
       </div>
 
       <Carousel setApi={setApi} opts={{ loop: true, align: "start" }}>
-        <CarouselContent>
+        <CarouselContent className="py-1">
           {themes.map((theme) => (
             <CarouselItem key={theme.key}>
               <div className="grid grid-cols-1 gap-3 sm:grid-cols-3 sm:gap-5">
                 {theme.metrics.map((metric, index) => (
-                  <Card key={metric.label}>
+                  <Card
+                    key={metric.label}
+                    className="min-h-36 justify-between ring-inset"
+                  >
                     <CardHeader>
-                      <CardDescription>{metric.label}</CardDescription>
+                      <CardDescription className="break-keep pr-10 text-sm font-medium">
+                        {metric.label}
+                      </CardDescription>
                       <CardTitle className="text-xl font-semibold tabular-nums sm:text-2xl">
                         {metric.value}
                       </CardTitle>
@@ -91,9 +106,9 @@ export function TrendThemeCarousel({
                         </Badge>
                       </CardAction>
                     </CardHeader>
-                    <CardFooter className="gap-1.5 text-xs text-muted-foreground">
-                      <TrendingUp className="size-3.5" />
-                      {metric.description}
+                    <CardFooter className="min-w-0 gap-1.5 text-xs text-muted-foreground">
+                      <TrendingUp className="size-3.5 shrink-0" />
+                      <span className="break-keep">{metric.description}</span>
                     </CardFooter>
                   </Card>
                 ))}

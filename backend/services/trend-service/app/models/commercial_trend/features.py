@@ -286,7 +286,7 @@ def _segment_data_dir(data_mode: str) -> Path:
 
 
 def load_segment_dailies(data_mode: str = "sample") -> dict[str, pd.DataFrame]:
-    """CSV를 한 번만 읽어 전체/남성/여성/청년 일별 시계열을 함께 만든다.
+    """CSV를 한 번만 읽어 전체/남성/여성/20·30대 일별 시계열을 함께 만든다.
 
     반환: {segment: DataFrame[area_code, date, population]}
     """

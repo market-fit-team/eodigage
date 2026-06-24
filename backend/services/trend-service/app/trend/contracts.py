@@ -31,4 +31,4 @@ class TrendForecastBanner(BaseModel):
     primary_cta: TrendForecastCta = Field(alias="primaryCta")
     secondary_cta: TrendForecastCta = Field(alias="secondaryCta")
     metrics: list[TrendForecastMetric]  # 하위호환: 전체 주제의 상위 N개
-    themes: list[TrendForecastTheme]  # 주제별 섹션(전체·주말·남성·여성·청년)
+    themes: list[TrendForecastTheme]  # 주제별 섹션(전체·주말·남성·여성·20·30대)

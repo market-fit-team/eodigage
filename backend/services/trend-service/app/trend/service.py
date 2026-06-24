@@ -14,13 +14,13 @@ from app.trend.contracts import (
 TOP_N = 3
 WEEKEND_STRONG_THRESHOLD = 0.12
 
-# 노출 순서와 라벨. all/male/female/youth는 예측 증감률, weekend는 주말 쏠림(전체에서 파생).
+# 노출 순서와 라벨. all/male/female/youth(20·30대)는 예측 증감률, weekend는 주말 쏠림(전체에서 파생).
 PREDICTIVE_THEMES = [
     ("all", "전체 인기"),
     ("evening", "저녁 인기"),
     ("male", "남성 인기"),
     ("female", "여성 인기"),
-    ("youth", "청년 인기"),
+    ("youth", "20·30대 인기"),
 ]
 WEEKEND_LABEL = "주말 인기"
 
@@ -106,7 +106,7 @@ def _direction_accuracy() -> float | None:
 
 
 def build_banner(data_mode: str | None = None) -> TrendForecastBanner:
-    """주제별 배너 DTO. 전체·주말·남성·여성·청년 각 상위 N개."""
+    """주제별 배너 DTO. 전체·주말·남성·여성·20·30대 각 상위 N개."""
     mode = data_mode or settings.data_mode
     rankings = get_theme_rankings(mode)
 
