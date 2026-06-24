@@ -134,7 +134,7 @@ services:
       JWT_ALGS: "RS256"
       AUTHENTIK_API_URL: "http://authentik-server:9000/api/v3"
       AUTHENTIK_SERVICE_ROLE_KEY: "${AUTHENTIK_SERVICE_ROLE_KEY:?AUTHENTIK_SERVICE_ROLE_KEY를 .env에 설정하세요}"
-      
+
     expose:
       - "3001"
     depends_on:
@@ -496,6 +496,49 @@ services:
       - app.api.publicPath=/api/post
       - app.api.openapiPath=/v3/api-docs
       - app.api.schemasType=zod
+  trend-db:
+    image: postgres:17-alpine
+    container_name: trend-db
+    environment:
+      POSTGRES_DB: trend
+      POSTGRES_USER: trend
+      POSTGRES_PASSWORD: trend
+    volumes:
+      - trend_postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U trend -d trend"]
+      interval: 3s
+      timeout: 3s
+      retries: 20
+
+  trend-service:
+    build: ./backend/services/trend-service
+    container_name: trend-service
+    environment:
+      TREND_SERVICE_DATA_MODE: "db"
+      TREND_SERVICE_DATABASE_URL: "postgresql+psycopg://trend:trend@trend-db:5432/trend"
+      TREND_SERVICE_AUTO_INGEST_SAMPLE_ON_EMPTY: "true"
+    expose:
+      - "8000"
+    volumes:
+      - ./backend/services/trend-service/.artifacts:/app/.artifacts
+      - ./backend/services/trend-service/.raw:/app/.raw
+    depends_on:
+      trend-db:
+        condition: service_healthy
+    labels:
+      - traefik.enable=true
+      - traefik.http.routers.trend.rule=PathPrefix(`/api/trend`)
+      - traefik.http.routers.trend.entrypoints=web
+      - traefik.http.routers.trend.middlewares=trend-strip,api-cors
+      - traefik.http.middlewares.trend-strip.stripprefix.prefixes=/api/trend
+      - traefik.http.services.trend.loadbalancer.server.port=8000
+      - app.api.enabled=true
+      - app.api.name=trend
+      - app.api.publicPath=/api/trend
+      - app.api.openapiPath=/openapi.json
+      - app.api.schemasType=zod
+
 volumes:
   authentik_postgres_data:
   community_postgres_data:
@@ -504,5 +547,6 @@ volumes:
   agent_postgres_data:
   agent_langgraph_api_data:
   post_postgres_data:
+  trend_postgres_data:
   redis_data:
   minio_data:

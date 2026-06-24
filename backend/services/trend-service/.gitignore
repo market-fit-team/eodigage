@@ -1,0 +1,7 @@
+__pycache__/
+*.pyc
+.venv/
+.raw/
+data/external/
+.artifacts/
+.temp/

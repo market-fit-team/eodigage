@@ -4,6 +4,12 @@ export interface TrendForecastMetric {
   description: string
 }
 
+export interface TrendForecastTheme {
+  key: string
+  label: string
+  metrics: TrendForecastMetric[]
+}
+
 export interface TrendForecastBanner {
   eyebrow: string
   title: string
@@ -17,4 +23,5 @@ export interface TrendForecastBanner {
     href: string
   }
   metrics: TrendForecastMetric[]
+  themes: TrendForecastTheme[]
 }
