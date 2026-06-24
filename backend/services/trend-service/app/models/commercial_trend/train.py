@@ -11,8 +11,12 @@ from app.models.commercial_trend.features import (
     FEATURE_NAMES,
     META_FILE,
     MODEL_FILE,
+    THEME_CODES,
     build_training_samples,
 )
+
+# 모델 입력 컬럼 = 행정동 피처 + theme_code(범주형). theme_code는 마지막 열.
+MODEL_FEATURE_NAMES = [*FEATURE_NAMES, "theme_code"]
 
 # 마지막 일정 비율을 '미래' 검증셋으로 떼어 시간순 홀드아웃을 만든다(룩어헤드 방지).
 VALID_FRACTION = 0.2
@@ -65,14 +69,17 @@ def _metrics(y_true: np.ndarray, y_pred: np.ndarray) -> dict[str, float]:
 
 def train(data_mode: str = "sample") -> dict[str, object]:
     """LightGBM으로 향후 7일 증감을 회귀 학습하고 부스터+메타를 저장한다."""
-    features, target, dates = build_training_samples(data_mode)
+    features, target, dates, theme_codes = build_training_samples(data_mode)
     if len(features) == 0:
         raise ValueError("학습 샘플이 비어 있다. 데이터 일수가 윈도우/지평보다 충분한지 확인한다.")
 
-    x_train, y_train, x_valid, y_valid = _chronological_split(features, target, dates, VALID_FRACTION)
+    # theme_code를 마지막 열로 붙여 단일 모델에 함께 학습한다.
+    matrix = np.column_stack([features, theme_codes.astype(float)])
+    x_train, y_train, x_valid, y_valid = _chronological_split(matrix, target, dates, VALID_FRACTION)
     use_valid = x_valid is not None and len(target) >= MIN_SAMPLES_FOR_VALID
 
-    train_set = lgb.Dataset(x_train, label=y_train, feature_name=list(FEATURE_NAMES))
+    dataset_kwargs = {"feature_name": MODEL_FEATURE_NAMES, "categorical_feature": ["theme_code"]}
+    train_set = lgb.Dataset(x_train, label=y_train, **dataset_kwargs)
     callbacks = [lgb.log_evaluation(period=0)]
 
     if use_valid:
@@ -100,13 +107,15 @@ def train(data_mode: str = "sample") -> dict[str, object]:
     meta: dict[str, object] = {
         "model_id": "commercial-trend-lgbm",
         "data_mode": data_mode,
-        "feature_names": list(FEATURE_NAMES),
+        "target": "log_uplift",  # log(향후+1) - log(기준+1)
+        "feature_names": list(FEATURE_NAMES),  # 행정동 피처(추론 시 theme_code는 별도로 덧붙임)
+        "theme_codes": THEME_CODES,
         "n_samples": int(len(target)),
         "n_train": int(len(y_train)),
         "best_iteration": best_iteration,
         "validation": validation,
         "feature_importance_gain": {
-            name: float(score) for name, score in zip(FEATURE_NAMES, importance)
+            name: float(score) for name, score in zip(MODEL_FEATURE_NAMES, importance)
         },
         "trained_at": datetime.now(timezone.utc).isoformat(),
     }

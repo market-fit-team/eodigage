@@ -7,8 +7,10 @@ import numpy as np
 import pandas as pd
 
 from app.models.commercial_trend.features import (
+    FEATURE_NAMES,
     META_FILE,
     MODEL_FILE,
+    THEME_CODES,
     build_latest_features,
     latest_features_from_daily,
 )
@@ -41,17 +43,18 @@ def _percentile(values: np.ndarray) -> np.ndarray:
     return ranks / (n - 1)
 
 
-def predict_from_features(frame: pd.DataFrame) -> list[dict[str, object]]:
-    """최신 피처 프레임에서 예측·점수를 만든다(주제/세그먼트 공용)."""
-    meta = load_meta()
-    feature_names = list(meta["feature_names"])  # type: ignore[arg-type]
-    booster = load_model()
-
+def predict_from_features(frame: pd.DataFrame, theme: str) -> list[dict[str, object]]:
+    """최신 피처 프레임 + 주제 코드로 예측·점수를 만든다(통합 모델)."""
     if frame.empty:
         return []
 
-    features = frame[feature_names].to_numpy(dtype=float)
-    pred_growth = np.asarray(booster.predict(features), dtype=float)
+    booster = load_model()
+    features = frame[FEATURE_NAMES].to_numpy(dtype=float)
+    theme_column = np.full((len(frame), 1), float(THEME_CODES[theme]))
+    matrix = np.hstack([features, theme_column])  # 마지막 열 = theme_code
+
+    pred_log = np.asarray(booster.predict(matrix), dtype=float)
+    pred_growth = np.expm1(pred_log)  # log-uplift -> 증감률 복원
 
     percentile = _percentile(pred_growth)
     scores = np.round(SCORE_MIN + (SCORE_MAX - SCORE_MIN) * percentile).astype(int)
@@ -64,7 +67,7 @@ def predict_from_features(frame: pd.DataFrame) -> list[dict[str, object]]:
                 "area_name": str(row["area_name"]),
                 "score": int(scores[i]),
                 "pred_growth": float(pred_growth[i]),
-                "signals": {name: float(row[name]) for name in feature_names},
+                "signals": {name: float(row[name]) for name in FEATURE_NAMES},
             }
         )
 
@@ -72,11 +75,13 @@ def predict_from_features(frame: pd.DataFrame) -> list[dict[str, object]]:
     return results
 
 
-def predict_trend_scores_for(daily: pd.DataFrame, names: dict[str, str]) -> list[dict[str, object]]:
+def predict_trend_scores_for(
+    daily: pd.DataFrame, names: dict[str, str], theme: str
+) -> list[dict[str, object]]:
     """주어진 일별 시계열(주제/세그먼트)로 예측한다."""
-    return predict_from_features(latest_features_from_daily(daily, names))
+    return predict_from_features(latest_features_from_daily(daily, names), theme)
 
 
 def predict_trend_scores(data_mode: str = "sample") -> list[dict[str, object]]:
     """전체 생활인구 기준 예측(기존 호출부 호환)."""
-    return predict_from_features(build_latest_features(data_mode))
+    return predict_from_features(build_latest_features(data_mode), "all")

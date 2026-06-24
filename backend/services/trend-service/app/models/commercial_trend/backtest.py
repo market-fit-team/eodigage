@@ -15,7 +15,7 @@ import lightgbm as lgb
 import numpy as np
 
 from app.models.commercial_trend.features import FEATURE_NAMES, build_training_samples
-from app.models.commercial_trend.train import LGB_PARAMS
+from app.models.commercial_trend.train import LGB_PARAMS, MODEL_FEATURE_NAMES
 
 TEST_FRACTION = 0.25  # 가장 최근 25% as-of일을 테스트로
 TOP_K = 3
@@ -51,11 +51,11 @@ def _reg_metrics(y_true: np.ndarray, y_pred: np.ndarray) -> tuple[float, float, 
     return mae, direction, spearman
 
 
-def _precision_at_k(dates: np.ndarray, y_true: np.ndarray, y_pred: np.ndarray, k: int) -> float:
-    """as-of일별로 예측 상위 k와 실제 상위 k의 겹침 비율 평균."""
+def _precision_at_k(keys: object, y_true: np.ndarray, y_pred: np.ndarray, k: int) -> float:
+    """그룹(as-of일×주제)별로 예측 상위 k와 실제 상위 k의 겹침 비율 평균."""
     groups: dict[object, list[int]] = defaultdict(list)
-    for idx, date in enumerate(dates):
-        groups[date.item()].append(idx)
+    for idx, key in enumerate(keys):  # type: ignore[call-overload]
+        groups[key].append(idx)
 
     scores: list[float] = []
     for indices in groups.values():
@@ -69,23 +69,28 @@ def _precision_at_k(dates: np.ndarray, y_true: np.ndarray, y_pred: np.ndarray, k
 
 
 def run_backtest(data_mode: str = "db") -> dict[str, object]:
-    features, target, dates = build_training_samples(data_mode)
+    features, target, dates, theme_codes = build_training_samples(data_mode)
     if len(features) == 0:
         raise ValueError("학습 샘플이 비어 있다.")
 
     fi = {name: i for i, name in enumerate(FEATURE_NAMES)}
-    x_train, y_train, x_test, y_test, d_test = _time_split(features, target, dates, TEST_FRACTION)
+    matrix = np.column_stack([features, theme_codes.astype(float)])  # 마지막 열 = theme_code
+    x_train, y_train, x_test, y_test, d_test = _time_split(matrix, target, dates, TEST_FRACTION)
 
     booster = lgb.train(
         LGB_PARAMS,
-        lgb.Dataset(x_train, label=y_train, feature_name=list(FEATURE_NAMES)),
+        lgb.Dataset(x_train, label=y_train, feature_name=MODEL_FEATURE_NAMES, categorical_feature=["theme_code"]),
         num_boost_round=FALLBACK_ROUNDS,
         callbacks=[lgb.log_evaluation(period=0)],
     )
 
+    # Top-K는 (as-of일 × 주제)별로 본다. 주제 코드는 matrix 마지막 열.
+    theme_test = x_test[:, len(FEATURE_NAMES)]
+    keys = list(zip(d_test.tolist(), theme_test.tolist()))
+
     # 기준모델: 무변화 / 평균회귀(최근7일이 28일평균 대비 높으면 되돌림) / 모멘텀 지속
     predictions = {
-        "LightGBM": np.asarray(booster.predict(x_test), dtype=float),
+        "LightGBM(통합)": np.asarray(booster.predict(x_test), dtype=float),
         "기준0(무변화)": np.zeros(len(y_test)),
         "기준1(평균회귀)": -x_test[:, fi["recent_vs_prior"]],
         "기준2(모멘텀지속)": x_test[:, fi["wow_change"]],
@@ -100,7 +105,7 @@ def run_backtest(data_mode: str = "db") -> dict[str, object]:
                 "mae": mae,
                 "direction": direction,
                 "spearman": spearman,
-                "precision_at_k": _precision_at_k(d_test, y_test, pred, TOP_K),
+                "precision_at_k": _precision_at_k(keys, y_test, pred, TOP_K),
             }
         )
     return {
