@@ -1,0 +1,45 @@
+spring:
+  config:
+    import: optional:file:.env[.properties]
+
+  application:
+    name: market-service
+
+  mvc:
+    problemdetails:
+      enabled: true
+
+  datasource:
+    url: jdbc:postgresql://${DB_HOST:backend-db}:${DB_PORT:5432}/${DB_NAME:market}
+    username: ${DB_USERNAME:market}
+    password: ${DB_PASSWORD:market}
+
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: true
+
+  flyway:
+    enabled: true
+    locations: classpath:db/migration
+    validate-on-migrate: true
+    baseline-on-migrate: true
+    baseline-version: 0
+
+springdoc:
+  default-produces-media-type: application/json
+
+server:
+  port: 8080
+  forward-headers-strategy: framework
+
+market:
+  data-import:
+    enabled: ${MARKET_DATA_IMPORT_ENABLED:false}
+    directory: ${MARKET_DATA_IMPORT_DIRECTORY:/app/data}
+  boundary-import:
+    enabled: ${MARKET_BOUNDARY_IMPORT_ENABLED:false}
+    directory: ${MARKET_BOUNDARY_IMPORT_DIRECTORY:/app/data}
