@@ -103,7 +103,7 @@ def run_backtest(data_mode: str = "db") -> dict[str, object]:
     predictions = {
         "LightGBM(통합)": lgbm_pred,
         "기준0(무변화)": np.zeros(len(y_test)),
-        "기준1(평균회귀)": -x_test[:, fi["recent_vs_prior"]],
+        "기준1(평균회귀)": -x_test[:, fi["recent_vs_window"]],
         "기준2(모멘텀지속)": x_test[:, fi["wow_change"]],
         "기준3(항상상승)": np.ones(len(y_test)),  # 방향만 의미(=상승비율)
     }

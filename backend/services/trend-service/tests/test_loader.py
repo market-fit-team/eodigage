@@ -31,10 +31,10 @@ def test_세그먼트_남여합_전체일치(tmp_path: Path, monkeypatch) -> Non
     monkeypatch.setattr(F, "RAW_DIR", tmp_path)
     dailies = F.load_segment_dailies("db")  # db 모드는 RAW_DIR을 본다
 
-    assert set(dailies) == {"all", "male", "female", "youth", "evening"}
-    assert set(dailies["all"]["area_code"]) == {"1111", "2222"}
-    assert dailies["all"]["population"].unique().tolist() == [56.0]
-    total = dailies["all"].set_index(["area_code", "date"])["population"]
+    assert set(dailies) == {"combined", "male", "female", "youth"}
+    assert set(dailies["combined"]["area_code"]) == {"1111", "2222"}
+    assert dailies["combined"]["population"].unique().tolist() == [56.0]
+    total = dailies["combined"].set_index(["area_code", "date"])["population"]
     male = dailies["male"].set_index(["area_code", "date"])["population"]
     female = dailies["female"].set_index(["area_code", "date"])["population"]
     assert (male + female - total).abs().max() == 0.0

@@ -23,7 +23,8 @@ def test_compute_window_features_상승추세_기울기_양수() -> None:
     feats = compute_window_features(_window([float(i) for i in range(1, WINDOW_DAYS + 1)]))
     assert set(feats) == set(FEATURE_NAMES)
     assert feats["slope_28"] > 0  # 단조 증가면 추세 기울기 양수
-    assert feats["recent_vs_prior"] > 0  # 최근 7일이 28일 평균보다 큼
+    assert feats["recent_vs_window"] > 0  # 최근 7일이 28일 평균보다 큼
+    assert "same_weekday_recent" in feats
 
 
 def test_달력피처_예측창_주말공휴일_수() -> None:

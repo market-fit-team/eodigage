@@ -53,7 +53,7 @@ def predict_from_features(frame: pd.DataFrame, theme: str) -> list[dict[str, obj
     matrix = np.hstack([features, theme_column])  # 마지막 열 = theme_code
 
     pred_log = np.asarray(booster.predict(matrix), dtype=float)
-    pred_growth = np.expm1(pred_log)  # log-uplift -> 증감률 복원
+    pred_growth = np.expm1(pred_log)  # 평소 대비 log-uplift -> 증감률 복원
 
     percentile = _percentile(pred_growth)
     scores = np.round(SCORE_MIN + (SCORE_MAX - SCORE_MIN) * percentile).astype(int)

@@ -37,10 +37,10 @@ LGB_PARAMS: dict[str, object] = {
     "bagging_freq": 1,
     "verbosity": -1,
 }
-NUM_BOOST_ROUND = 1000
-EARLY_STOPPING_ROUNDS = 50
+NUM_BOOST_ROUND = 300
+EARLY_STOPPING_ROUNDS = 30
 # 검증셋이 없을 때 쓰는 고정 라운드(과적합 방지로 짧게).
-FALLBACK_ROUNDS = 200
+FALLBACK_ROUNDS = 120
 
 
 def _chronological_split(
@@ -125,7 +125,7 @@ def train(
     meta: dict[str, object] = {
         "model_id": "commercial-trend-lgbm",
         "data_mode": data_mode,
-        "target": "log_uplift",  # log(향후+1) - log(기준+1)
+        "target": "log_usual_uplift",  # log(향후7일평균+1) - log(최근28일평균+1)
         "feature_names": list(FEATURE_NAMES),  # 행정동 피처(추론 시 theme_code는 별도로 덧붙임)
         "theme_codes": THEME_CODES,
         "n_samples": int(len(target)),
