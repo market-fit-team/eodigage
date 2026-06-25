@@ -90,6 +90,30 @@ class PostReportNotificationServiceTest {
         verify(adapter, never()).publish(any());
     }
 
+    @Test
+    void 프랜차이즈_칼럼은_크롤링_키워드가_약해도_adapter를_호출한다() {
+        PostLlmReportNotificationAdapter adapter =
+                org.mockito.Mockito.mock(PostLlmReportNotificationAdapter.class);
+        PostReportNotificationService service = new PostReportNotificationService(
+                new FranchiseReportNotificationPolicy(),
+                adapter
+        );
+        CrawledContent weakSignal = new CrawledContent(
+                UUID.randomUUID(), "https://example.com", "상권 임대료",
+                "제목", "설명", "본문", Instant.now(),
+                InputUrlType.ARTICLE, List.of("https://example.com/a"),
+                1, 0, 3, 0, List.of("상권", "임대료"),
+                List.of(), 0.0, "article"
+        );
+
+        var decision = service.publishIfEligible(
+                reportPost(), weakSignal, "user-1", PostLlmSummaryStatus.SUMMARIZED, true
+        );
+
+        assertThat(decision.eligible()).isTrue();
+        verify(adapter).publish(any());
+    }
+
     private Post reportPost() {
         Post post = Post.create(
                 "user-1",

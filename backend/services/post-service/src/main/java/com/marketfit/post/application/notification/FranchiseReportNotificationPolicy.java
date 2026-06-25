@@ -26,10 +26,42 @@ public class FranchiseReportNotificationPolicy {
             PostStatus postStatus,
             PostLlmSummaryStatus llmStatus
     ) {
+        return isEligible(
+                matchedKeywords,
+                matchedParagraphCount,
+                relevanceScore,
+                sourceType,
+                postStatus,
+                llmStatus,
+                false
+        );
+    }
+
+    public boolean isEligible(
+            List<String> matchedKeywords,
+            int matchedParagraphCount,
+            double relevanceScore,
+            PostSourceType sourceType,
+            PostStatus postStatus,
+            PostLlmSummaryStatus llmStatus,
+            boolean franchiseReport
+    ) {
         return sourceType == PostSourceType.LLM_REPORT
                 && postStatus == PostStatus.PUBLISHED
                 && llmStatus == PostLlmSummaryStatus.SUMMARIZED
-                && matchedParagraphCount >= 1
+                && (franchiseReport || matchesFranchiseCrawlSignal(
+                        matchedKeywords,
+                        matchedParagraphCount,
+                        relevanceScore
+                ));
+    }
+
+    private boolean matchesFranchiseCrawlSignal(
+            List<String> matchedKeywords,
+            int matchedParagraphCount,
+            double relevanceScore
+    ) {
+        return matchedParagraphCount >= 1
                 && relevanceScore >= MIN_RELEVANCE_SCORE
                 && containsFranchiseKeyword(matchedKeywords);
     }

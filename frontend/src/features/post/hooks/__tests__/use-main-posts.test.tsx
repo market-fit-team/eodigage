@@ -16,7 +16,7 @@ describe("useMainPosts", () => {
     const posts = [
       {
         id: "9d68f1d4-514f-4f37-8a73-8ed43a15eb11",
-        title: "AI 리포트",
+        title: "AI 칼럼",
         summary: "요약",
         thumbnailUrl: null,
         sourceType: "LLM_REPORT" as const,

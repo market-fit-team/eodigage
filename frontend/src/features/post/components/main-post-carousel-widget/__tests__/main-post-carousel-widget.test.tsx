@@ -2,18 +2,6 @@ import { describe, expect, it, vi } from "vitest"
 import { fireEvent, render, screen } from "@testing-library/react"
 import { MainPostCarouselWidget } from "@/features/post/components/main-post-carousel-widget/main-post-carousel-widget"
 
-vi.mock("@/shared/components/ui/carousel", () => ({
-  Carousel: ({ children }: React.PropsWithChildren) => <div>{children}</div>,
-  CarouselContent: ({ children }: React.PropsWithChildren) => (
-    <div>{children}</div>
-  ),
-  CarouselItem: ({ children }: React.PropsWithChildren) => (
-    <div>{children}</div>
-  ),
-  CarouselPrevious: () => <button type="button">이전</button>,
-  CarouselNext: () => <button type="button">다음</button>,
-}))
-
 const llmPost = {
   id: "9d68f1d4-514f-4f37-8a73-8ed43a15eb11",
   title: "AI 채용 트렌드",
@@ -24,7 +12,7 @@ const llmPost = {
 }
 
 describe("MainPostCarouselWidget", () => {
-  it("LLM_REPORT를 AI 리포트 히어로 슬라이드로 표시한다", () => {
+  it("LLM_REPORT를 AI 칼럼 카드로 표시한다", () => {
     render(
       <MainPostCarouselWidget
         posts={[llmPost]}
@@ -34,17 +22,51 @@ describe("MainPostCarouselWidget", () => {
       />
     )
 
-    expect(screen.getByText("AI 리포트")).toBeInTheDocument()
+    expect(screen.getByText("AI 칼럼")).toBeInTheDocument()
     expect(screen.getByText(llmPost.title)).toBeInTheDocument()
     expect(screen.getByText(llmPost.summary)).toBeInTheDocument()
     expect(
       screen.getByRole("button", {
         name: `${llmPost.title} 게시글 보기`,
       })
-    ).toHaveTextContent("리포트 보기")
-    expect(
-      screen.getByLabelText(`${llmPost.title} 썸네일 없음`)
-    ).toBeInTheDocument()
+    ).toHaveTextContent("칼럼 보기")
+  })
+
+  it("posts가 5개 이상이어도 4개만 렌더링한다", () => {
+    const posts = Array.from({ length: 5 }).map((_, index) => ({
+      ...llmPost,
+      id: `9d68f1d4-514f-4f37-8a73-8ed43a15eb1${index}`,
+      title: `AI 칼럼 ${index + 1}`,
+    }))
+
+    render(
+      <MainPostCarouselWidget
+        posts={posts}
+        isLoading={false}
+        error={null}
+      />
+    )
+
+    expect(screen.getAllByRole("article")).toHaveLength(4)
+    expect(screen.getByText("AI 칼럼 4")).toBeInTheDocument()
+    expect(screen.queryByText("AI 칼럼 5")).not.toBeInTheDocument()
+  })
+
+  it("thumbnailUrl이 있어도 이미지를 렌더링하지 않는다", () => {
+    render(
+      <MainPostCarouselWidget
+        posts={[
+          {
+            ...llmPost,
+            thumbnailUrl: "https://example.com/thumbnail.png",
+          },
+        ]}
+        isLoading={false}
+        error={null}
+      />
+    )
+
+    expect(screen.queryByRole("img")).not.toBeInTheDocument()
   })
 
   it("loading 상태를 표시한다", () => {
@@ -73,10 +95,10 @@ describe("MainPostCarouselWidget", () => {
     )
 
     expect(
-      screen.getByText("아직 등록된 리포트가 없습니다.")
+      screen.getByText("아직 표시할 AI 칼럼이 없습니다.")
     ).toBeInTheDocument()
     expect(
-      screen.getByText("새로운 AI 분석 리포트가 발행되면 이곳에 표시됩니다.")
+      screen.getByText("새로운 AI 칼럼이 발행되면 이곳에 표시됩니다.")
     ).toBeInTheDocument()
   })
 
@@ -129,5 +151,23 @@ describe("MainPostCarouselWidget", () => {
         name: `${llmPost.title} 게시글 보기`,
       })
     ).not.toBeInTheDocument()
+  })
+
+  it("shows example badge for mock posts", () => {
+    render(
+      <MainPostCarouselWidget
+        posts={[
+          {
+            ...llmPost,
+            id: "00000000-0000-4000-8000-000000000001",
+          },
+        ]}
+        isLoading={false}
+        error={null}
+      />
+    )
+
+    expect(screen.getByText("예시")).toBeInTheDocument()
+    expect(screen.queryByText("AI 칼럼")).not.toBeInTheDocument()
   })
 })

@@ -34,6 +34,13 @@ export const getPosts = async (page = 0, size = 20) => {
   return parsePublicResponse<PostPage>(response)
 }
 
+export const getPost = async (id: string) => {
+  const response = await fetch(`${postApiBaseUrl}/${id}`, {
+    cache: "no-store",
+  })
+  return parsePublicResponse<PostDetail>(response)
+}
+
 export const getMyPostSummary = () =>
   fetchWithAuth<MyPostSummary>(`${postApiBaseUrl}/me/summary`)
 

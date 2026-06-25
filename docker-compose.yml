@@ -101,7 +101,7 @@ services:
       - traefik.enable=true
       - traefik.http.middlewares.api-cors.headers.accesscontrolalloworiginlist=http://localhost:3000,http://127.0.0.1:3000
       - traefik.http.middlewares.api-cors.headers.accesscontrolallowmethods=GET,POST,PUT,PATCH,DELETE,OPTIONS
-      - traefik.http.middlewares.api-cors.headers.accesscontrolallowheaders=Authorization,Content-Type,X-CSRF-Token
+      - traefik.http.middlewares.api-cors.headers.accesscontrolallowheaders=Authorization,Content-Type,X-CSRF-Token,X-User-Id
       - traefik.http.middlewares.api-cors.headers.accesscontrolmaxage=86400
       - traefik.http.middlewares.api-cors.headers.addvaryheader=true
 
@@ -365,6 +365,7 @@ services:
       JWT_ISSUER: http://localhost:9000/application/o/pickle-web/
       JWT_AUDIENCE: pickle-web
       OPENAI_API_KEY: ${OPENAI_API_KEY:-}
+      SPRING_PROFILES_ACTIVE: local
     expose:
       - "8080"
     labels:

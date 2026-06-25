@@ -10,7 +10,7 @@ export function PublicPostReportBell() {
     <button
       type="button"
       aria-label={
-        hasNewReport ? "새 AI 리포트 알림 확인" : "새 AI 리포트 알림 없음"
+        hasNewReport ? "새 AI 칼럼 알림 확인" : "새 AI 칼럼 알림 없음"
       }
       className="inline-flex size-9 items-center justify-center rounded-md"
       onClick={clearNewReport}

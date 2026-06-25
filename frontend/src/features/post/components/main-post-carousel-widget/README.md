@@ -57,13 +57,13 @@ export function MainReportSection() {
 
 표시 규칙:
 
-- `LLM_REPORT`: `AI 리포트`
+- `LLM_REPORT`: `AI 칼럼`
 - `CRAWLING`: `크롤링`
 - `MANUAL`: `일반`
 - 썸네일이 없거나 로드에 실패하면 어두운 그라데이션 fallback 표시
 - 모든 화면에서 한 번에 하나의 주요 리포트를 표시
 - 태블릿 이상에서는 좌우 이동 버튼을 제공
-- `리포트 보기` 버튼 선택 시 `onPostClick(postId)` 호출
+- `칼럼 보기` 버튼 선택 시 `onPostClick(postId)` 호출
 
 실제 메인 노출 여부는 frontend가 아니라 backend의 `PUBLIC`, `PUBLISHED`, `deleted_at IS NULL` 조회 조건으로 결정한다.
 

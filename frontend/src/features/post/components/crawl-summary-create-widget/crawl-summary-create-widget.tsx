@@ -63,10 +63,10 @@ export function CrawlSummaryCreateWidget({
       <CardHeader>
         <div className="flex items-center gap-2">
           <Sparkles className="h-4 w-4 text-primary" />
-          <CardTitle>크롤링 AI 리포트 생성</CardTitle>
+          <CardTitle>크롤링 AI 칼럼 생성</CardTitle>
         </div>
         <CardDescription>
-          URL 또는 직접 입력한 원문을 서버에서 수집하고 LLM 리포트로 생성합니다.
+          URL 또는 직접 입력한 원문을 서버에서 수집하고 LLM 칼럼으로 생성합니다.
         </CardDescription>
       </CardHeader>
 
@@ -140,7 +140,7 @@ export function CrawlSummaryCreateWidget({
               {isPreviewLoading ? "미리보기 중..." : "크롤링 미리보기"}
             </Button>
             <Button type="submit" disabled={isLoading || isPreviewLoading}>
-              {isLoading ? "리포트 생성 중..." : "AI 리포트 생성"}
+              {isLoading ? "칼럼 생성 중..." : "AI 칼럼 생성"}
             </Button>
           </div>
         </form>
@@ -189,8 +189,8 @@ export function CrawlSummaryCreateWidget({
             </p>
             {createdPost.debug?.notificationEligible && (
               <p className="mt-3 rounded-md bg-primary/10 p-3 text-sm text-primary">
-                프랜차이즈 관련 AI 리포트가 생성되었습니다. 알림 대상
-                리포트입니다.
+                프랜차이즈 관련 AI 칼럼이 생성되었습니다. 알림 대상
+                칼럼입니다.
               </p>
             )}
           </div>

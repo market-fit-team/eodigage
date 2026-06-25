@@ -27,7 +27,17 @@ class FranchiseReportNotificationPolicyTest {
     }
 
     @Test
-    void 관련도나_문단수나_LLM상태가_조건을_충족하지_못하면_제외한다() {
+    void 프랜차이즈_칼럼이면_크롤링_매칭점수가_낮아도_알림_대상이다() {
+        assertThat(policy.isEligible(
+                List.of("상권", "임대료"), 0, 0.0,
+                PostSourceType.LLM_REPORT, PostStatus.PUBLISHED,
+                PostLlmSummaryStatus.SUMMARIZED,
+                true
+        )).isTrue();
+    }
+
+    @Test
+    void 관련도와_문단수나_LLM상태가_조건을_충족하지_못하면_제외된다() {
         assertThat(policy.isEligible(
                 List.of("프랜차이즈"), 1, 0.19,
                 PostSourceType.LLM_REPORT, PostStatus.PUBLISHED,

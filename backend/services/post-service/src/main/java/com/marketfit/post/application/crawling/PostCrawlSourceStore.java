@@ -47,6 +47,17 @@ public class PostCrawlSourceStore {
     }
 
     @Transactional(propagation = Propagation.REQUIRES_NEW)
+    public PostCrawlSource duplicateCrawled(CrawledContent content) {
+        PostCrawlSource source = PostCrawlSource.requested(
+                content.sourceUrl(),
+                content.keyword(),
+                content.bodyText()
+        );
+        source.markCrawled(content);
+        return repository.saveAndFlush(source);
+    }
+
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
     public void markFailed(UUID sourceId, String errorMessage) {
         PostCrawlSource source = repository.getReferenceById(sourceId);
         source.markFailed(errorMessage);

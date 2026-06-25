@@ -12,7 +12,12 @@ import com.marketfit.post.core.post.Post;
 import com.marketfit.post.core.post.PostSourceType;
 
 public record CrawlSummaryResponse(
+        String status,
         UUID id,
+        UUID postId,
+        List<UUID> postIds,
+        int createdCount,
+        int failedCount,
         String title,
         String summary,
         String thumbnailUrl,
@@ -25,8 +30,16 @@ public record CrawlSummaryResponse(
         Post post = creation.post();
         var content = creation.crawledContent();
         var result = creation.llmExecution().result();
+        boolean notificationEligible = creation.notifications().stream()
+                .anyMatch(notification -> notification.eligible()
+                        && notification.category() == ReportCategory.FRANCHISE);
         return new CrawlSummaryResponse(
+                creation.status(),
                 post.getId(),
+                post.getId(),
+                creation.posts().stream().map(Post::getId).toList(),
+                creation.createdCount(),
+                creation.failedCount(),
                 post.getTitle(),
                 post.getSummary(),
                 post.getThumbnailUrl(),
@@ -44,8 +57,8 @@ public record CrawlSummaryResponse(
                         content.matchedParagraphCount(),
                         content.relevanceScore(),
                         PostLlmSummaryStatus.SUMMARIZED,
-                        creation.notification().eligible(),
-                        creation.notification().category()
+                        notificationEligible,
+                        notificationEligible ? ReportCategory.FRANCHISE : null
                 )
         );
     }

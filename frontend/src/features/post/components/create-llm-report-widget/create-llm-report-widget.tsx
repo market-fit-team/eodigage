@@ -38,7 +38,7 @@ export function CreateLlmReportWidget() {
       })
       setUrl("")
       setRawContent("")
-      toast.success(`LLM 리포트 생성 완료: ${post.title}`)
+      toast.success(`LLM 칼럼 생성 완료: ${post.title}`)
     } catch {
       toast.error("LLM 리포트를 생성하지 못했습니다.")
     } finally {
@@ -87,7 +87,7 @@ export function CreateLlmReportWidget() {
             <NativeSelectOption value="POLICY">정책/법률</NativeSelectOption>
           </NativeSelect>
           <Button type="submit" disabled={isPending}>
-            {isPending ? "리포트 생성 중..." : "리포트 생성"}
+            {isPending ? "칼럼 생성 중..." : "칼럼 생성"}
           </Button>
         </form>
       </CardContent>

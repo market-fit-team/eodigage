@@ -4,13 +4,16 @@ import { getMainPosts } from "@/features/post/api/get-main-posts"
 describe("getMainPosts", () => {
   beforeEach(() => {
     vi.restoreAllMocks()
+    vi.unstubAllEnvs()
+    vi.unstubAllGlobals()
+    vi.stubEnv("NODE_ENV", "production")
   })
 
   it("limit을 포함해 메인 Post를 조회한다", async () => {
     const posts = [
       {
         id: "9d68f1d4-514f-4f37-8a73-8ed43a15eb11",
-        title: "AI 리포트",
+        title: "AI 칼럼",
         summary: "요약",
         thumbnailUrl: null,
         sourceType: "LLM_REPORT",
@@ -61,5 +64,71 @@ describe("getMainPosts", () => {
     )
 
     await expect(getMainPosts()).rejects.toThrow("조회 실패")
+  })
+
+  it("API success with empty array returns an empty array", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn().mockResolvedValue(
+        new Response("[]", {
+          status: 200,
+          headers: { "content-type": "application/json" },
+        })
+      )
+    )
+
+    await expect(getMainPosts()).resolves.toEqual([])
+  })
+
+  it("API failure in development throws", async () => {
+    vi.stubEnv("NODE_ENV", "development")
+    vi.stubGlobal(
+      "fetch",
+      vi.fn().mockResolvedValue(
+        new Response(JSON.stringify({ detail: "조회 실패" }), {
+          status: 500,
+          headers: { "content-type": "application/json" },
+        })
+      )
+    )
+
+    await expect(getMainPosts()).rejects.toThrow("조회 실패")
+  })
+
+  it("API failure in production throws", async () => {
+    vi.stubEnv("NODE_ENV", "production")
+    vi.stubGlobal(
+      "fetch",
+      vi.fn().mockResolvedValue(
+        new Response(JSON.stringify({ detail: "조회 실패" }), {
+          status: 500,
+          headers: { "content-type": "application/json" },
+        })
+      )
+    )
+
+    await expect(getMainPosts()).rejects.toThrow("조회 실패")
+  })
+
+  it("does not return mock posts when the signal is already aborted", async () => {
+    vi.stubEnv("NODE_ENV", "development")
+    const controller = new AbortController()
+    controller.abort()
+    vi.stubGlobal(
+      "fetch",
+      vi.fn().mockRejectedValue(new DOMException("Aborted", "AbortError"))
+    )
+
+    await expect(getMainPosts(10, controller.signal)).rejects.toThrow()
+  })
+
+  it("does not return mock posts on AbortError", async () => {
+    vi.stubEnv("NODE_ENV", "development")
+    vi.stubGlobal(
+      "fetch",
+      vi.fn().mockRejectedValue(new DOMException("Aborted", "AbortError"))
+    )
+
+    await expect(getMainPosts()).rejects.toThrow()
   })
 })

@@ -8,7 +8,7 @@ vi.mock("@/features/post/api/post-api", () => ({
 }))
 
 describe("MyPostSummaryWidget", () => {
-  it("내 게시글 통계와 최근 AI 리포트를 표시한다", async () => {
+  it("내 게시글 통계와 최근 AI 칼럼를 표시한다", async () => {
     vi.mocked(getMyPostSummary).mockResolvedValue({
       totalCount: 4,
       publishedThisMonth: 2,

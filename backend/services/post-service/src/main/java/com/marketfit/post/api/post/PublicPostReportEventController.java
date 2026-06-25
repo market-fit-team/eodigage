@@ -21,7 +21,7 @@ public class PublicPostReportEventController {
     private final PublicPostReportEventService eventService;
 
     @GetMapping(value = "/events", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
-    @Operation(operationId = "streamPublicPostReportEvents", summary = "공개 AI 리포트 생성 이벤트 구독")
+    @Operation(operationId = "streamPublicPostReportEvents", summary = "공개 AI 칼럼 생성 이벤트 구독")
     public SseEmitter stream() {
         return eventService.connect();
     }
