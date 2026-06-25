@@ -3,8 +3,7 @@
 import { useState } from "react"
 import { PreviewEstimatedSalesRanking } from "@/features/map/components/preview/estimated-sales-ranking"
 import { PreviewFranchiseRecommendations } from "@/features/map/components/preview/franchise-recommendations"
-import type { MapTab } from "@/features/map/types/map"
-import type { DistrictData } from "@/features/startup/lib/data"
+import type { MapTab, MarketPreviewData } from "@/features/map/types/map"
 import {
   Tabs,
   TabsContent,
@@ -13,10 +12,10 @@ import {
 } from "@/shared/components/ui/tabs"
 
 type PreviewTabsProps = {
-  tradeArea: DistrictData
+  preview: MarketPreviewData
 }
 
-export function PreviewTabs({ tradeArea }: PreviewTabsProps) {
+export function PreviewTabs({ preview }: PreviewTabsProps) {
   const [activeTab, setActiveTab] = useState<MapTab>("sales")
 
   return (
@@ -29,10 +28,12 @@ export function PreviewTabs({ tradeArea }: PreviewTabsProps) {
         <TabsTrigger value="franchises">프랜차이즈 추천</TabsTrigger>
       </TabsList>
       <TabsContent value="sales" className="mt-0">
-        <PreviewEstimatedSalesRanking tradeArea={tradeArea} />
+        <PreviewEstimatedSalesRanking rankings={preview.industryRankings} />
       </TabsContent>
       <TabsContent value="franchises" className="mt-0">
-        <PreviewFranchiseRecommendations tradeArea={tradeArea} />
+        <PreviewFranchiseRecommendations
+          franchises={preview.franchiseRecommendations}
+        />
       </TabsContent>
     </Tabs>
   )

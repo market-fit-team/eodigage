@@ -1,28 +1,42 @@
 import type { StateCreator } from "zustand"
-import type { BudgetRange, TargetDemographic } from "@/features/map/types/map"
 
 export type FilterSlice = {
-  budgetRange: BudgetRange
+  appliedSearchKeyword: string
+  executeTextSearch: (searchKeyword: string) => void
+  searchKeyword: string
   resetFilters: () => void
-  selectedCategory: string
-  setBudgetRange: (budgetRange: BudgetRange) => void
-  setSelectedCategory: (selectedCategory: string) => void
-  setTargetDemographic: (targetDemographic: TargetDemographic) => void
-  targetDemographic: TargetDemographic
+  selectedMajorCategory: string
+  selectedMinorCategory: string
+  setSelectedMajorCategory: (selectedMajorCategory: string) => void
+  setSelectedMinorCategory: (selectedMinorCategory: string) => void
 }
 
-// 추천 목록을 2차 검색하는 필터 값이다.
+// 백엔드 상권 검색 API로 전달하는 검색어와 업종 필터 값이다.
 export const createFilterSlice: StateCreator<FilterSlice> = (set) => ({
-  budgetRange: "all",
+  appliedSearchKeyword: "",
+  executeTextSearch: (searchKeyword) => {
+    const nextSearchKeyword = searchKeyword.trim()
+
+    set({
+      appliedSearchKeyword: nextSearchKeyword,
+      searchKeyword: nextSearchKeyword,
+    })
+  },
+  searchKeyword: "",
   resetFilters: () =>
     set({
-      budgetRange: "all",
-      selectedCategory: "all",
-      targetDemographic: "all",
+      appliedSearchKeyword: "",
+      searchKeyword: "",
+      selectedMajorCategory: "all",
+      selectedMinorCategory: "all",
     }),
-  selectedCategory: "all",
-  setBudgetRange: (budgetRange) => set({ budgetRange }),
-  setSelectedCategory: (selectedCategory) => set({ selectedCategory }),
-  setTargetDemographic: (targetDemographic) => set({ targetDemographic }),
-  targetDemographic: "all",
+  selectedMajorCategory: "all",
+  selectedMinorCategory: "all",
+  setSelectedMajorCategory: (selectedMajorCategory) =>
+    set({
+      selectedMajorCategory,
+      selectedMinorCategory: "all",
+    }),
+  setSelectedMinorCategory: (selectedMinorCategory) =>
+    set({ selectedMinorCategory }),
 })

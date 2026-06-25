@@ -1,9 +1,9 @@
-import type { DistrictData } from "@/features/startup/lib/data"
+import type { MarketAreaListItem } from "@/features/map/types/map"
 
 type RecommendationItemProps = {
   isSelected: boolean
   onSelect: () => void
-  tradeArea: DistrictData
+  tradeArea: MarketAreaListItem
 }
 
 export function RecommendationItem({
@@ -22,16 +22,16 @@ export function RecommendationItem({
       }`}
     >
       <span className="min-w-0 truncate font-medium text-foreground">
-        {tradeArea.nameKo}
+        {tradeArea.dongName}
       </span>
       <span
-        className={`flex size-10 shrink-0 items-center justify-center rounded-xl border text-xs font-semibold ${
+        className={`flex shrink-0 items-center justify-center rounded-xl border px-2.5 py-2 text-[10px] font-semibold ${
           isSelected
             ? "border-primary bg-primary text-primary-foreground"
             : "border-border bg-muted/40 text-foreground"
         }`}
       >
-        {tradeArea.densityScore}
+        {tradeArea.score == null ? tradeArea.sigunguName : tradeArea.score}
       </span>
     </button>
   )

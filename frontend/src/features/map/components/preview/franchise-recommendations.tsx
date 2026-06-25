@@ -1,39 +1,46 @@
-import { Star } from "lucide-react"
-import type { DistrictData } from "@/features/startup/lib/data"
+import { ScrapButton } from "@/features/map/components/preview/scrap-button"
+import type { MarketFranchiseRecommendation } from "@/features/map/types/map"
 
 type PreviewFranchiseRecommendationsProps = {
-  tradeArea: DistrictData
+  franchises: MarketFranchiseRecommendation[]
 }
 
 export function PreviewFranchiseRecommendations({
-  tradeArea,
+  franchises,
 }: PreviewFranchiseRecommendationsProps) {
+  if (franchises.length === 0) {
+    return (
+      <p className="rounded-lg border border-dashed border-border px-3 py-4 text-xs leading-relaxed text-muted-foreground">
+        프랜차이즈 추천 데이터는 백엔드 응답 스펙이 확정되면 같은 탭에
+        연결합니다.
+      </p>
+    )
+  }
+
   return (
-    <div>
-      <ul className="flex flex-col gap-2">
-        {tradeArea.recommendedFranchises.slice(0, 3).map((franchise) => (
-          <li
-            key={franchise.name}
-            className="rounded-lg border border-border px-3 py-3"
-          >
-            <div className="flex items-start justify-between gap-3">
-              <div className="min-w-0">
-                <span className="block truncate text-sm font-medium text-foreground">
-                  {franchise.name}
-                </span>
-                <span className="mt-1 block text-xs text-muted-foreground">
-                  {franchise.sector} · 최소 자본금{" "}
-                  {franchise.minCapital.toLocaleString()}만원
-                </span>
-              </div>
-              <span className="flex shrink-0 items-center gap-1 text-xs font-medium text-foreground">
-                <Star className="size-3.5 fill-current text-amber-500" />
-                {franchise.rating}
-              </span>
-            </div>
-          </li>
-        ))}
-      </ul>
+    <div className="flex flex-col gap-2">
+      {franchises.map((franchise) => (
+        <div
+          key={franchise.franchiseId}
+          className="flex items-center justify-between gap-3 rounded-lg border border-border px-3 py-3"
+        >
+          <div className="min-w-0">
+            <p className="truncate text-sm font-medium text-foreground">
+              {franchise.brandName}
+            </p>
+            <p className="mt-1 truncate text-xs text-muted-foreground">
+              {franchise.industryName ?? "프랜차이즈"}
+              {franchise.expectedStartupCost == null
+                ? ""
+                : ` · 예상 창업 비용 ${franchise.expectedStartupCost.toLocaleString()}만원`}
+            </p>
+          </div>
+          <ScrapButton
+            label="브랜드 스크랩"
+            target={{ id: franchise.franchiseId, type: "franchise" }}
+          />
+        </div>
+      ))}
     </div>
   )
 }

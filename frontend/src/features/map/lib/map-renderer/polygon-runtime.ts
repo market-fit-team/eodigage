@@ -1,4 +1,10 @@
-import type { LngLatBoundsLike, Map, MapLayerMouseEvent } from "maplibre-gl"
+import type { FeatureCollection, Point } from "geojson"
+import type {
+  GeoJSONSource,
+  LngLatBoundsLike,
+  Map,
+  MapLayerMouseEvent,
+} from "maplibre-gl"
 import {
   DONG_BASE_LAYER_ID,
   DONG_BOUNDARY_LAYER_ID,
@@ -13,14 +19,16 @@ import {
   DONG_SELECTED_LAYER_ID,
   DONG_SOURCE_ID,
   GU_BOUNDARY_SOURCE_ID,
+  SEARCH_RESULT_MARKER_LAYER_ID,
+  SEARCH_RESULT_SOURCE_ID,
   getLayerFilterByCode,
   getLayerFilterByCodes,
   polygonLayers,
 } from "@/features/map/lib/map-renderer/map-layers"
-import {
-  seoulDongGeoJson,
-  seoulGuBoundaryGeoJson,
-} from "@/features/map/lib/seoul-dong-polygons"
+import type {
+  AdminAreaMapData,
+  MarketAreaListItem,
+} from "@/features/map/types/map"
 import type { DongCode } from "@/features/map/types/map"
 
 export type DongPolygonMapActions = {
@@ -33,8 +41,19 @@ export type DongPolygonMapActions = {
 export type DongPolygonLayerState = {
   hoveredDongCode: DongCode | null
   recommendedDongCodes: DongCode[]
+  searchResultAreas: MarketAreaListItem[]
   selectedDongCode: DongCode | null
 }
+
+type SearchResultMarkerProperties = {
+  code: DongCode
+  name: string
+}
+
+type SearchResultMarkerGeoJson = FeatureCollection<
+  Point,
+  SearchResultMarkerProperties
+>
 
 const recommendedLayerIds = [
   DONG_RECOMMENDED_LAYER_ID,
@@ -61,11 +80,37 @@ const getEventDongCode = (event: MapLayerMouseEvent) => {
   return code == null ? null : String(code)
 }
 
-export const getDongByCode = (code: DongCode | null) =>
-  seoulDongGeoJson.features.find((dong) => dong.properties.code === code)
+const getEmptySearchResultMarkers = (): SearchResultMarkerGeoJson => ({
+  features: [],
+  type: "FeatureCollection",
+})
+
+const toSearchResultMarkers = (
+  areas: MarketAreaListItem[]
+): SearchResultMarkerGeoJson => ({
+  features: areas.map((area) => ({
+    geometry: {
+      coordinates: [area.centerLng, area.centerLat],
+      type: "Point",
+    },
+    properties: {
+      code: area.dongCode,
+      name: area.dongName,
+    },
+    type: "Feature",
+  })),
+  type: "FeatureCollection",
+})
+
+export const getDongByCode = (
+  adminAreas: AdminAreaMapData,
+  code: DongCode | null
+) =>
+  adminAreas.dongGeoJson.features.find((dong) => dong.properties.code === code)
     ?.properties ?? null
 
 export const getDongBoundsByCodes = (
+  adminAreas: AdminAreaMapData,
   codes: DongCode[]
 ): LngLatBoundsLike | null => {
   const codeSet = new Set(codes)
@@ -76,7 +121,7 @@ export const getDongBoundsByCodes = (
     minLng: Number.POSITIVE_INFINITY,
   }
 
-  seoulDongGeoJson.features.forEach((feature) => {
+  adminAreas.dongGeoJson.features.forEach((feature) => {
     if (!codeSet.has(feature.properties.code)) {
       return
     }
@@ -111,17 +156,54 @@ export const getDongBoundsByCodes = (
   ]
 }
 
-export const addDongPolygonLayers = (map: Map) => {
+const updateGeoJsonSource = (
+  map: Map,
+  sourceId: string,
+  data: AdminAreaMapData["dongGeoJson"] | AdminAreaMapData["sigunguGeoJson"]
+) => {
+  const source = map.getSource(sourceId) as GeoJSONSource | undefined
+
+  source?.setData(data)
+}
+
+export const syncSearchResultMarkers = (
+  map: Map,
+  areas: MarketAreaListItem[]
+) => {
+  const source = map.getSource(SEARCH_RESULT_SOURCE_ID) as
+    | GeoJSONSource
+    | undefined
+
+  source?.setData(toSearchResultMarkers(areas))
+}
+
+export const syncDongPolygonSourceData = (
+  map: Map,
+  adminAreas: AdminAreaMapData
+) => {
+  updateGeoJsonSource(map, DONG_SOURCE_ID, adminAreas.dongGeoJson)
+  updateGeoJsonSource(map, GU_BOUNDARY_SOURCE_ID, adminAreas.sigunguGeoJson)
+}
+
+export const addDongPolygonLayers = (
+  map: Map,
+  adminAreas: AdminAreaMapData
+) => {
   if (map.getSource(DONG_SOURCE_ID)) {
+    syncDongPolygonSourceData(map, adminAreas)
     return
   }
 
   map.addSource(DONG_SOURCE_ID, {
-    data: seoulDongGeoJson,
+    data: adminAreas.dongGeoJson,
     type: "geojson",
   })
   map.addSource(GU_BOUNDARY_SOURCE_ID, {
-    data: seoulGuBoundaryGeoJson,
+    data: adminAreas.sigunguGeoJson,
+    type: "geojson",
+  })
+  map.addSource(SEARCH_RESULT_SOURCE_ID, {
+    data: getEmptySearchResultMarkers(),
     type: "geojson",
   })
   polygonLayers.forEach((layer) => {
@@ -166,6 +248,29 @@ export const bindDongPolygonEvents = ({
     selectDong(code)
     focusMapOnDong(code)
   })
+
+  map.on("mousemove", SEARCH_RESULT_MARKER_LAYER_ID, () => {
+    map.getCanvas().style.cursor = "pointer"
+  })
+
+  map.on("mouseleave", SEARCH_RESULT_MARKER_LAYER_ID, () => {
+    map.getCanvas().style.cursor = ""
+  })
+
+  map.on(
+    "click",
+    SEARCH_RESULT_MARKER_LAYER_ID,
+    (event: MapLayerMouseEvent) => {
+      const code = getEventDongCode(event)
+
+      if (!code) {
+        return
+      }
+
+      selectDong(code)
+      focusMapOnDong(code)
+    }
+  )
 }
 
 type SyncDongPolygonLayersInput = DongPolygonLayerState & {
@@ -176,6 +281,7 @@ export const syncDongPolygonLayers = ({
   hoveredDongCode,
   map,
   recommendedDongCodes,
+  searchResultAreas,
   selectedDongCode,
 }: SyncDongPolygonLayersInput) => {
   if (!hasLayer(map, DONG_BOUNDARY_LAYER_ID)) {
@@ -195,6 +301,7 @@ export const syncDongPolygonLayers = ({
   selectedLayerIds.forEach((layerId) => {
     map.setFilter(layerId, selectedFilter)
   })
+  syncSearchResultMarkers(map, searchResultAreas)
   map.setFilter(
     DONG_HOVER_LABEL_LAYER_ID,
     getLayerFilterByCode(

@@ -1,4 +1,5 @@
 import type {
+  CircleLayerSpecification,
   FillLayerSpecification,
   FilterSpecification,
   LineLayerSpecification,
@@ -13,6 +14,7 @@ type SymbolTextField = SymbolLayerLayout["text-field"]
 // MapLibre source/layer id는 setFilter, setPaintProperty, 이벤트 바인딩에서 공유
 export const DONG_SOURCE_ID = "seoul-dongs"
 export const GU_BOUNDARY_SOURCE_ID = "seoul-gu-boundaries"
+export const SEARCH_RESULT_SOURCE_ID = "market-search-result-points"
 export const DONG_BASE_LAYER_ID = "seoul-dongs-base"
 export const DONG_RECOMMENDED_LAYER_ID = "seoul-dongs-recommended"
 export const DONG_HOVER_LAYER_ID = "seoul-dongs-hover"
@@ -26,6 +28,8 @@ export const DONG_RECOMMENDED_LABEL_LAYER_ID = "seoul-dongs-recommended-label"
 export const DONG_HOVER_LABEL_LAYER_ID = "seoul-dongs-hover-label"
 export const DONG_SELECTED_LABEL_LAYER_ID = "seoul-dongs-selected-label"
 export const GU_BOUNDARY_LAYER_ID = "seoul-gu-boundary"
+export const SEARCH_RESULT_MARKER_LAYER_ID = "market-search-result-markers"
+export const SEARCH_RESULT_LABEL_LAYER_ID = "market-search-result-labels"
 
 // 빈 filter는 hover/selected 초기 상태에 사용
 const EMPTY_FILTER: FilterSpecification = ["==", ["get", "code"], ""]
@@ -218,6 +222,37 @@ export const guBoundaryLayer: LineLayerSpecification = {
   type: "line",
 }
 
+export const searchResultMarkerLayer: CircleLayerSpecification = {
+  id: SEARCH_RESULT_MARKER_LAYER_ID,
+  paint: {
+    "circle-color": mapPalette.searchMarkerFill,
+    "circle-opacity": 0.92,
+    "circle-radius": 7,
+    "circle-stroke-color": "#ffffff",
+    "circle-stroke-width": 2,
+  },
+  source: SEARCH_RESULT_SOURCE_ID,
+  type: "circle",
+}
+
+export const searchResultLabelLayer: SymbolLayerSpecification = {
+  id: SEARCH_RESULT_LABEL_LAYER_ID,
+  layout: {
+    "text-anchor": "top",
+    "text-field": ["get", "name"],
+    "text-font": ["Open Sans Semibold", "Arial Unicode MS Bold"],
+    "text-offset": [0, 0.9],
+    "text-size": 11,
+  },
+  paint: {
+    "text-color": mapPalette.text,
+    "text-halo-color": "#ffffff",
+    "text-halo-width": 1.5,
+  },
+  source: SEARCH_RESULT_SOURCE_ID,
+  type: "symbol",
+}
+
 export const polygonLayers = [
   dongFillLayers.base,
   dongFillLayers.recommended,
@@ -231,4 +266,6 @@ export const polygonLayers = [
   dongLabelLayers.hover,
   dongLabelLayers.selected,
   guBoundaryLayer,
+  searchResultMarkerLayer,
+  searchResultLabelLayer,
 ] as const
