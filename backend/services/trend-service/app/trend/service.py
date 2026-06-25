@@ -1,8 +1,7 @@
 from __future__ import annotations
 
 from app.core.config import settings
-from app.models.commercial_trend.predict import load_meta
-from app.models.commercial_trend.runtime import get_theme_rankings
+from app.models.commercial_trend.runtime import get_banner_sections
 from app.trend.contracts import (
     TrendForecastBanner,
     TrendForecastCta,
@@ -12,139 +11,84 @@ from app.trend.contracts import (
 
 # 주제당 노출할 상권 수
 TOP_N = 3
-WEEKEND_STRONG_THRESHOLD = 0.12
 
-# 노출 순서와 라벨. all/male/female/youth(20·30대)는 예측 증감률, weekend는 주말 쏠림(전체에서 파생).
-PREDICTIVE_THEMES = [
-    ("all", "전체 인기"),
-    ("evening", "저녁 인기"),
-    ("male", "남성 인기"),
-    ("female", "여성 인기"),
-    ("youth", "20·30대 인기"),
+# 노출 순서와 라벨. 각 세그먼트에 '곧 뜰(예측)'과 '요즘 뜨는(실측)'을 함께 담는다.
+SEGMENT_THEMES = [
+    ("combined", "전체"),
+    ("male", "남성"),
+    ("female", "여성"),
+    ("youth", "20·30대"),
 ]
-WEEKEND_LABEL = "주말 인기"
 
 
-def _metric_description(signals: dict[str, float]) -> str:
-    """지배적인 '지역 고유' 신호를 골라 사람이 읽을 설명 문구로 바꾼다(규칙 기반, LLM 아님).
-
-    달력(공휴일·주말 수)은 모든 동에 동일해 구분이 안 되므로 카드 문구엔 쓰지 않는다.
-    """
-    weekend = signals.get("weekend_ratio", 0.0)
-    wow = signals.get("wow_change", 0.0)
-    mom = signals.get("mom_change", 0.0)
-    slope_28 = signals.get("slope_28", 0.0)
-    slope_7 = signals.get("slope_7", 0.0)
-    recent_vs_prior = signals.get("recent_vs_prior", 0.0)
-
-    if wow >= 0.03:
-        return "지난주 방문 급증세"
-    if mom >= 0.03:
-        return "한 달째 상승 흐름"
-    if weekend >= WEEKEND_STRONG_THRESHOLD:
-        return "주말 유입 강한 동네"
-    if slope_7 > 0 and slope_28 > 0:
-        return "꾸준한 상승 추세"
-    if slope_7 > 0:
-        return "최근 반등 조짐"
-    if recent_vs_prior < 0:
-        return "저점에서 회복 흐름"
-    return "완만한 상승 예상"
+def _forecast_phrase(signals: dict[str, float]) -> str:
+    """예측 카드의 짧은 전망 문구. 모델은 역추세라 미래형으로, 신호별로 갈라 적는다."""
+    accel = signals.get("accel", 0.0)
+    recent = signals.get("recent_vs_win", 0.0)
+    vol = signals.get("vol", 0.0)
+    if accel > 0:
+        return "반등 시작"
+    if recent < -0.01:
+        return "저점 회복 흐름"
+    if vol < 0.02:
+        return "안정적 상승 전망"
+    return "상승 전망"
 
 
-def _format_growth(pred_growth: float) -> str:
-    """예측 증감률을 부호 있는 퍼센트로(예: '▲ +6.0%')."""
-    return f"▲ +{pred_growth * 100:.1f}%"
-
-
-def _weekend_ratio(item: dict[str, object]) -> float:
-    """랭킹 항목에서 주말 쏠림 비율을 꺼낸다."""
-    signals = item.get("signals", {})
-    if not isinstance(signals, dict):
-        return 0.0
-    return float(signals.get("weekend_ratio", 0.0))
-
-
-def _predictive_metrics(ranking: list[dict[str, object]]) -> list[TrendForecastMetric]:
-    """양수 예측(상승) 상권만, 예측 증감률 내림차순 상위 N개."""
-    risers = sorted(
-        (item for item in ranking if float(item["pred_growth"]) > 0),  # type: ignore[arg-type]
-        key=lambda item: float(item["pred_growth"]),  # type: ignore[arg-type]
-        reverse=True,
-    )
+def _predicted_metrics(picks: list[dict[str, object]]) -> list[TrendForecastMetric]:
+    """검증된 예측 모델의 '곧 뜰 동네' 상위 N. 점수 대신 전망 문구 + 현재 생활인구."""
     return [
         TrendForecastMetric(
-            label=str(item["area_name"]),
-            value=_format_growth(float(item["pred_growth"])),  # type: ignore[arg-type]
-            description=_metric_description(item.get("signals", {})),  # type: ignore[arg-type]
+            label=str(pick["area_name"]),
+            value=_forecast_phrase(pick.get("signals", {})),  # type: ignore[arg-type]
+            description=f"생활인구 {float(pick['level']):,.0f}명",  # type: ignore[arg-type]
         )
-        for item in risers[:TOP_N]
+        for pick in picks[:TOP_N]
     ]
 
 
-def _weekend_metrics(all_ranking: list[dict[str, object]]) -> list[TrendForecastMetric]:
-    """주말 쏠림(weekend_ratio)이 의미 있는 상위 N개. 전체 주제의 신호에서 파생한다."""
-    ranked = sorted(
-        (item for item in all_ranking if _weekend_ratio(item) >= WEEKEND_STRONG_THRESHOLD),
-        key=_weekend_ratio,
-        reverse=True,
-    )
+def _popular_metrics(picks: list[dict[str, object]]) -> list[TrendForecastMetric]:
+    """상업시간대 규모 기준 '지금 인기 상권' 상위 N(예측 아님, 사실 보고). 명=실제 동시 인원."""
     metrics: list[TrendForecastMetric] = []
-    for item in ranked[:TOP_N]:
-        ratio = _weekend_ratio(item)
+    for pick in picks[:TOP_N]:
+        level = float(pick["level"])  # type: ignore[arg-type]
+        vitality = float(pick["vitality"])  # type: ignore[arg-type]
         metrics.append(
             TrendForecastMetric(
-                label=str(item["area_name"]),
-                value=f"주말 +{ratio * 100:.0f}%",
-                description="주말 유입 강세",
+                label=str(pick["area_name"]),
+                value=f"{level:,.0f}명",
+                description=f"낮 유동 {vitality:.1f}배",
             )
         )
     return metrics
 
 
-def _direction_accuracy() -> float | None:
-    try:
-        validation = load_meta().get("validation")
-    except FileNotFoundError:
-        return None
-    if not isinstance(validation, dict):
-        return None
-    value = validation.get("direction_accuracy")
-    return float(value) if value is not None else None
-
-
 def build_banner(data_mode: str | None = None) -> TrendForecastBanner:
-    """주제별 배너 DTO. 전체·주말·남성·여성·20·30대 각 상위 N개."""
+    """주제별 배너 DTO. 전체·남성·여성·20·30대 각각 예측(곧 뜰)+인기(요즘 뜨는)."""
     mode = data_mode or settings.data_mode
-    rankings = get_theme_rankings(mode)
+    sections = get_banner_sections(mode)
+    forecast = sections["forecast"]
+    popular = sections["popular"]
 
     themes: list[TrendForecastTheme] = []
-    for key, label in PREDICTIVE_THEMES:
-        metrics = _predictive_metrics(rankings.get(key, []))
-        if metrics:
-            themes.append(TrendForecastTheme(key=key, label=label, metrics=metrics))
-    # 주말 인기: 전체 주제의 weekend_ratio에서 파생
-    weekend_metrics = _weekend_metrics(rankings.get("all", []))
-    if weekend_metrics:
-        themes.insert(1, TrendForecastTheme(key="weekend", label=WEEKEND_LABEL, metrics=weekend_metrics))
+    for key, label in SEGMENT_THEMES:
+        predicted = _predicted_metrics(forecast.get(key, []))
+        pop = _popular_metrics(popular.get(key, []))
+        if predicted or pop:
+            themes.append(TrendForecastTheme(key=key, label=label, predicted=predicted, popular=pop))
 
-    all_metrics = themes[0].metrics if themes else []
-    if all_metrics:
-        title = f"다음 주 반등 예상 1순위는 {all_metrics[0].label}, 생활인구 {all_metrics[0].value} 예상."
+    predicted_combined = themes[0].predicted if themes else []
+    if predicted_combined:
+        title = f"앞으로 주목할 동네, {predicted_combined[0].label}"
     else:
-        title = "다음 주 뚜렷한 반등 상권이 보이지 않습니다."
-
-    description = "최근 생활인구 흐름을 주제별로 학습해 다음 주 뜨는 상권을 예측합니다."
-    accuracy = _direction_accuracy()
-    if accuracy is not None:
-        description += f" 과거 방향 적중률 {round(accuracy * 100)}%."
+        title = "뚜렷한 반등 상권이 아직 보이지 않습니다."
 
     return TrendForecastBanner(
         eyebrow="AI 트렌드 예측",
         title=title,
-        description=description,
+        description="AI가 고른 '곧 뜰 동네'와, 요즘 실제로 사람이 몰리는 동네를 함께 보여줍니다.",
         primary_cta=TrendForecastCta(label="상권 지도에서 검증하기", href="/map"),
         secondary_cta=TrendForecastCta(label="성향 분석 먼저 하기", href="/onboarding"),
-        metrics=all_metrics,
+        metrics=predicted_combined,
         themes=themes,
     )
