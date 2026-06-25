@@ -23,7 +23,7 @@ public class MainPostController {
     private final MainPostService mainPostService;
 
     @GetMapping("/main")
-    @Operation(operationId = "getMainPosts", summary = "메인 AI 리포트 조회")
+    @Operation(operationId = "getMainPosts", summary = "메인 AI 칼럼 조회")
     public List<MainPostResponse> findMainPosts(
             @RequestParam(required = false) Integer limit
     ) {

@@ -1,12 +1,12 @@
 # CrawlSummaryCreateWidget
 
 검색 결과 URL을 입력하고 `크롤링 미리보기`로 기사 URL, 관련 키워드, 관련도와 추출
-본문을 먼저 확인한다. 이후 `AI 리포트 생성`으로 Post를 생성한다. 앱 라우트는 수정하지
+본문을 먼저 확인한다. 이후 `AI 칼럼 생성`으로 Post를 생성한다. 앱 라우트는 수정하지
 않으며 `CrawlSummaryCreateWidgetContainer`를 import하고 `onCreated` 콜백을 전달한다.
 
 기사 후보는 최대 5개까지 표시하며 최소 3개를 보장하지 않는다.
 
-생성 결과가 프랜차이즈 알림 정책을 만족하면 “알림 대상 리포트” 안내가 표시된다.
+생성 결과가 프랜차이즈 알림 정책을 만족하면 “알림 대상 칼럼” 안내가 표시된다.
 post feature는 이 힌트까지만 제공하며 실시간 알림 수신은 구현하지 않는다.
 
 URL 또는 직접 입력한 원문을 backend에 보내 크롤링·LLM 요약 Post를 생성하는 독립 위젯이다. LLM API 호출과 크롤링은 frontend가 아니라 post backend가 수행한다.

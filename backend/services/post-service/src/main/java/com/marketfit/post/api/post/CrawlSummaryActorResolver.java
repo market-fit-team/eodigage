@@ -29,7 +29,7 @@ public class CrawlSummaryActorResolver {
         }
         throw new ResponseStatusException(
                 HttpStatus.UNAUTHORIZED,
-                "AI 리포트 저장에는 인증이 필요합니다."
+                "AI 칼럼 저장에는 인증이 필요합니다."
         );
     }
 

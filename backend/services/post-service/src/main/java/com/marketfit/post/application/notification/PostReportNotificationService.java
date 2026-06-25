@@ -23,13 +23,24 @@ public class PostReportNotificationService {
             String userId,
             PostLlmSummaryStatus llmStatus
     ) {
+        return publishIfEligible(post, content, userId, llmStatus, false);
+    }
+
+    public NotificationDecision publishIfEligible(
+            Post post,
+            CrawledContent content,
+            String userId,
+            PostLlmSummaryStatus llmStatus,
+            boolean franchiseReport
+    ) {
         boolean eligible = policy.isEligible(
                 content.matchedKeywords(),
                 content.matchedParagraphCount(),
                 content.relevanceScore(),
                 post.getSourceType(),
                 post.getStatus(),
-                llmStatus
+                llmStatus,
+                franchiseReport
         );
         if (!eligible) {
             log.debug(

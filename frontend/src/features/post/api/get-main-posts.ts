@@ -39,15 +39,19 @@ export async function getMainPosts(
   const query = new URLSearchParams({
     limit: normalizeLimit(limit).toString(),
   })
-  const response = await fetch(`${mainPostsApiUrl}?${query}`, {
-    method: "GET",
-    signal,
-  })
+  try {
+    const response = await fetch(`${mainPostsApiUrl}?${query}`, {
+      method: "GET",
+      signal,
+    })
 
-  if (!response.ok) {
-    const message = await getErrorMessage(response)
-    throw new Error(message ?? "메인 Post를 불러오지 못했습니다.")
+    if (!response.ok) {
+      const message = await getErrorMessage(response)
+      throw new Error(message ?? "메인 Post를 불러오지 못했습니다.")
+    }
+
+    return response.json() as Promise<MainPost[]>
+  } catch (error) {
+    throw error
   }
-
-  return response.json() as Promise<MainPost[]>
 }

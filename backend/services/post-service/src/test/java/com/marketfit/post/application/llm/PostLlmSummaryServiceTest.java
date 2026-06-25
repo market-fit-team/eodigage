@@ -61,7 +61,7 @@ class PostLlmSummaryServiceTest {
         verify(store).createRequested(
                 org.mockito.ArgumentMatchers.eq("OPENAI"),
                 org.mockito.ArgumentMatchers.eq("gpt-4o-mini"),
-                org.mockito.ArgumentMatchers.contains("title은 30자 이내")
+                org.mockito.ArgumentMatchers.contains("category: 트렌드")
         );
         verify(store).markSummarized(summaryId, result);
     }

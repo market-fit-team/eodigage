@@ -16,10 +16,10 @@
 생성물이 준비되면 feature의 직접 fetch와 중복 타입을 generated API 사용 방식으로
 전환한다.
 
-## 공개 새 AI 리포트 알림
+## 공개 새 AI 칼럼 알림
 
 `PublicPostReportBell`은 로그인 없이
-`GET /api/post/api/posts/events` SSE를 구독한다. 공개 AI 리포트 저장이 완료되면
+`GET /api/post/api/posts/events` SSE를 구독한다. 공개 AI 칼럼 저장이 완료되면
 종 아이콘이 기본색에서 `text-primary`로 바뀌며, 아이콘을 클릭하면 기본색으로 돌아간다.
 이벤트에는 사용자, 제목, 본문 같은 정보가 포함되지 않는다.
 
@@ -68,7 +68,7 @@ export function ReportCreator() {
 
 ## MainPostCarouselWidget
 
-`MainPostCarouselWidget`는 props 기반 표시 컴포넌트고, `MainPostCarouselWidgetContainer`가 `/api/post/api/posts/main` 조회 상태를 연결한다. LLM 리포트는 `AI 리포트` badge로 표시한다.
+`MainPostCarouselWidget`는 props 기반 표시 컴포넌트고, `MainPostCarouselWidgetContainer`가 `/api/post/api/posts/main` 조회 상태를 연결한다. LLM 리포트는 `AI 칼럼` badge로 표시한다.
 
 ```tsx
 import { MainPostCarouselWidgetContainer } from "@/features/post/components/main-post-carousel-widget/main-post-carousel-widget-container"

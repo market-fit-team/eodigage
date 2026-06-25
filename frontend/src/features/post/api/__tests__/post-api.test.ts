@@ -4,6 +4,7 @@ import {
   createLlmReport,
   createPost,
   getMainPostCarousel,
+  getPost,
   getPosts,
   updatePost,
 } from "@/features/post/api/post-api"
@@ -50,6 +51,28 @@ describe("post-api", () => {
 
     expect(fetchMock).toHaveBeenCalledWith(
       expect.stringContaining("?page=2&size=10"),
+      { cache: "no-store" }
+    )
+  })
+
+  it("게시글 상세를 공개 GET 경로로 조회한다", async () => {
+    const post = {
+      id: "post-1",
+      title: "리포트",
+      content: "전문",
+    }
+    const fetchMock = vi.fn().mockResolvedValue(
+      new Response(JSON.stringify(post), {
+        status: 200,
+        headers: { "content-type": "application/json" },
+      })
+    )
+    vi.stubGlobal("fetch", fetchMock)
+
+    await expect(getPost("post-1")).resolves.toEqual(post)
+
+    expect(fetchMock).toHaveBeenCalledWith(
+      expect.stringContaining("/api/post/api/posts/post-1"),
       { cache: "no-store" }
     )
   })

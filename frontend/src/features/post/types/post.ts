@@ -86,7 +86,12 @@ export type CrawlPreview = {
 }
 
 export type CrawlSummaryPost = {
+  status?: "SUMMARIZED" | "PARTIAL_SUMMARIZED"
   id: string
+  postId?: string
+  postIds?: string[]
+  createdCount?: number
+  failedCount?: number
   title: string
   summary: string
   thumbnailUrl: string | null

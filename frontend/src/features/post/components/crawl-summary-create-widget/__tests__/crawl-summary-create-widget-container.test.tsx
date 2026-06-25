@@ -23,7 +23,7 @@ describe("CrawlSummaryCreateWidgetContainer", () => {
     render(<CrawlSummaryCreateWidgetContainer />)
 
     await userEvent.click(
-      screen.getByRole("button", { name: "AI 리포트 생성" })
+      screen.getByRole("button", { name: "AI 칼럼 생성" })
     )
 
     expect(
@@ -37,7 +37,7 @@ describe("CrawlSummaryCreateWidgetContainer", () => {
 
     await userEvent.type(screen.getByLabelText("URL"), "not-a-url")
     await userEvent.click(
-      screen.getByRole("button", { name: "AI 리포트 생성" })
+      screen.getByRole("button", { name: "AI 칼럼 생성" })
     )
 
     expect(
@@ -50,7 +50,7 @@ describe("CrawlSummaryCreateWidgetContainer", () => {
 
     await userEvent.type(screen.getByLabelText("원문"), "짧은 원문")
     await userEvent.click(
-      screen.getByRole("button", { name: "AI 리포트 생성" })
+      screen.getByRole("button", { name: "AI 칼럼 생성" })
     )
 
     expect(
@@ -68,7 +68,7 @@ describe("CrawlSummaryCreateWidgetContainer", () => {
       "https://example.com/article"
     )
     await userEvent.click(
-      screen.getByRole("button", { name: "AI 리포트 생성" })
+      screen.getByRole("button", { name: "AI 칼럼 생성" })
     )
 
     await waitFor(() =>
@@ -135,7 +135,7 @@ describe("CrawlSummaryCreateWidgetContainer", () => {
 
     await userEvent.type(screen.getByLabelText("원문"), rawContent)
     await userEvent.click(
-      screen.getByRole("button", { name: "AI 리포트 생성" })
+      screen.getByRole("button", { name: "AI 칼럼 생성" })
     )
 
     await waitFor(() =>
@@ -159,7 +159,7 @@ describe("CrawlSummaryCreateWidgetContainer", () => {
       "https://example.com/article"
     )
     await userEvent.click(
-      screen.getByRole("button", { name: "AI 리포트 생성" })
+      screen.getByRole("button", { name: "AI 칼럼 생성" })
     )
 
     expect(await screen.findByRole("alert")).toHaveTextContent(
@@ -201,7 +201,7 @@ describe("CrawlSummaryCreateWidgetContainer", () => {
     )
     await userEvent.type(screen.getByLabelText("키워드"), "AI 채용")
     await userEvent.click(
-      screen.getByRole("button", { name: "AI 리포트 생성" })
+      screen.getByRole("button", { name: "AI 칼럼 생성" })
     )
 
     await waitFor(() => expect(onCreated).toHaveBeenCalledWith(post))
@@ -209,7 +209,7 @@ describe("CrawlSummaryCreateWidgetContainer", () => {
     expect(screen.getByText(post.summary)).toBeInTheDocument()
     expect(
       screen.getByText(
-        "프랜차이즈 관련 AI 리포트가 생성되었습니다. 알림 대상 리포트입니다."
+        "프랜차이즈 관련 AI 칼럼이 생성되었습니다. 알림 대상 칼럼입니다."
       )
     ).toBeInTheDocument()
     expect(createCrawlSummaryPost).toHaveBeenCalledWith({

@@ -1,15 +1,7 @@
 "use client"
 
-import { useState } from "react"
-import { ArrowRight, BookOpen, ImageOff, Sparkles } from "lucide-react"
+import { ArrowRight, BookOpen, Sparkles } from "lucide-react"
 import type { PostSourceType } from "@/features/post/types/post"
-import {
-  Carousel,
-  CarouselContent,
-  CarouselItem,
-  CarouselNext,
-  CarouselPrevious,
-} from "@/shared/components/ui/carousel"
 import { Skeleton } from "@/shared/components/ui/skeleton"
 
 export type MainPostCarouselItem = {
@@ -26,62 +18,50 @@ type MainPostCarouselWidgetProps = {
   isLoading?: boolean
   error?: string | null
   onPostClick?: (postId: string) => void
+  showGenerator?: boolean
+  isGenerating?: boolean
+  generationError?: string | null
+  onGenerate?: () => void
 }
 
 const sourceLabels: Record<PostSourceType, string> = {
-  LLM_REPORT: "AI 리포트",
+  LLM_REPORT: "AI 칼럼",
   CRAWLING: "크롤링",
   MANUAL: "일반",
 }
 
-function Thumbnail({
-  thumbnailUrl,
-  title,
-}: Pick<MainPostCarouselItem, "thumbnailUrl" | "title">) {
-  const [hasImageError, setHasImageError] = useState(false)
-  const showFallback = !thumbnailUrl || hasImageError
+const isMockPost = (post: MainPostCarouselItem) =>
+  post.id.startsWith("00000000")
 
-  return (
-    <div className="absolute inset-0 overflow-hidden bg-neutral-900">
-      {showFallback ? (
-        <div
-          className="flex h-full items-center justify-center bg-[radial-gradient(circle_at_70%_30%,rgba(255,255,255,0.16),transparent_38%),linear-gradient(135deg,#262626,#0a0a0a)] text-white/50"
-          aria-label={`${title} 썸네일 없음`}
-        >
-          <ImageOff className="size-10" aria-hidden="true" />
-        </div>
-      ) : (
-        // 크롤링 출처의 이미지 호스트는 런타임에 결정되어 Next Image allowlist를 사용할 수 없다.
-        // eslint-disable-next-line @next/next/no-img-element
-        <img
-          src={thumbnailUrl}
-          alt={`${title} 썸네일`}
-          className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-105"
-          loading="lazy"
-          onError={() => setHasImageError(true)}
-        />
-      )}
-      <div className="absolute inset-0 bg-gradient-to-r from-black/90 via-black/65 to-black/20" />
-      <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-black/10" />
-    </div>
-  )
+const getBadgeLabel = (post: MainPostCarouselItem) => {
+  if (isMockPost(post)) return "예시"
+  if (post.sourceType === "LLM_REPORT") return "AI 칼럼"
+  return sourceLabels[post.sourceType]
 }
 
 function LoadingState() {
   return (
     <div
-      className="relative min-h-[320px] overflow-hidden rounded-xl border border-neutral-200 bg-neutral-950 p-7 sm:min-h-[380px] sm:p-10"
+      className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4"
       role="status"
       aria-label="게시글을 불러오는 중"
     >
-      <div className="flex max-w-2xl flex-col gap-4">
-        <Skeleton className="h-6 w-24 bg-white/15" />
-        <Skeleton className="h-10 w-4/5 bg-white/15" />
-        <Skeleton className="h-10 w-3/5 bg-white/15" />
-        <Skeleton className="mt-3 h-4 w-full bg-white/10" />
-        <Skeleton className="h-4 w-5/6 bg-white/10" />
-        <Skeleton className="mt-5 h-10 w-32 bg-white/15" />
-      </div>
+      {Array.from({ length: 4 }).map((_, index) => (
+        <div
+          key={index}
+          className="flex min-h-[220px] flex-col rounded-xl border border-neutral-200 bg-white p-5"
+        >
+          <Skeleton className="h-5 w-20" />
+          <Skeleton className="mt-5 h-6 w-5/6" />
+          <Skeleton className="mt-2 h-6 w-3/4" />
+          <div className="mt-5 space-y-2">
+            <Skeleton className="h-4 w-full" />
+            <Skeleton className="h-4 w-full" />
+            <Skeleton className="h-4 w-4/5" />
+          </div>
+          <Skeleton className="mt-auto h-4 w-24" />
+        </div>
+      ))}
       <span className="sr-only">게시글을 불러오는 중입니다.</span>
     </div>
   )
@@ -92,7 +72,14 @@ export function MainPostCarouselWidget({
   isLoading = false,
   error = null,
   onPostClick,
+  showGenerator = false,
+  isGenerating = false,
+  generationError = null,
+  onGenerate,
 }: MainPostCarouselWidgetProps = {}) {
+  const visiblePosts = posts.slice(0, 4)
+  const shouldShowLoadingCards = isLoading || (isGenerating && posts.length === 0)
+
   return (
     <section className="space-y-4" aria-labelledby="main-post-carousel-title">
       <div className="flex items-end justify-between border-b border-neutral-200 pb-4">
@@ -106,15 +93,37 @@ export function MainPostCarouselWidget({
             className="flex items-center gap-2 text-xl font-bold tracking-[-0.03em] text-neutral-950 sm:text-2xl"
           >
             <BookOpen className="size-5" aria-hidden="true" />
-            뉴스 기반 창업 상권 AI 리포트
+            뉴스 기반 창업 상권 AI 칼럼
           </h2>
         </div>
-        <span className="hidden text-xs text-neutral-400 sm:block">
-          최신 리포트
-        </span>
+        {showGenerator ? (
+          <div className="flex max-w-full flex-col items-end gap-2">
+            <div className="flex w-full justify-end">
+              <button
+                type="button"
+                disabled={isGenerating}
+                className="h-9 shrink-0 rounded-lg bg-neutral-950 px-3 text-sm font-semibold text-white transition-colors hover:bg-neutral-800 disabled:cursor-not-allowed disabled:bg-neutral-400"
+                onClick={onGenerate}
+              >
+                {isGenerating
+                  ? "AI 칼럼 생성 중..."
+                  : "최신 뉴스로 AI 칼럼 생성"}
+              </button>
+            </div>
+            {generationError ? (
+              <p role="alert" className="text-xs text-red-600">
+                {generationError}
+              </p>
+            ) : null}
+          </div>
+        ) : (
+          <span className="hidden text-xs text-neutral-400 sm:block">
+            최신 칼럼
+          </span>
+        )}
       </div>
 
-      {isLoading ? (
+      {shouldShowLoadingCards ? (
         <LoadingState />
       ) : error ? (
         <div
@@ -130,69 +139,50 @@ export function MainPostCarouselWidget({
             aria-hidden="true"
           />
           <p className="text-sm font-semibold text-neutral-700">
-            아직 등록된 리포트가 없습니다.
+            아직 표시할 AI 칼럼이 없습니다.
           </p>
           <p className="mt-1 text-xs text-neutral-500">
-            새로운 AI 분석 리포트가 발행되면 이곳에 표시됩니다.
+            새로운 AI 칼럼이 발행되면 이곳에 표시됩니다.
           </p>
         </div>
       ) : (
-        <Carousel
-          opts={{ align: "start", loop: false }}
-          aria-label="최신 AI 리포트 캐러셀"
-          className="group/carousel"
-        >
-          <div className="overflow-hidden rounded-xl">
-            <CarouselContent className="ml-0">
-              {posts.map((post) => (
-                <CarouselItem key={post.id} className="basis-full pl-0">
-                  <article className="group relative min-h-[320px] overflow-hidden bg-neutral-950 sm:min-h-[380px]">
-                    <Thumbnail
-                      thumbnailUrl={post.thumbnailUrl}
-                      title={post.title}
-                    />
-                    <div className="relative z-10 flex min-h-[320px] max-w-3xl flex-col justify-end px-6 py-8 text-white sm:min-h-[380px] sm:px-10 sm:py-10 lg:px-12">
-                      <div className="mb-auto flex items-center gap-2">
-                        <span className="rounded-full border border-white/20 bg-white/10 px-3 py-1 text-[11px] font-semibold backdrop-blur-sm">
-                          {sourceLabels[post.sourceType]}
-                        </span>
-                        <time
-                          dateTime={post.createdAt}
-                          className="text-xs text-white/65"
-                        >
-                          {new Date(post.createdAt).toLocaleDateString("ko-KR")}
-                        </time>
-                      </div>
-                      <h3 className="max-w-2xl text-2xl leading-tight font-black tracking-[-0.04em] text-balance sm:text-4xl">
-                        {post.title}
-                      </h3>
-                      <p className="mt-4 line-clamp-3 max-w-2xl text-sm leading-6 text-white/75 sm:text-base sm:leading-7">
-                        {post.summary}
-                      </p>
-                      {onPostClick ? (
-                        <button
-                          type="button"
-                          aria-label={`${post.title} 게시글 보기`}
-                          className="mt-6 flex h-10 w-fit items-center gap-2 rounded-lg bg-white px-4 text-sm font-bold text-neutral-950 transition-colors hover:bg-neutral-200 focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-neutral-950 focus-visible:outline-none"
-                          onClick={() => onPostClick(post.id)}
-                        >
-                          리포트 보기
-                          <ArrowRight className="size-4" aria-hidden="true" />
-                        </button>
-                      ) : null}
-                    </div>
-                  </article>
-                </CarouselItem>
-              ))}
-            </CarouselContent>
-          </div>
-          {posts.length > 1 ? (
-            <>
-              <CarouselPrevious className="left-3 hidden border-white/20 bg-black/35 text-white hover:bg-black/60 hover:text-white sm:inline-flex" />
-              <CarouselNext className="right-3 hidden border-white/20 bg-black/35 text-white hover:bg-black/60 hover:text-white sm:inline-flex" />
-            </>
-          ) : null}
-        </Carousel>
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          {visiblePosts.map((post) => (
+            <article
+              key={post.id}
+              className="flex min-h-[240px] flex-col rounded-xl border border-neutral-200 bg-white p-5 shadow-sm transition-shadow hover:shadow-md"
+            >
+              <div className="flex items-center justify-between gap-3">
+                <span className="rounded-full border border-neutral-200 bg-neutral-50 px-2.5 py-1 text-[11px] font-semibold text-neutral-700">
+                  {getBadgeLabel(post)}
+                </span>
+                <time
+                  dateTime={post.createdAt}
+                  className="shrink-0 text-xs text-neutral-500"
+                >
+                  {new Date(post.createdAt).toLocaleDateString("ko-KR")}
+                </time>
+              </div>
+              <h3 className="mt-5 line-clamp-2 text-base leading-6 font-bold text-neutral-950">
+                {post.title}
+              </h3>
+              <p className="mt-3 line-clamp-4 text-sm leading-relaxed text-neutral-600">
+                {post.summary}
+              </p>
+              {onPostClick ? (
+                <button
+                  type="button"
+                  aria-label={`${post.title} 게시글 보기`}
+                  className="mt-auto flex h-9 w-fit items-center gap-2 rounded-lg border border-neutral-200 px-3 text-sm font-semibold text-neutral-900 transition-colors hover:bg-neutral-50 focus-visible:ring-2 focus-visible:ring-neutral-900 focus-visible:ring-offset-2 focus-visible:outline-none"
+                  onClick={() => onPostClick(post.id)}
+                >
+                  칼럼 보기
+                  <ArrowRight className="size-4" aria-hidden="true" />
+                </button>
+              ) : null}
+            </article>
+          ))}
+        </div>
       )}
     </section>
   )

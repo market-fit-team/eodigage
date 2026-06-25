@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.UUID;
+import java.util.concurrent.ThreadLocalRandom;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
@@ -23,9 +24,11 @@ import com.marketfit.post.infrastructure.crawling.CommerceParagraphFilter;
 import com.marketfit.post.infrastructure.crawling.UrlTypeDetector;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class PostCrawlService {
 
     private static final int MAX_ERROR_MESSAGE_LENGTH = 1_000;
@@ -60,8 +63,25 @@ public class PostCrawlService {
             CrawledContent analyzed = analyze(request);
             CrawledContent persisted = withSourceId(analyzed, source.getId());
             sourceStore.markCrawled(persisted);
+            log.info(
+                    "[PostCrawl] success. sourceId={}, inputUrl={}, type={}, articles={}, matchedParagraphs={}, matchedKeywords={}",
+                    persisted.sourceId(),
+                    persisted.sourceUrl(),
+                    persisted.inputUrlType(),
+                    persisted.crawledArticleCount(),
+                    persisted.matchedParagraphCount(),
+                    persisted.matchedKeywords()
+            );
             return persisted;
         } catch (RuntimeException exception) {
+            log.warn(
+                    "[PostCrawl] failed. sourceId={}, requestUrl={}, keyword={}, reason={}",
+                    source.getId(),
+                    requestUrl,
+                    normalize(request.keyword()),
+                    safeErrorMessage(exception),
+                    exception
+            );
             saveFailure(source, exception);
             throw exception;
         }
@@ -69,6 +89,11 @@ public class PostCrawlService {
 
     public void linkPost(CrawledContent content, UUID postId) {
         sourceStore.linkPost(content.sourceId(), postId);
+    }
+
+    public CrawledContent duplicateCrawled(CrawledContent content) {
+        PostCrawlSource source = sourceStore.duplicateCrawled(content);
+        return withSourceId(content, source.getId());
     }
 
     private CrawledContent analyze(CrawlSummaryRequest request) {
@@ -111,6 +136,11 @@ public class PostCrawlService {
                 try {
                     articles.add(toArticleResult(contentCrawler.crawl(articleUrl), keyword));
                 } catch (RuntimeException exception) {
+                    log.warn(
+                            "[PostCrawl] article failed. articleUrl={}, reason={}",
+                            articleUrl,
+                            safeErrorMessage(exception)
+                    );
                     articles.add(failedArticle(articleUrl, exception));
                 }
             }
@@ -280,7 +310,17 @@ public class PostCrawlService {
     private String resolveUrl(String requestedUrl, String rawContent) {
         String requestUrl = normalize(requestedUrl);
         if (!hasText(rawContent) && !hasText(requestUrl)) {
-            return normalize(properties.defaultUrl());
+            String defaultUrl = normalize(properties.defaultUrl());
+            if (hasText(defaultUrl)) {
+                return defaultUrl;
+            }
+            List<String> seedUrls = properties.seedUrls().stream()
+                    .map(this::normalize)
+                    .filter(this::hasText)
+                    .toList();
+            if (!seedUrls.isEmpty()) {
+                return seedUrls.get(ThreadLocalRandom.current().nextInt(seedUrls.size()));
+            }
         }
         return requestUrl;
     }

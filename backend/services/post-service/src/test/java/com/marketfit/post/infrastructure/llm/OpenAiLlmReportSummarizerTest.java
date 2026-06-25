@@ -26,14 +26,14 @@ class OpenAiLlmReportSummarizerTest {
     private final ObjectMapper objectMapper = new ObjectMapper();
 
     @Test
-    void Responses_API의_structured_output을_리포트로_변환한다() throws Exception {
+    void Responses_API를_structured_output_리포트로_변환한다() throws Exception {
         HttpClient httpClient = org.mockito.Mockito.mock(HttpClient.class);
         @SuppressWarnings("unchecked")
         HttpResponse<String> response = org.mockito.Mockito.mock(HttpResponse.class);
         doReturn(200).when(response).statusCode();
         doReturn("""
                 {
-                  "output_text": "{\\"title\\":\\"AI 리포트\\",\\"summary\\":\\"핵심 요약\\",\\"content\\":\\"상세 본문\\"}",
+                  "output_text": "{\\"title\\":\\"AI 칼럼\\",\\"summary\\":\\"핵심 요약\\",\\"content\\":\\"상세 본문\\"}",
                   "usage": {
                     "input_tokens": 100,
                     "output_tokens": 50,
@@ -62,13 +62,13 @@ class OpenAiLlmReportSummarizerTest {
                         "https://example.com/article",
                         "원문 제목",
                         "원문 설명",
-                        "수집된 기사 본문",
+                        "수집한 기사 본문",
                         Instant.now()
                 ),
                 PostCategory.TREND
-        ), "한국어 보고서 prompt");
+        ), "prompt");
 
-        assertThat(result.title()).isEqualTo("AI 리포트");
+        assertThat(result.title()).isEqualTo("AI 칼럼");
         assertThat(result.provider()).isEqualTo("OPENAI");
         assertThat(result.model()).isEqualTo("gpt-4o-mini");
         assertThat(result.tokenUsage()).containsEntry("totalTokens", 150);
@@ -84,7 +84,7 @@ class OpenAiLlmReportSummarizerTest {
     }
 
     @Test
-    void 직접_생성된_OpenAI_adapter에_API_KEY가_없으면_503을_반환한다() {
+    void OpenAI_API_KEY가_없으면_503을_반환한다() {
         OpenAiLlmReportSummarizer summarizer = new OpenAiLlmReportSummarizer(
                 objectMapper,
                 new PostLlmProperties("OPENAI", "", "gpt-4o-mini", 30),
@@ -102,7 +102,7 @@ class OpenAiLlmReportSummarizerTest {
     }
 
     @Test
-    void JSON_파싱이_실패하면_plain_text를_content로_사용한다() throws Exception {
+    void JSON_파싱에_실패하면_고정_fallback_없이_예외를_던진다() throws Exception {
         HttpClient httpClient = org.mockito.Mockito.mock(HttpClient.class);
         @SuppressWarnings("unchecked")
         HttpResponse<String> response = org.mockito.Mockito.mock(HttpResponse.class);
@@ -122,15 +122,16 @@ class OpenAiLlmReportSummarizerTest {
                 httpClient
         );
 
-        var result = summarizer.summarize(
+        assertThatThrownBy(() -> summarizer.summarize(
                 new LlmReportRequest(
                         new CrawledDocument(null, null, null, "본문", Instant.now()),
                         null
                 ),
                 "prompt"
-        );
-
-        assertThat(result.content()).contains("일반 텍스트 보고서");
-        assertThat(result.summary()).startsWith("# 일반 텍스트 보고서");
+        ))
+                .isInstanceOf(ResponseStatusException.class)
+                .satisfies(exception -> assertThat(
+                        ((ResponseStatusException) exception).getStatusCode()
+                ).isEqualTo(HttpStatus.BAD_GATEWAY));
     }
 }

@@ -13,8 +13,8 @@ import org.springframework.web.server.ResponseStatusException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import com.marketfit.post.core.llm.LlmSummaryResult;
 import com.marketfit.post.core.llm.LlmReportRequest;
+import com.marketfit.post.core.llm.LlmSummaryResult;
 import com.marketfit.post.core.llm.PostLlmProvider;
 import com.marketfit.post.infrastructure.config.PostLlmProperties;
 
@@ -140,19 +140,19 @@ public class OpenAiLlmReportSummarizer implements PostLlmProvider {
 
     private String buildInput(LlmReportRequest request) {
         String category = request.requestedCategory() == null
-                ? "본문을 보고 결정"
+                ? "본문 기준"
                 : request.requestedCategory().name();
         String content = request.document().rawContent();
         if (content.length() > MAX_INPUT_CHARACTERS) {
             content = content.substring(0, MAX_INPUT_CHARACTERS);
         }
         return """
-                출처 제목: %s
-                메타 설명: %s
-                출처 URL: %s
-                요청 카테고리: %s
+                sourceTitle: %s
+                sourceDescription: %s
+                sourceUrl: %s
+                requestedCategory: %s
 
-                수집 본문:
+                collectedContent:
                 %s
                 """.formatted(
                 nullableText(request.document().title()),
@@ -170,13 +170,13 @@ public class OpenAiLlmReportSummarizer implements PostLlmProvider {
             outputText = findOutputText(response);
         }
         if (outputText.isBlank()) {
-            throw new IllegalStateException("OpenAI response output_text is empty");
+            throw new ResponseStatusException(HttpStatus.BAD_GATEWAY, "OpenAI 응답 본문이 비어 있습니다.");
         }
 
         try {
             JsonNode report = objectMapper.readTree(outputText);
             LlmSummaryResult result = new LlmSummaryResult(
-                    limit(requiredText(report, "title"), 30),
+                    limit(requiredText(report, "title"), 50),
                     requiredText(report, "summary"),
                     requiredText(report, "content"),
                     "OPENAI",
@@ -186,8 +186,12 @@ public class OpenAiLlmReportSummarizer implements PostLlmProvider {
             log.info("[PostLLM] JSON parsing success. fallback=false");
             return result;
         } catch (Exception parseException) {
-            log.warn("[PostLLM] JSON parsing failed. fallback=true");
-            return fallbackResult(outputText, response);
+            log.warn("[PostLLM] JSON parsing failed. fallback=false", parseException);
+            throw new ResponseStatusException(
+                    HttpStatus.BAD_GATEWAY,
+                    "OpenAI 응답 JSON을 해석하지 못했습니다.",
+                    parseException
+            );
         }
     }
 
@@ -213,33 +217,6 @@ public class OpenAiLlmReportSummarizer implements PostLlmProvider {
         return value;
     }
 
-    private LlmSummaryResult fallbackResult(String plainText, JsonNode response) {
-        String normalized = plainText.replaceAll("\\s+", " ").trim();
-        String title = limit(
-                hasText(normalized) ? normalized : "LLM 요약 리포트",
-                50
-        );
-        String summary = summaryFromPlainText(normalized);
-        return new LlmSummaryResult(
-                title,
-                summary,
-                plainText.trim(),
-                "OPENAI",
-                properties.model(),
-                tokenUsage(response)
-        );
-    }
-
-    private String summaryFromPlainText(String text) {
-        String[] sentences = text.split("(?<=[.!?。])\\s+");
-        if (sentences.length >= 3) {
-            return limit(String.join(" ", java.util.Arrays.copyOfRange(sentences, 0, 3)), 500);
-        }
-        return limit(text, 300)
-                + " 상권과 상가 조건을 함께 검토할 필요가 있습니다."
-                + " 창업 또는 프랜차이즈 운영비와 지속 수요의 위험도 확인해야 합니다.";
-    }
-
     private java.util.Map<String, Integer> tokenUsage(JsonNode response) {
         JsonNode usage = response.path("usage");
         java.util.Map<String, Integer> result = new java.util.LinkedHashMap<>();
@@ -263,10 +240,6 @@ public class OpenAiLlmReportSummarizer implements PostLlmProvider {
         return value.length() <= maxLength
                 ? value
                 : value.substring(0, maxLength).trim();
-    }
-
-    private boolean hasText(String value) {
-        return value != null && !value.isBlank();
     }
 
     private String nullableText(String value) {
