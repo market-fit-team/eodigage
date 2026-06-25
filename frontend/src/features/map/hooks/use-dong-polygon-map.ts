@@ -18,15 +18,23 @@ import {
   getDongBoundsByCodes,
   getDongByCode,
   syncDongPolygonLayers,
+  syncDongPolygonSourceData,
 } from "@/features/map/lib/map-renderer/polygon-runtime"
-import type { DongCode, MapFocusRequest } from "@/features/map/types/map"
+import type {
+  AdminAreaMapData,
+  DongCode,
+  MapFocusRequest,
+  MarketAreaListItem,
+} from "@/features/map/types/map"
 
 type UseDongPolygonMapInput = {
+  adminAreas: AdminAreaMapData | null
   containerRef: RefObject<HTMLDivElement | null>
   hoveredDongCode: DongCode | null
   isDarkMode: boolean
   mapFocusRequest: MapFocusRequest | null
   recommendedDongCodes: DongCode[]
+  searchResultAreas: MarketAreaListItem[]
   selectedDongCode: DongCode | null
   viewportPadding: PaddingOptions
 } & DongPolygonMapActions
@@ -67,11 +75,13 @@ const syncBaseMapTheme = (map: Map, isDarkMode: boolean) => {
 }
 
 export function useDongPolygonMap({
+  adminAreas,
   containerRef,
   hoveredDongCode,
   isDarkMode,
   mapFocusRequest,
   recommendedDongCodes,
+  searchResultAreas,
   selectedDongCode,
   viewportPadding,
   clearPolygonHover,
@@ -81,6 +91,8 @@ export function useDongPolygonMap({
 }: UseDongPolygonMapInput) {
   const mapRef = useRef<Map | null>(null)
   const isMapLoadedRef = useRef(false)
+  const arePolygonEventsBoundRef = useRef(false)
+  const arePolygonLayersReadyRef = useRef(false)
   const pendingFocusRequestRef = useRef<MapFocusRequest | null>(null)
   const fittedRecommendedKeyRef = useRef("")
   const onClearPolygonHover = useEffectEvent(() => {
@@ -100,6 +112,7 @@ export function useDongPolygonMap({
       hoveredDongCode,
       map,
       recommendedDongCodes,
+      searchResultAreas,
       selectedDongCode,
     })
   })
@@ -110,6 +123,7 @@ export function useDongPolygonMap({
     const recommendedKey = recommendedDongCodes.join(",")
 
     if (
+      !adminAreas ||
       recommendedDongCodes.length === 0 ||
       selectedDongCode !== null ||
       fittedRecommendedKeyRef.current === recommendedKey
@@ -117,7 +131,7 @@ export function useDongPolygonMap({
       return
     }
 
-    const bounds = getDongBoundsByCodes(recommendedDongCodes)
+    const bounds = getDongBoundsByCodes(adminAreas, recommendedDongCodes)
 
     if (!bounds) {
       return
@@ -129,16 +143,41 @@ export function useDongPolygonMap({
       padding: viewportPadding,
     })
   })
+  const ensurePolygonLayers = useEffectEvent((map: Map) => {
+    if (!adminAreas) {
+      return
+    }
+
+    if (arePolygonLayersReadyRef.current) {
+      syncDongPolygonSourceData(map, adminAreas)
+    } else {
+      addDongPolygonLayers(map, adminAreas)
+      arePolygonLayersReadyRef.current = true
+    }
+
+    if (!arePolygonEventsBoundRef.current) {
+      bindDongPolygonEvents({
+        clearPolygonHover: onClearPolygonHover,
+        focusMapOnDong: onFocusMapOnDong,
+        hoverDong: onHoverDong,
+        map,
+        selectDong: onSelectDong,
+      })
+      arePolygonEventsBoundRef.current = true
+    }
+
+    syncCurrentLayerState(map)
+  })
   const getCurrentViewportPadding = useEffectEvent(() => viewportPadding)
   const focusRequestedDong = useEffectEvent((focusRequest: MapFocusRequest) => {
     const map = mapRef.current
 
-    if (!map || !isMapLoadedRef.current) {
+    if (!map || !isMapLoadedRef.current || !adminAreas) {
       pendingFocusRequestRef.current = focusRequest
       return
     }
 
-    const focusedDong = getDongByCode(focusRequest.dongCode)
+    const focusedDong = getDongByCode(adminAreas, focusRequest.dongCode)
 
     if (!focusedDong) {
       return
@@ -210,14 +249,7 @@ export function useDongPolygonMap({
 
         isMapLoadedRef.current = true
         syncCurrentBaseMapTheme(map)
-        addDongPolygonLayers(map)
-        bindDongPolygonEvents({
-          clearPolygonHover: onClearPolygonHover,
-          focusMapOnDong: onFocusMapOnDong,
-          hoverDong: onHoverDong,
-          map,
-          selectDong: onSelectDong,
-        })
+        ensurePolygonLayers(map)
         syncCurrentLayerState(map)
         fitCurrentRecommendedBounds(map)
         if (pendingFocusRequestRef.current) {
@@ -240,6 +272,8 @@ export function useDongPolygonMap({
       mapRef.current?.remove()
       mapRef.current = null
       isMapLoadedRef.current = false
+      arePolygonEventsBoundRef.current = false
+      arePolygonLayersReadyRef.current = false
       pendingFocusRequestRef.current = null
       fittedRecommendedKeyRef.current = ""
     }
@@ -250,6 +284,7 @@ export function useDongPolygonMap({
     const layerState = {
       hoveredDongCode,
       recommendedDongCodes,
+      searchResultAreas,
       selectedDongCode,
     }
 
@@ -257,11 +292,31 @@ export function useDongPolygonMap({
       return
     }
 
+    ensurePolygonLayers(map)
     syncDongPolygonLayers({
       map,
       ...layerState,
     })
-  }, [hoveredDongCode, recommendedDongCodes, selectedDongCode])
+  }, [
+    hoveredDongCode,
+    recommendedDongCodes,
+    searchResultAreas,
+    selectedDongCode,
+  ])
+
+  useEffect(() => {
+    const map = mapRef.current
+
+    if (!map || !isMapLoadedRef.current || !adminAreas) {
+      return
+    }
+
+    ensurePolygonLayers(map)
+    fitCurrentRecommendedBounds(map)
+    if (pendingFocusRequestRef.current) {
+      focusRequestedDong(pendingFocusRequestRef.current)
+    }
+  }, [adminAreas])
 
   useEffect(() => {
     const map = mapRef.current

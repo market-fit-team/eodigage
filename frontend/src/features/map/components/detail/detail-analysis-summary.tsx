@@ -1,4 +1,4 @@
-import { Sparkles } from "lucide-react"
+import { ChartNoAxesCombined } from "lucide-react"
 import {
   Card,
   CardContent,
@@ -6,17 +6,17 @@ import {
   CardTitle,
 } from "@/shared/components/ui/card"
 
-type DetailAiSummaryProps = {
+type DetailAnalysisSummaryProps = {
   summary: string
 }
 
-export function DetailAiSummary({ summary }: DetailAiSummaryProps) {
+export function DetailAnalysisSummary({ summary }: DetailAnalysisSummaryProps) {
   return (
     <Card>
       <CardHeader>
         <CardTitle className="flex items-center gap-1.5 text-sm">
-          <Sparkles className="h-4 w-4 text-primary" />
-          AI 상권 요약
+          <ChartNoAxesCombined className="h-4 w-4 text-primary" />
+          상권 상세 분석
         </CardTitle>
       </CardHeader>
       <CardContent>

@@ -2,32 +2,52 @@
 
 import { RecommendationEmpty } from "@/features/map/components/recommendation/recommendation-empty"
 import { RecommendationItem } from "@/features/map/components/recommendation/recommendation-item"
-import { useFilteredRecommendedAreas } from "@/features/map/hooks/use-filtered-recommended-areas"
-import { useRecommendedAreas } from "@/features/map/hooks/use-recommended-areas"
+import { useMarketRecommendations } from "@/features/map/hooks/use-market-recommendations"
 import { useMapStore } from "@/features/map/store/map-store"
 import { CardContent } from "@/shared/components/ui/card"
+import { Skeleton } from "@/shared/components/ui/skeleton"
 
-// 추천 원천(온보딩·설문·AI)은 useFilteredRecommendedAreas 훅이 필터까지 적용해 파생하므로
-// 여기서는 표시만 맡는다.
+function RecommendationSkeleton() {
+  return (
+    <CardContent className="flex flex-1 flex-col gap-2 px-3 py-3">
+      <Skeleton className="h-12 rounded-lg" />
+      <Skeleton className="h-12 rounded-lg" />
+      <Skeleton className="h-12 rounded-lg" />
+      <Skeleton className="h-12 rounded-lg" />
+    </CardContent>
+  )
+}
+
+// 로그인 사용자의 추천 행정동 목록을 표시하고 선택 상태를 지도/미리보기에 반영한다.
 export function Recommendation() {
   const selectedDongCode = useMapStore((state) => state.selectedDongCode)
   const selectDong = useMapStore((state) => state.selectDong)
   const focusMapOnDong = useMapStore((state) => state.focusMapOnDong)
   const resetFilters = useMapStore((state) => state.resetFilters)
 
-  // 추천 자체 유무(필터 전)와 필터 적용 결과를 구분해 빈 상태 안내를 다르게 보여준다.
-  const hasAnyRecommendation = useRecommendedAreas().length > 0
-  const recommendedTradeAreas = useFilteredRecommendedAreas()
+  const { areas, isError, isLoading } = useMarketRecommendations()
 
   const handleSelect = (dongCode: string) => {
     selectDong(dongCode)
     focusMapOnDong(dongCode)
   }
 
-  if (recommendedTradeAreas.length === 0) {
+  if (isLoading) {
+    return <RecommendationSkeleton />
+  }
+
+  if (isError) {
+    return (
+      <CardContent className="flex flex-1 items-center justify-center px-4 py-3 text-center text-xs leading-relaxed text-destructive">
+        추천 상권 목록을 불러오지 못했습니다.
+      </CardContent>
+    )
+  }
+
+  if (areas.length === 0) {
     return (
       <RecommendationEmpty
-        hasRecommendations={hasAnyRecommendation}
+        hasRecommendations={false}
         onResetFilters={resetFilters}
       />
     )
@@ -35,13 +55,13 @@ export function Recommendation() {
 
   return (
     <CardContent className="flex flex-1 flex-col gap-2 overflow-y-auto px-3 py-3 text-xs">
-      {recommendedTradeAreas.map((tradeArea) => {
+      {areas.map((tradeArea) => {
         return (
           <RecommendationItem
-            key={tradeArea.id}
+            key={tradeArea.dongCode}
             tradeArea={tradeArea}
-            isSelected={tradeArea.id === selectedDongCode}
-            onSelect={() => handleSelect(tradeArea.id)}
+            isSelected={tradeArea.dongCode === selectedDongCode}
+            onSelect={() => handleSelect(tradeArea.dongCode)}
           />
         )
       })}

@@ -1,5 +1,4 @@
 import { WalletCards } from "lucide-react"
-import type { DistrictData } from "@/features/startup/lib/data"
 import {
   Card,
   CardContent,
@@ -15,8 +14,14 @@ import {
   TableRow,
 } from "@/shared/components/ui/table"
 
+type FranchiseStartupCost = {
+  minCapital: number
+  name: string
+  sector: string
+}
+
 type FranchiseStartupCostCardProps = {
-  franchises: DistrictData["recommendedFranchises"]
+  franchises: FranchiseStartupCost[]
 }
 
 export function FranchiseStartupCostCard({
@@ -31,28 +36,34 @@ export function FranchiseStartupCostCard({
         </CardTitle>
       </CardHeader>
       <CardContent className="overflow-x-auto">
-        <Table className="min-w-[520px]">
-          <TableHeader>
-            <TableRow>
-              <TableHead>브랜드</TableHead>
-              <TableHead>업종</TableHead>
-              <TableHead className="text-right">예상 창업 비용</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {franchises.map((franchise) => (
-              <TableRow key={franchise.name}>
-                <TableCell className="font-medium text-foreground">
-                  {franchise.name}
-                </TableCell>
-                <TableCell>{franchise.sector}</TableCell>
-                <TableCell className="text-right font-mono font-medium text-foreground">
-                  {franchise.minCapital.toLocaleString()}만원
-                </TableCell>
+        {franchises.length === 0 ? (
+          <p className="text-xs text-muted-foreground">
+            프랜차이즈 예상 창업 비용은 백엔드 응답 스펙이 확정되면 연결합니다.
+          </p>
+        ) : (
+          <Table className="min-w-[520px]">
+            <TableHeader>
+              <TableRow>
+                <TableHead>브랜드</TableHead>
+                <TableHead>업종</TableHead>
+                <TableHead className="text-right">예상 창업 비용</TableHead>
               </TableRow>
-            ))}
-          </TableBody>
-        </Table>
+            </TableHeader>
+            <TableBody>
+              {franchises.map((franchise) => (
+                <TableRow key={franchise.name}>
+                  <TableCell className="font-medium text-foreground">
+                    {franchise.name}
+                  </TableCell>
+                  <TableCell>{franchise.sector}</TableCell>
+                  <TableCell className="text-right font-mono font-medium text-foreground">
+                    {franchise.minCapital.toLocaleString()}만원
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        )}
       </CardContent>
     </Card>
   )
