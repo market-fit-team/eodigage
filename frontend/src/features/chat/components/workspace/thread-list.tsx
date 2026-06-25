@@ -362,8 +362,7 @@ function ThreadItem({
             </p>
           )}
           <p className="mt-1 text-xs text-muted-foreground">
-            {formatRelativeTime(thread.updated_at)} · {thread.message_count}개
-            메시지
+            {formatRelativeTime(thread.updated_at)}
           </p>
         </div>
       )}

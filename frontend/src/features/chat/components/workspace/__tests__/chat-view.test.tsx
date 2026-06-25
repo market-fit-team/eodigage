@@ -15,8 +15,25 @@ vi.mock("@/features/chat/hooks/use-langgraph-chat-stream", () => ({
     isHydrating: false,
     localNotice: null,
     messages: [],
+    models: [
+      {
+        id: "gpt-5-mini",
+        object: "model",
+        created: 0,
+        supportedReasoningEfforts: ["none", "low", "medium"],
+      },
+    ],
     modelSelection: {
       model: "gpt-5-mini",
+      reasoningEffort: "medium",
+      selectedModel: {
+        id: "gpt-5-mini",
+        object: "model",
+        created: 0,
+        supportedReasoningEfforts: ["none", "low", "medium"],
+      },
+      selectModel: vi.fn(),
+      selectReasoningEffort: vi.fn(),
     },
     resume: vi.fn(),
     sendMessage,

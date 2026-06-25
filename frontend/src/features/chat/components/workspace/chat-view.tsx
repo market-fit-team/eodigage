@@ -16,7 +16,6 @@ import {
   TerminalSquare,
   ThumbsDown,
   ThumbsUp,
-  X,
 } from "lucide-react"
 import { toast } from "sonner"
 import {
@@ -27,6 +26,7 @@ import {
 } from "@langchain/core/messages"
 import type { AssembledToolCall } from "@langchain/langgraph-sdk/stream"
 import { HitlInterruptCard } from "@/features/chat/components/hitl/hitl-interrupt-card"
+import { ChatModelMenu } from "@/features/chat/components/workspace/chat-model-menu"
 import { ChatSelectionChips } from "@/features/chat/components/workspace/chat-selection-chips"
 import { useAutoScroll } from "@/features/chat/hooks/use-auto-scroll"
 import { useLangGraphChatStream } from "@/features/chat/hooks/use-langgraph-chat-stream"
@@ -112,6 +112,7 @@ export function ChatView({
     isHydrating,
     localNotice,
     messages,
+    models,
     modelSelection,
     resume,
     sendMessage,
@@ -349,8 +350,15 @@ export function ChatView({
               className="w-full resize-none bg-transparent px-4 pt-3 pb-10 text-sm leading-relaxed text-foreground outline-none placeholder:text-muted-foreground disabled:cursor-not-allowed disabled:opacity-60"
               id="chat-input-textarea"
             />
-            <div className="absolute right-2 bottom-2 left-2 flex items-center justify-between">
-              <div />
+            <div className="absolute right-2 bottom-2 left-2 flex items-center justify-between gap-2">
+              <ChatModelMenu
+                models={models}
+                selectedModel={modelSelection.selectedModel}
+                selectedReasoningEffort={modelSelection.reasoningEffort}
+                onSelectModel={modelSelection.selectModel}
+                onSelectReasoningEffort={modelSelection.selectReasoningEffort}
+                disabled={disabled}
+              />
               <div className="flex items-center gap-1.5">
                 <span className="text-xs text-muted-foreground">
                   {input.length > 0 ? `${input.length}자` : ""}
