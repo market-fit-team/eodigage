@@ -3,10 +3,16 @@ import { fetchWithAuth } from "@/features/auth/lib/fetch-with-auth"
 import {
   createLlmReport,
   createPost,
+  createPostComment,
+  deletePostComment,
   getMainPostCarousel,
+  getNotifications,
   getPost,
+  getPostComments,
   getPosts,
+  markNotificationRead,
   updatePost,
+  updatePostComment,
 } from "@/features/post/api/post-api"
 
 vi.mock("@/features/auth/lib/fetch-with-auth", () => ({
@@ -81,7 +87,7 @@ describe("post-api", () => {
     vi.mocked(fetchWithAuth).mockResolvedValue({
       id: "post-1",
       authorId: "user-1",
-      authorName: "테스터",
+      authorName: "테스트",
       title: "리포트",
       summary: "요약",
       content: "본문",
@@ -137,6 +143,58 @@ describe("post-api", () => {
     expect(fetchWithAuth).toHaveBeenNthCalledWith(
       2,
       expect.stringContaining("/api/post/api/posts/post-1"),
+      expect.objectContaining({ method: "PATCH" })
+    )
+  })
+
+  it("댓글 CRUD API 경로를 사용한다", async () => {
+    vi.mocked(fetchWithAuth).mockResolvedValue({} as never)
+
+    await getPostComments("post-1")
+    await createPostComment("post-1", "댓글")
+    await updatePostComment("post-1", "comment-1", "수정 댓글")
+    await deletePostComment("post-1", "comment-1")
+
+    expect(fetchWithAuth).toHaveBeenNthCalledWith(
+      1,
+      expect.stringContaining("/api/post/api/posts/post-1/comments")
+    )
+    expect(fetchWithAuth).toHaveBeenNthCalledWith(
+      2,
+      expect.stringContaining("/api/post/api/posts/post-1/comments"),
+      expect.objectContaining({
+        method: "POST",
+        body: JSON.stringify({ content: "댓글" }),
+      })
+    )
+    expect(fetchWithAuth).toHaveBeenNthCalledWith(
+      3,
+      expect.stringContaining("/api/post/api/posts/post-1/comments/comment-1"),
+      expect.objectContaining({
+        method: "PUT",
+        body: JSON.stringify({ content: "수정 댓글" }),
+      })
+    )
+    expect(fetchWithAuth).toHaveBeenNthCalledWith(
+      4,
+      expect.stringContaining("/api/post/api/posts/post-1/comments/comment-1"),
+      expect.objectContaining({ method: "DELETE" })
+    )
+  })
+
+  it("알림 조회와 읽음 처리 API 경로를 사용한다", async () => {
+    vi.mocked(fetchWithAuth).mockResolvedValue({} as never)
+
+    await getNotifications()
+    await markNotificationRead("notification-1")
+
+    expect(fetchWithAuth).toHaveBeenNthCalledWith(
+      1,
+      expect.stringContaining("/api/post/api/notifications")
+    )
+    expect(fetchWithAuth).toHaveBeenNthCalledWith(
+      2,
+      expect.stringContaining("/api/post/api/notifications/notification-1/read"),
       expect.objectContaining({ method: "PATCH" })
     )
   })

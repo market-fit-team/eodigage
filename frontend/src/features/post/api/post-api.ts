@@ -3,7 +3,9 @@ import type {
   CreateLlmReportInput,
   MainPostCarouselSection,
   MyPostSummary,
+  PostComment,
   PostDetail,
+  PostNotification,
   PostPage,
   PostWriteInput,
 } from "@/features/post/types/post"
@@ -40,6 +42,46 @@ export const getPost = async (id: string) => {
   })
   return parsePublicResponse<PostDetail>(response)
 }
+
+export const getPostComments = (postId: string) =>
+  fetchWithAuth<PostComment[]>(`${postApiBaseUrl}/${postId}/comments`)
+
+export const createPostComment = (postId: string, content: string) =>
+  fetchWithAuth<PostComment>(`${postApiBaseUrl}/${postId}/comments`, {
+    method: "POST",
+    headers: { "content-type": "application/json" },
+    body: JSON.stringify({ content }),
+  })
+
+export const updatePostComment = (
+  postId: string,
+  commentId: string,
+  content: string
+) =>
+  fetchWithAuth<PostComment>(
+    `${postApiBaseUrl}/${postId}/comments/${commentId}`,
+    {
+      method: "PUT",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ content }),
+    }
+  )
+
+export const deletePostComment = (postId: string, commentId: string) =>
+  fetchWithAuth<void>(`${postApiBaseUrl}/${postId}/comments/${commentId}`, {
+    method: "DELETE",
+  })
+
+export const getNotifications = () =>
+  fetchWithAuth<PostNotification[]>(
+    `${process.env.NEXT_PUBLIC_API_ORIGIN ?? "http://localhost:8088"}/api/post/api/notifications`
+  )
+
+export const markNotificationRead = (notificationId: string) =>
+  fetchWithAuth<PostNotification>(
+    `${process.env.NEXT_PUBLIC_API_ORIGIN ?? "http://localhost:8088"}/api/post/api/notifications/${notificationId}/read`,
+    { method: "PATCH" }
+  )
 
 export const getMyPostSummary = () =>
   fetchWithAuth<MyPostSummary>(`${postApiBaseUrl}/me/summary`)

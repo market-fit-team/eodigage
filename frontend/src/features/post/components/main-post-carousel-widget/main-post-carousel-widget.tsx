@@ -1,6 +1,7 @@
 "use client"
 
 import { ArrowRight, BookOpen, Sparkles } from "lucide-react"
+import type { ReactNode } from "react"
 import type { PostSourceType } from "@/features/post/types/post"
 import { Skeleton } from "@/shared/components/ui/skeleton"
 
@@ -18,10 +19,7 @@ type MainPostCarouselWidgetProps = {
   isLoading?: boolean
   error?: string | null
   onPostClick?: (postId: string) => void
-  showGenerator?: boolean
-  isGenerating?: boolean
-  generationError?: string | null
-  onGenerate?: () => void
+  headerActions?: ReactNode
 }
 
 const sourceLabels: Record<PostSourceType, string> = {
@@ -72,13 +70,9 @@ export function MainPostCarouselWidget({
   isLoading = false,
   error = null,
   onPostClick,
-  showGenerator = false,
-  isGenerating = false,
-  generationError = null,
-  onGenerate,
+  headerActions = null,
 }: MainPostCarouselWidgetProps = {}) {
   const visiblePosts = posts.slice(0, 4)
-  const shouldShowLoadingCards = isLoading || (isGenerating && posts.length === 0)
 
   return (
     <section className="space-y-4" aria-labelledby="main-post-carousel-title">
@@ -90,40 +84,20 @@ export function MainPostCarouselWidget({
           </p>
           <h2
             id="main-post-carousel-title"
-            className="flex items-center gap-2 text-xl font-bold tracking-[-0.03em] text-neutral-950 sm:text-2xl"
+            className="flex items-center gap-2 text-xl font-bold text-neutral-950 sm:text-2xl"
           >
             <BookOpen className="size-5" aria-hidden="true" />
-            뉴스 기반 창업 상권 AI 칼럼
+            뉴스 기반 창업 인사이트 AI 칼럼
           </h2>
         </div>
-        {showGenerator ? (
-          <div className="flex max-w-full flex-col items-end gap-2">
-            <div className="flex w-full justify-end">
-              <button
-                type="button"
-                disabled={isGenerating}
-                className="h-9 shrink-0 rounded-lg bg-neutral-950 px-3 text-sm font-semibold text-white transition-colors hover:bg-neutral-800 disabled:cursor-not-allowed disabled:bg-neutral-400"
-                onClick={onGenerate}
-              >
-                {isGenerating
-                  ? "AI 칼럼 생성 중..."
-                  : "최신 뉴스로 AI 칼럼 생성"}
-              </button>
-            </div>
-            {generationError ? (
-              <p role="alert" className="text-xs text-red-600">
-                {generationError}
-              </p>
-            ) : null}
-          </div>
-        ) : (
+        {headerActions ?? (
           <span className="hidden text-xs text-neutral-400 sm:block">
             최신 칼럼
           </span>
         )}
       </div>
 
-      {shouldShowLoadingCards ? (
+      {isLoading ? (
         <LoadingState />
       ) : error ? (
         <div
@@ -142,7 +116,7 @@ export function MainPostCarouselWidget({
             아직 표시할 AI 칼럼이 없습니다.
           </p>
           <p className="mt-1 text-xs text-neutral-500">
-            새로운 AI 칼럼이 발행되면 이곳에 표시됩니다.
+            새로운 AI 칼럼이 발행되면 여기에 표시됩니다.
           </p>
         </div>
       ) : (
