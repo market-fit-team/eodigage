@@ -102,7 +102,8 @@ public class FranchiseIngestService {
             }
 
             Long industryId = resolveIndustry(item, context);
-            Long brandId = resolveBrand(companyName, brandName, industryId, context);
+            Long brandId = resolveBrand(companyName, brandName, industryId,
+                    trimToNull(item.get("indutyMlsfcNm")), context);
             upserter.upsert(item, brandId, context.batchId());
             count++;
         }
@@ -122,11 +123,18 @@ public class FranchiseIngestService {
         );
     }
 
-    private Long resolveBrand(String companyName, String brandName, Long industryId, IngestContext context) {
+    private Long resolveBrand(
+            String companyName,
+            String brandName,
+            Long industryId,
+            String indutyMlsfcNm,
+            IngestContext context
+    ) {
         String brandCode = FranchiseCodes.brandCode(companyName, brandName);
+        String cacheKey = brandCode + "::" + (indutyMlsfcNm == null ? "" : indutyMlsfcNm);
         return context.brandIds().computeIfAbsent(
-                brandCode,
-                code -> repository.upsertBrand(code, brandName, companyName, industryId)
+                cacheKey,
+                key -> repository.upsertBrand(brandCode, brandName, companyName, industryId, indutyMlsfcNm)
         );
     }
 
