@@ -109,17 +109,21 @@ describe("groupChatTurns", () => {
           name: "artifact_create",
           status: "finished",
           argsSummary: JSON.stringify({ artifact_type: "markdown" }, null, 2),
-          resultSummary: JSON.stringify({
-            id: "artifact-1",
-            thread_id: "thread-1",
-            type: "markdown",
-            title: "초안 아티팩트",
-            summary: "임시 초안입니다.",
-            raw_text: "초안 본문",
-            version: 1,
-            source_message_id: null,
-            source_tool_call_id: "tool-1",
-          }),
+          resultSummary: JSON.stringify(
+            {
+              id: "artifact-1",
+              thread_id: "thread-1",
+              type: "markdown",
+              title: "초안 아티팩트",
+              summary: "임시 초안입니다.",
+              raw_text: "초안 본문",
+              version: 1,
+              source_message_id: null,
+              source_tool_call_id: "tool-1",
+            },
+            null,
+            2
+          ),
         },
         cards: [
           {
@@ -158,14 +162,18 @@ describe("groupChatTurns", () => {
           name: "artifact_save_as_document",
           status: "finished",
           argsSummary: JSON.stringify({ artifact_id: "artifact-1" }, null, 2),
-          resultSummary: JSON.stringify({
-            id: "doc-1",
-            type: "markdown",
-            title: "저장된 문서",
-            summary: "재사용 가능한 문서입니다.",
-            raw_text: "문서 본문",
-            source_artifact_id: "artifact-1",
-          }),
+          resultSummary: JSON.stringify(
+            {
+              id: "doc-1",
+              type: "markdown",
+              title: "저장된 문서",
+              summary: "재사용 가능한 문서입니다.",
+              raw_text: "문서 본문",
+              source_artifact_id: "artifact-1",
+            },
+            null,
+            2
+          ),
         },
         cards: [
           {
@@ -237,14 +245,126 @@ describe("groupChatTurns", () => {
         : null
     const toolItem =
       assistantTurn?.items.find(
-        (item) => item.kind === "tool-call" && item.toolCallName === "artifact_create"
+        (item) =>
+          item.kind === "tool-call" && item.toolCallName === "artifact_create"
       ) ?? null
 
-    expect(toolItem && toolItem.kind === "tool-call" ? toolItem.cards : []).toEqual([
+    expect(
+      toolItem && toolItem.kind === "tool-call" ? toolItem.cards : []
+    ).toEqual([
       {
         kind: "artifact",
         artifact: expect.objectContaining({
           id: "artifact-1",
+        }),
+      },
+    ])
+  })
+
+  it("웹 검색과 웹 fetch 결과는 전용 카드로 분류한다.", () => {
+    const result = groupChatTurns({
+      messages: [
+        new HumanMessage({
+          id: "human-1",
+          content: "검색하고 페이지도 읽어줘",
+        }),
+        new AIMessage({
+          id: "ai-1",
+          content: "먼저 검색하겠습니다.",
+          tool_calls: [
+            {
+              id: "tool-search",
+              name: "web_search",
+              args: { query: "성수동 팝업 스토어", limit: 2 },
+            },
+          ],
+        }),
+        new ToolMessage({
+          id: "tool-message-search",
+          content: JSON.stringify({
+            query: "성수동 팝업 스토어",
+            page: 1,
+            results_count: 2,
+            results: [
+              {
+                rank: 1,
+                title: "검색 결과",
+                url: "https://example.com/search",
+                snippet: "요약",
+                engine: "brave",
+                engines: ["brave"],
+                published_date: null,
+              },
+            ],
+          }),
+          tool_call_id: "tool-search",
+        }),
+        new AIMessage({
+          id: "ai-2",
+          content: "상세 페이지를 읽었습니다.",
+          tool_calls: [
+            {
+              id: "tool-fetch",
+              name: "web_fetch",
+              args: { url: "https://example.com/search" },
+            },
+          ],
+        }),
+        new ToolMessage({
+          id: "tool-message-fetch",
+          content: JSON.stringify({
+            requested_url: "https://example.com/search",
+            final_url: "https://example.com/search",
+            status_code: 200,
+            content_type: "text/html",
+            title: "검색 결과 상세",
+            content: "본문 미리보기",
+            truncated: false,
+          }),
+          tool_call_id: "tool-fetch",
+        }),
+      ],
+      toolCalls: [
+        {
+          id: "tool-search",
+          callId: "tool-search",
+          name: "web_search",
+          status: "finished",
+          args: { query: "성수동 팝업 스토어", limit: 2 },
+        },
+        {
+          id: "tool-fetch",
+          callId: "tool-fetch",
+          name: "web_fetch",
+          status: "finished",
+          args: { url: "https://example.com/search" },
+        },
+      ] as never,
+    })
+
+    const assistantTurn =
+      result.turns[1] && result.turns[1].kind === "assistant"
+        ? result.turns[1]
+        : null
+
+    const toolCards =
+      assistantTurn?.items
+        .filter((item) => item.kind === "tool-call")
+        .flatMap((item) => item.cards) ?? []
+
+    expect(toolCards).toEqual([
+      {
+        kind: "web-search",
+        result: expect.objectContaining({
+          query: "성수동 팝업 스토어",
+          results_count: 2,
+        }),
+      },
+      {
+        kind: "web-fetch",
+        result: expect.objectContaining({
+          final_url: "https://example.com/search",
+          title: "검색 결과 상세",
         }),
       },
     ])

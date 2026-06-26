@@ -5,6 +5,10 @@ import {
   ToolMessage,
 } from "@langchain/core/messages"
 import type { AssembledToolCall } from "@langchain/langgraph-sdk/stream"
+import {
+  parseChatWebFetchToolResult,
+  parseChatWebSearchToolResult,
+} from "@/features/chat/lib/tool-results/chat-web-tool-result"
 import type {
   ArtifactResponse,
   DocumentResponse,
@@ -51,6 +55,14 @@ export type ChatTurnToolCard =
   | {
       kind: "library-document"
       document: DocumentResponse
+    }
+  | {
+      kind: "web-search"
+      result: NonNullable<ReturnType<typeof parseChatWebSearchToolResult>>
+    }
+  | {
+      kind: "web-fetch"
+      result: NonNullable<ReturnType<typeof parseChatWebFetchToolResult>>
     }
 
 export type ChatAssistantTurnItem =
@@ -107,7 +119,15 @@ const toSummaryText = (value: unknown) => {
   }
 
   if (typeof value === "string") {
-    return value.trim() || null
+    const normalized = value.trim()
+    if (!normalized) {
+      return null
+    }
+    const parsed = tryParseJson(normalized)
+    if (parsed !== null) {
+      return JSON.stringify(parsed, null, 2)
+    }
+    return normalized
   }
 
   try {
@@ -226,6 +246,20 @@ const buildToolCards = ({
     ]
   }
 
+  if (toolCallName === "web_search") {
+    const result = parseChatWebSearchToolResult(parsed)
+    if (result) {
+      return [{ kind: "web-search", result }]
+    }
+  }
+
+  if (toolCallName === "web_fetch") {
+    const result = parseChatWebFetchToolResult(parsed)
+    if (result) {
+      return [{ kind: "web-fetch", result }]
+    }
+  }
+
   return []
 }
 
@@ -302,7 +336,9 @@ const buildAssistantTurn = ({
           ? assembledToolCallsById.get(callId)
           : undefined
       const toolMessage =
-        typeof callId === "string" ? toolMessagesByCallId.get(callId) : undefined
+        typeof callId === "string"
+          ? toolMessagesByCallId.get(callId)
+          : undefined
 
       items.push({
         kind: "tool-call",
@@ -318,7 +354,9 @@ const buildAssistantTurn = ({
           status: assembledToolCall?.status,
           argsSummary: toSummaryText(toolCall.args),
           resultSummary: toSummaryText(
-            toolMessage?.text ?? assembledToolCall?.output ?? toolMessage?.content
+            toolMessage?.text ??
+              assembledToolCall?.output ??
+              toolMessage?.content
           ),
         },
         cards: buildToolCards({

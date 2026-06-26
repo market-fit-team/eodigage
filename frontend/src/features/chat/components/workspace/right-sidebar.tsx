@@ -5,8 +5,11 @@ import {
   Check,
   Code,
   Copy,
+  ExternalLink,
   FileText,
+  Globe,
   PanelRightClose,
+  Search,
   TerminalSquare,
 } from "lucide-react"
 import type { AssembledToolCall } from "@langchain/langgraph-sdk/stream"
@@ -19,6 +22,10 @@ import {
   getDocumentIcon,
   getDocumentTitle,
 } from "@/features/chat/lib/display/chat-display"
+import type {
+  ChatWebFetchToolResult,
+  ChatWebSearchToolResult,
+} from "@/features/chat/lib/tool-results/chat-web-tool-result"
 import { useChatWorkspace } from "@/features/chat/providers/chat-workspace-provider"
 import type { HitlDecision } from "@/features/chat/types/hitl-interrupt-payload"
 import type { ChatRightPanel } from "@/features/chat/types/workspace"
@@ -105,6 +112,12 @@ export function RightSidebar({
           )}
           {panel.kind === "artifact" && (
             <ArtifactViewer artifact={panel.artifact} />
+          )}
+          {panel.kind === "web-search" && (
+            <WebSearchViewer result={panel.result} />
+          )}
+          {panel.kind === "web-fetch" && (
+            <WebFetchViewer result={panel.result} />
           )}
           {panel.kind === "thinking" && (
             <ThinkingViewer
@@ -217,7 +230,11 @@ function ArtifactViewer({ artifact }: { artifact: ArtifactResponse }) {
           </p>
         )}
       </div>
-      <ArtifactActionButtons artifactId={artifact.id} canInteract size="icon-sm" />
+      <ArtifactActionButtons
+        artifactId={artifact.id}
+        canInteract
+        size="icon-sm"
+      />
       {isMarkdownRenderableType(artifact.type) ? (
         <div className="rounded-lg border border-border/40 bg-muted/10 p-4 text-sm leading-7">
           <MarkdownContentRenderer content={artifact.raw_text} />
@@ -225,6 +242,143 @@ function ArtifactViewer({ artifact }: { artifact: ArtifactResponse }) {
       ) : (
         <RawTextBlock value={artifact.raw_text} />
       )}
+    </div>
+  )
+}
+
+function WebSearchViewer({ result }: { result: ChatWebSearchToolResult }) {
+  return (
+    <div className="min-w-0 space-y-4">
+      <div className="space-y-1">
+        <h2 className="text-sm font-semibold">{result.query}</h2>
+        <p className="text-xs text-muted-foreground">
+          {formatSearchResultSummary(result)}
+        </p>
+      </div>
+
+      {result.results.length === 0 ? (
+        <p className="rounded-lg border border-border/30 bg-muted/10 p-4 text-xs text-muted-foreground">
+          표시할 검색 결과가 없습니다.
+        </p>
+      ) : (
+        <div className="space-y-3">
+          {result.results.map((searchResult) => (
+            <div
+              key={`${searchResult.rank}-${searchResult.url}`}
+              className="rounded-lg border border-border/35 bg-muted/10 p-3"
+            >
+              <div className="mb-2 flex items-start justify-between gap-3">
+                <div className="min-w-0 space-y-1">
+                  <div className="flex flex-wrap items-center gap-1.5">
+                    <Badge variant="outline" className="h-5 text-[10px]">
+                      #{searchResult.rank}
+                    </Badge>
+                    {searchResult.engine && (
+                      <Badge variant="outline" className="h-5 text-[10px]">
+                        {searchResult.engine}
+                      </Badge>
+                    )}
+                    {searchResult.published_date && (
+                      <Badge variant="secondary" className="h-5 text-[10px]">
+                        {searchResult.published_date}
+                      </Badge>
+                    )}
+                  </div>
+                  <p className="line-clamp-2 text-sm font-medium text-foreground">
+                    {searchResult.title}
+                  </p>
+                  <p className="truncate text-[11px] text-muted-foreground">
+                    {getUrlHostname(searchResult.url) ?? searchResult.url}
+                  </p>
+                </div>
+                <Button
+                  asChild
+                  variant="outline"
+                  size="sm"
+                  className="h-7 shrink-0"
+                >
+                  <a
+                    href={searchResult.url}
+                    target="_blank"
+                    rel="noreferrer"
+                    aria-label={`${searchResult.title} 새 탭에서 열기`}
+                  >
+                    <ExternalLink className="size-3" />
+                    열기
+                  </a>
+                </Button>
+              </div>
+              {searchResult.snippet && (
+                <p className="text-xs leading-5 whitespace-pre-wrap text-muted-foreground">
+                  {searchResult.snippet}
+                </p>
+              )}
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  )
+}
+
+function WebFetchViewer({ result }: { result: ChatWebFetchToolResult }) {
+  return (
+    <div className="min-w-0 space-y-4">
+      <div className="space-y-2">
+        <div className="space-y-1">
+          <h2 className="text-sm font-semibold break-words">
+            {result.title ??
+              getUrlHostname(result.final_url) ??
+              result.final_url}
+          </h2>
+          <p className="text-xs break-all text-muted-foreground">
+            {result.final_url}
+          </p>
+        </div>
+
+        <div className="flex flex-wrap items-center gap-1.5">
+          <Badge variant="outline" className="h-5 text-[10px]">
+            {result.status_code}
+          </Badge>
+          <Badge variant="outline" className="h-5 text-[10px]">
+            {result.content_type || "unknown"}
+          </Badge>
+          {result.truncated && (
+            <Badge variant="secondary" className="h-5 text-[10px]">
+              잘림
+            </Badge>
+          )}
+        </div>
+
+        <Button
+          asChild
+          variant="outline"
+          size="sm"
+          className="h-7 gap-1 text-xs"
+        >
+          <a href={result.final_url} target="_blank" rel="noreferrer">
+            <ExternalLink className="size-3" />
+            원본 열기
+          </a>
+        </Button>
+      </div>
+
+      <dl className="space-y-2 rounded-lg border border-border/35 bg-muted/10 p-3 text-xs">
+        <div>
+          <dt className="mb-1 font-medium text-foreground">요청 URL</dt>
+          <dd className="break-all text-muted-foreground">
+            {result.requested_url}
+          </dd>
+        </div>
+        <div>
+          <dt className="mb-1 font-medium text-foreground">최종 URL</dt>
+          <dd className="break-all text-muted-foreground">
+            {result.final_url}
+          </dd>
+        </div>
+      </dl>
+
+      <RawTextBlock value={result.content} />
     </div>
   )
 }
@@ -333,6 +487,22 @@ const isMarkdownRenderableType = (type: ArtifactResponse["type"]) => {
   )
 }
 
+const formatSearchResultSummary = (result: ChatWebSearchToolResult) => {
+  if (result.results_count == null) {
+    return `상위 ${result.results.length}건을 표시합니다.`
+  }
+
+  return `총 ${result.results_count.toLocaleString("ko-KR")}건 중 상위 ${result.results.length}건을 표시합니다.`
+}
+
+const getUrlHostname = (value: string) => {
+  try {
+    return new URL(value).hostname
+  } catch {
+    return null
+  }
+}
+
 const getPanelTitle = (panel: ChatRightPanel) => {
   switch (panel.kind) {
     case "library":
@@ -341,6 +511,14 @@ const getPanelTitle = (panel: ChatRightPanel) => {
       return getDocumentTitle(panel.document)
     case "artifact":
       return getArtifactTitle(panel.artifact)
+    case "web-search":
+      return panel.result.query
+    case "web-fetch":
+      return (
+        panel.result.title ??
+        getUrlHostname(panel.result.final_url) ??
+        "웹 문서"
+      )
     case "thinking":
       return panel.title
     case "hitl":
@@ -356,6 +534,10 @@ const getPanelIcon = (panel: ChatRightPanel) => {
       return getDocumentIcon(panel.document.type)
     case "artifact":
       return getArtifactIcon(panel.artifact.type)
+    case "web-search":
+      return <Search className="size-3.5 shrink-0 text-muted-foreground" />
+    case "web-fetch":
+      return <Globe className="size-3.5 shrink-0 text-muted-foreground" />
     case "thinking":
       return (
         <TerminalSquare className="size-3.5 shrink-0 text-muted-foreground" />
@@ -373,6 +555,10 @@ const getPanelBadge = (panel: ChatRightPanel) => {
       return panel.document.type
     case "artifact":
       return `v${panel.artifact.version}`
+    case "web-search":
+      return `${panel.result.results.length}건`
+    case "web-fetch":
+      return panel.result.content_type || "web"
     case "thinking":
       return `${panel.toolCalls.length} 단계`
     case "hitl":

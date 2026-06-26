@@ -55,6 +55,49 @@ const codeArtifact: ArtifactResponse = {
   updated_at: "2026-06-25T00:00:00Z",
 }
 
+const webSearchPanel: ChatRightPanel = {
+  kind: "web-search",
+  result: {
+    query: "성수동 팝업 스토어",
+    page: 1,
+    results_count: 184000,
+    results: [
+      {
+        rank: 1,
+        title: "성수 팝업 트렌드 리포트",
+        url: "https://example.com/search",
+        snippet: "팝업 유입량과 객단가가 함께 증가한 흐름을 요약합니다.",
+        engine: "brave",
+        engines: ["brave", "bing"],
+        published_date: "2026-06-26",
+      },
+      {
+        rank: 2,
+        title: "성수 브랜드 협업 사례",
+        url: "https://example.com/case",
+        snippet: "브랜드 협업 중심의 팝업 사례를 정리한 글입니다.",
+        engine: "bing",
+        engines: ["bing"],
+        published_date: null,
+      },
+    ],
+  },
+}
+
+const webFetchPanel: ChatRightPanel = {
+  kind: "web-fetch",
+  result: {
+    requested_url: "https://example.com/search",
+    final_url: "https://example.com/search",
+    status_code: 200,
+    content_type: "text/html",
+    title: "성수 팝업 트렌드 리포트",
+    content:
+      "성수동은 최근 팝업 방문 수요와 체류 시간이 함께 상승했습니다.\n\n브랜드 협업형 행사 비중도 늘어났습니다.",
+    truncated: false,
+  },
+}
+
 function RightSidebarStory({
   panel,
   documents = [chartDocument],
@@ -108,5 +151,17 @@ export const CodeArtifactRawView: Story = {
       kind: "artifact",
       artifact: codeArtifact,
     },
+  },
+}
+
+export const WebSearchResult: Story = {
+  args: {
+    panel: webSearchPanel,
+  },
+}
+
+export const WebFetchResult: Story = {
+  args: {
+    panel: webFetchPanel,
   },
 }

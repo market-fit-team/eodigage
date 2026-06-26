@@ -9,6 +9,7 @@ from agent.services.chat.tools.artifact_tool import ARTIFACT_TOOL_SPECS
 from agent.services.chat.tools.document_tool import DOCUMENT_TOOL_SPECS
 from agent.services.chat.tools.memory_tool import MEMORY_TOOL_SPECS
 from agent.services.chat.tools.onboarding_tool import ONBOARDING_TOOL_SPECS
+from agent.services.chat.tools.web_tool import WEB_TOOL_SPECS
 from agent.services.chat.tools.tool_spec import ToolSpec, validate_tool_specs
 
 
@@ -19,6 +20,7 @@ CHAT_TOOL_SPECS: Final[tuple[ToolSpec, ...]] = validate_tool_specs(
         *ARTIFACT_TOOL_SPECS,
         *DOCUMENT_TOOL_SPECS,
         *ONBOARDING_TOOL_SPECS,
+        *WEB_TOOL_SPECS,
     )
 )
 

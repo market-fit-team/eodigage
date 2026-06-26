@@ -1,4 +1,8 @@
 import type { AssembledToolCall } from "@langchain/langgraph-sdk/stream"
+import type {
+  ChatWebFetchToolResult,
+  ChatWebSearchToolResult,
+} from "@/features/chat/lib/tool-results/chat-web-tool-result"
 import type { HitlInterrupt } from "@/features/chat/types/hitl-interrupt-payload"
 import type {
   ArtifactResponse,
@@ -37,6 +41,14 @@ export type ChatRightPanel =
   | {
       kind: "artifact"
       artifact: ArtifactResponse
+    }
+  | {
+      kind: "web-search"
+      result: ChatWebSearchToolResult
+    }
+  | {
+      kind: "web-fetch"
+      result: ChatWebFetchToolResult
     }
   | {
       kind: "thinking"

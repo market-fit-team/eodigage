@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from "vitest"
-import { render, screen } from "@testing-library/react"
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query"
+import { render, screen } from "@testing-library/react"
 import { RightSidebar } from "@/features/chat/components/workspace/right-sidebar"
 import { ChatWorkspaceProvider } from "@/features/chat/providers/chat-workspace-provider"
 import type { ChatRightPanel } from "@/features/chat/types/workspace"
@@ -61,6 +61,39 @@ const codeArtifact: ArtifactResponse = {
   updated_at: "2026-06-25T00:00:00Z",
 }
 
+const webSearchPanel: ChatRightPanel = {
+  kind: "web-search",
+  result: {
+    query: "성수동 팝업 스토어",
+    page: 1,
+    results_count: 2,
+    results: [
+      {
+        rank: 1,
+        title: "성수 팝업 트렌드",
+        url: "https://example.com/search",
+        snippet: "검색 요약",
+        engine: "brave",
+        engines: ["brave"],
+        published_date: "2026-06-26",
+      },
+    ],
+  },
+}
+
+const webFetchPanel: ChatRightPanel = {
+  kind: "web-fetch",
+  result: {
+    requested_url: "https://example.com/search",
+    final_url: "https://example.com/final",
+    status_code: 200,
+    content_type: "text/html",
+    title: "성수 팝업 상세",
+    content: "본문 미리보기",
+    truncated: false,
+  },
+}
+
 describe("RightSidebar", () => {
   it("라이브러리 문서 상세에서 마크다운과 차트를 렌더링한다.", () => {
     const queryClient = new QueryClient()
@@ -108,5 +141,50 @@ describe("RightSidebar", () => {
     expect(screen.queryByText("차트 블록을 렌더링하지 못했습니다.")).toBeNull()
     expect(screen.getByLabelText("라이브러리에 저장")).toBeInTheDocument()
     expect(screen.getByLabelText("채팅에 추가")).toBeInTheDocument()
+  })
+
+  it("웹 검색 패널은 검색 결과 목록과 외부 링크를 렌더링한다.", () => {
+    const queryClient = new QueryClient()
+
+    render(
+      <QueryClientProvider client={queryClient}>
+        <ChatWorkspaceProvider>
+          <RightSidebar
+            panel={webSearchPanel}
+            documents={[]}
+            onClose={vi.fn()}
+            onOpenDocument={vi.fn()}
+          />
+        </ChatWorkspaceProvider>
+      </QueryClientProvider>
+    )
+
+    expect(screen.getAllByText("성수동 팝업 스토어")).toHaveLength(2)
+    expect(screen.getByText("성수 팝업 트렌드")).toBeInTheDocument()
+    expect(
+      screen.getByLabelText("성수 팝업 트렌드 새 탭에서 열기")
+    ).toBeInTheDocument()
+  })
+
+  it("웹 fetch 패널은 메타데이터와 정규화된 본문을 렌더링한다.", () => {
+    const queryClient = new QueryClient()
+
+    render(
+      <QueryClientProvider client={queryClient}>
+        <ChatWorkspaceProvider>
+          <RightSidebar
+            panel={webFetchPanel}
+            documents={[]}
+            onClose={vi.fn()}
+            onOpenDocument={vi.fn()}
+          />
+        </ChatWorkspaceProvider>
+      </QueryClientProvider>
+    )
+
+    expect(screen.getAllByText("성수 팝업 상세")).toHaveLength(2)
+    expect(screen.getByText("본문 미리보기")).toBeInTheDocument()
+    expect(screen.getByText("요청 URL")).toBeInTheDocument()
+    expect(screen.getByText("최종 URL")).toBeInTheDocument()
   })
 })

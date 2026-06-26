@@ -1,4 +1,5 @@
-import { describe, expect, it, vi } from "vitest"
+import type { ComponentProps } from "react"
+import { beforeEach, describe, expect, it, vi } from "vitest"
 import {
   AIMessage,
   type BaseMessage,
@@ -6,9 +7,8 @@ import {
   ToolMessage,
 } from "@langchain/core/messages"
 import type { AssembledToolCall } from "@langchain/langgraph-sdk/stream"
-import { fireEvent, render, screen } from "@testing-library/react"
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query"
-import type { ComponentProps } from "react"
+import { fireEvent, render, screen } from "@testing-library/react"
 import { ChatView } from "@/features/chat/components/workspace/chat-view"
 import type {
   ArtifactResponse,
@@ -26,6 +26,9 @@ const streamState = vi.hoisted(() => ({
     messages: [] as BaseMessage[],
     toolCalls: [] as AssembledToolCall[],
   },
+}))
+const workspaceState = vi.hoisted(() => ({
+  setRightPanel: vi.fn(),
 }))
 
 vi.mock("@/features/chat/hooks/use-langgraph-chat-stream", () => ({
@@ -61,7 +64,7 @@ vi.mock("@/features/chat/providers/chat-workspace-provider", () => ({
     selectedArtifactIds: ["artifact-1"],
     selectedDocumentIds: ["doc-1"],
     setIsSelectionLocked: vi.fn(),
-    setRightPanel: vi.fn(),
+    setRightPanel: workspaceState.setRightPanel,
     toggleArtifact: vi.fn(),
     toggleDocument: vi.fn(),
   }),
@@ -128,6 +131,10 @@ const renderChatView = (props?: Partial<ComponentProps<typeof ChatView>>) => {
 }
 
 describe("ChatView", () => {
+  beforeEach(() => {
+    vi.clearAllMocks()
+  })
+
   it("선택된 문서와 아티팩트 id를 메시지 전송 옵션에 포함한다.", () => {
     streamState.current = {
       hitlInterrupts: [],
@@ -272,5 +279,79 @@ describe("ChatView", () => {
       documentTitle.compareDocumentPosition(finalText) &
         Node.DOCUMENT_POSITION_FOLLOWING
     ).toBeTruthy()
+  })
+
+  it("웹 검색 결과 카드는 우측 패널 전용 뷰로 바로 연다.", () => {
+    streamState.current = {
+      hitlInterrupts: [],
+      isBusy: false,
+      isHydrating: false,
+      localNotice: null,
+      messages: [
+        new HumanMessage({
+          id: "human-1",
+          content: "성수 팝업 트렌드를 검색해줘",
+        }),
+        new AIMessage({
+          id: "ai-1",
+          content: "검색 결과를 정리했습니다.",
+          tool_calls: [
+            {
+              id: "tool-search",
+              name: "web_search",
+              args: { query: "성수동 팝업 스토어", limit: 2 },
+            },
+          ],
+        }),
+        new ToolMessage({
+          id: "tool-message-search",
+          content: JSON.stringify({
+            query: "성수동 팝업 스토어",
+            page: 1,
+            results_count: 2,
+            results: [
+              {
+                rank: 1,
+                title: "성수 팝업 트렌드",
+                url: "https://example.com/search",
+                snippet: "검색 요약",
+                engine: "brave",
+                engines: ["brave"],
+                published_date: "2026-06-26",
+              },
+            ],
+          }),
+          tool_call_id: "tool-search",
+        }),
+      ],
+      toolCalls: [
+        {
+          id: "tool-search",
+          callId: "tool-search",
+          name: "web_search",
+          status: "finished",
+          output: null,
+          error: undefined,
+          namespace: [],
+          input: { query: "성수동 팝업 스토어", limit: 2 },
+          args: { query: "성수동 팝업 스토어", limit: 2 },
+        },
+      ],
+    }
+
+    renderChatView()
+
+    expect(screen.getByText("웹 검색 결과")).toBeInTheDocument()
+    expect(screen.getByText("성수 팝업 트렌드")).toBeInTheDocument()
+
+    fireEvent.click(screen.getByRole("button", { name: "검색 결과 패널 보기" }))
+
+    expect(workspaceState.setRightPanel).toHaveBeenCalledWith({
+      kind: "web-search",
+      result: expect.objectContaining({
+        query: "성수동 팝업 스토어",
+        results_count: 2,
+      }),
+    })
   })
 })

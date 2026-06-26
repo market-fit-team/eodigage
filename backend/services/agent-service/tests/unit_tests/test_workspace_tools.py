@@ -14,6 +14,8 @@ def test_workspace_read_tools_are_allowed_by_default() -> None:
         "artifact_get",
         "document_search",
         "document_read",
+        "web_search",
+        "web_fetch",
         "onboarding_get_default_profile",
         "onboarding_get_survey_result",
         "onboarding_get_area_recommendations",
@@ -98,3 +100,15 @@ def test_workspace_create_tool_args_keep_existing_contract_keys() -> None:
     assert "type" not in artifact_args
     assert "document_type" in document_args
     assert "type" not in document_args
+
+
+def test_web_tool_descriptions_explain_visibility_and_result_shape() -> None:
+    """웹 도구 설명에는 공개 웹 제한과 반환 결과 윤곽이 드러나야 한다."""
+
+    web_search = CHAT_TOOL_SPECS_BY_NAME["web_search"].tool
+    web_fetch = CHAT_TOOL_SPECS_BY_NAME["web_fetch"].tool
+
+    assert "제목" in web_search.description
+    assert "limit" in web_search.description
+    assert "기본 format은 text" in web_fetch.description
+    assert "localhost" in web_fetch.description

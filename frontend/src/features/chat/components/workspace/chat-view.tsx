@@ -10,18 +10,20 @@ import {
   Copy,
   FileCode2,
   FlaskConical,
+  Globe,
   Lightbulb,
   Maximize,
   Minimize,
   PanelRight,
+  Search,
   Sparkles,
   TerminalSquare,
 } from "lucide-react"
 import { toast } from "sonner"
 import type { AIMessage, BaseMessage } from "@langchain/core/messages"
 import type { AssembledToolCall } from "@langchain/langgraph-sdk/stream"
-import { ArtifactActionButtons } from "@/features/chat/components/workspace/artifact-action-buttons"
 import { HitlInterruptCard } from "@/features/chat/components/hitl/hitl-interrupt-card"
+import { ArtifactActionButtons } from "@/features/chat/components/workspace/artifact-action-buttons"
 import { ChatModelMenu } from "@/features/chat/components/workspace/chat-model-menu"
 import { ChatSelectionChips } from "@/features/chat/components/workspace/chat-selection-chips"
 import { useAutoScroll } from "@/features/chat/hooks/use-auto-scroll"
@@ -269,6 +271,12 @@ export function ChatView({
                     onOpenDocument={(document) =>
                       setRightPanel({ kind: "library-document", document })
                     }
+                    onOpenWebSearch={(result) =>
+                      setRightPanel({ kind: "web-search", result })
+                    }
+                    onOpenWebFetch={(result) =>
+                      setRightPanel({ kind: "web-fetch", result })
+                    }
                   />
                 )
               )}
@@ -437,6 +445,12 @@ type AssistantTurnBlockProps = {
   ) => void
   onOpenArtifact: (artifact: ArtifactResponse) => void
   onOpenDocument: (document: DocumentResponse) => void
+  onOpenWebSearch: (
+    result: Extract<ChatTurnToolCard, { kind: "web-search" }>["result"]
+  ) => void
+  onOpenWebFetch: (
+    result: Extract<ChatTurnToolCard, { kind: "web-fetch" }>["result"]
+  ) => void
 }
 
 function AssistantTurnBlock({
@@ -447,6 +461,8 @@ function AssistantTurnBlock({
   onOpenDetails,
   onOpenArtifact,
   onOpenDocument,
+  onOpenWebSearch,
+  onOpenWebFetch,
 }: AssistantTurnBlockProps) {
   const copyText = buildAssistantTurnCopyText(turn)
   const artifactsById = React.useMemo(
@@ -471,7 +487,9 @@ function AssistantTurnBlock({
         {turn.reasoning && (
           <ReasoningBlock
             reasoning={turn.reasoning}
-            onOpen={() => onOpenDetails(turn.reasoning ?? undefined, turn.toolCalls)}
+            onOpen={() =>
+              onOpenDetails(turn.reasoning ?? undefined, turn.toolCalls)
+            }
           />
         )}
 
@@ -488,6 +506,8 @@ function AssistantTurnBlock({
               onOpenDetails={onOpenDetails}
               onOpenArtifact={onOpenArtifact}
               onOpenDocument={onOpenDocument}
+              onOpenWebSearch={onOpenWebSearch}
+              onOpenWebFetch={onOpenWebFetch}
             />
           )
         )}
@@ -536,6 +556,12 @@ type ToolCallTimelineBlockProps = {
   ) => void
   onOpenArtifact: (artifact: ArtifactResponse) => void
   onOpenDocument: (document: DocumentResponse) => void
+  onOpenWebSearch: (
+    result: Extract<ChatTurnToolCard, { kind: "web-search" }>["result"]
+  ) => void
+  onOpenWebFetch: (
+    result: Extract<ChatTurnToolCard, { kind: "web-fetch" }>["result"]
+  ) => void
 }
 
 function ToolCallTimelineBlock({
@@ -546,6 +572,8 @@ function ToolCallTimelineBlock({
   onOpenDetails,
   onOpenArtifact,
   onOpenDocument,
+  onOpenWebSearch,
+  onOpenWebFetch,
 }: ToolCallTimelineBlockProps) {
   const artifactCards = item.cards.filter(
     (card): card is Extract<ChatTurnToolCard, { kind: "artifact" }> =>
@@ -555,15 +583,54 @@ function ToolCallTimelineBlock({
     (card): card is Extract<ChatTurnToolCard, { kind: "library-document" }> =>
       card.kind === "library-document"
   )
+  const webSearchCards = item.cards.filter(
+    (card): card is Extract<ChatTurnToolCard, { kind: "web-search" }> =>
+      card.kind === "web-search"
+  )
+  const webFetchCards = item.cards.filter(
+    (card): card is Extract<ChatTurnToolCard, { kind: "web-fetch" }> =>
+      card.kind === "web-fetch"
+  )
   const relatedToolCalls = item.toolCall ? [item.toolCall] : []
+  const handleOpenToolPanel = () => {
+    const webSearchCard = webSearchCards[0]
+    if (webSearchCard) {
+      onOpenWebSearch(webSearchCard.result)
+      return
+    }
+
+    const webFetchCard = webFetchCards[0]
+    if (webFetchCard) {
+      onOpenWebFetch(webFetchCard.result)
+      return
+    }
+
+    onOpenDetails(reasoning, relatedToolCalls)
+  }
 
   return (
     <div className="space-y-2">
       <ToolCallResultBlock
         toolCallName={item.toolCallName}
         toolResult={item.toolResult}
-        onOpen={() => onOpenDetails(reasoning, relatedToolCalls)}
+        onOpen={handleOpenToolPanel}
       />
+
+      {webSearchCards.map((card) => (
+        <WebSearchTimelineCard
+          key={`${item.key}-web-search-${card.result.query}`}
+          result={card.result}
+          onOpen={() => onOpenWebSearch(card.result)}
+        />
+      ))}
+
+      {webFetchCards.map((card) => (
+        <WebFetchTimelineCard
+          key={`${item.key}-web-fetch-${card.result.final_url}`}
+          result={card.result}
+          onOpen={() => onOpenWebFetch(card.result)}
+        />
+      ))}
 
       {artifactCards.length > 0 && (
         <div className="space-y-2">
@@ -604,6 +671,128 @@ function ToolCallTimelineBlock({
           })}
         </div>
       )}
+    </div>
+  )
+}
+
+function WebSearchTimelineCard({
+  result,
+  onOpen,
+}: {
+  result: Extract<ChatTurnToolCard, { kind: "web-search" }>["result"]
+  onOpen: () => void
+}) {
+  const previewResults = result.results.slice(0, 2)
+
+  return (
+    <div className="rounded-xl border border-border/30 bg-background/60 p-3">
+      <div className="flex items-start justify-between gap-3">
+        <div className="min-w-0 space-y-1">
+          <div className="flex items-center gap-2 text-xs font-medium text-foreground">
+            <Search className="size-3.5 text-muted-foreground" />웹 검색 결과
+          </div>
+          <p className="truncate text-xs text-muted-foreground">
+            {result.query}
+          </p>
+        </div>
+        <Button
+          type="button"
+          variant="outline"
+          size="sm"
+          onClick={onOpen}
+          aria-label="검색 결과 패널 보기"
+          className="h-7 shrink-0 cursor-pointer gap-1 text-xs"
+        >
+          <PanelRight className="size-3" />
+          패널 보기
+        </Button>
+      </div>
+
+      <div className="mt-3 space-y-2">
+        {previewResults.map((searchResult) => (
+          <div
+            key={`${searchResult.rank}-${searchResult.url}`}
+            className="rounded-lg border border-border/25 bg-muted/10 p-2.5"
+          >
+            <div className="mb-1 flex items-center gap-2 text-[11px] text-muted-foreground">
+              <span>#{searchResult.rank}</span>
+              <span className="truncate">
+                {getUrlHostname(searchResult.url) ?? searchResult.url}
+              </span>
+            </div>
+            <p className="line-clamp-1 text-xs font-medium text-foreground">
+              {searchResult.title}
+            </p>
+            {searchResult.snippet && (
+              <p className="mt-1 line-clamp-2 text-xs leading-5 text-muted-foreground">
+                {searchResult.snippet}
+              </p>
+            )}
+          </div>
+        ))}
+      </div>
+
+      <p className="mt-3 text-[11px] text-muted-foreground">
+        {formatSearchResultSummary(result)}
+      </p>
+    </div>
+  )
+}
+
+function WebFetchTimelineCard({
+  result,
+  onOpen,
+}: {
+  result: Extract<ChatTurnToolCard, { kind: "web-fetch" }>["result"]
+  onOpen: () => void
+}) {
+  return (
+    <div className="rounded-xl border border-border/30 bg-background/60 p-3">
+      <div className="flex items-start justify-between gap-3">
+        <div className="min-w-0 space-y-1">
+          <div className="flex items-center gap-2 text-xs font-medium text-foreground">
+            <Globe className="size-3.5 text-muted-foreground" />웹 문서 가져옴
+          </div>
+          <p className="truncate text-xs font-medium text-foreground">
+            {result.title ??
+              getUrlHostname(result.final_url) ??
+              result.final_url}
+          </p>
+          <p className="truncate text-[11px] text-muted-foreground">
+            {result.final_url}
+          </p>
+        </div>
+        <Button
+          type="button"
+          variant="outline"
+          size="sm"
+          onClick={onOpen}
+          aria-label="웹 문서 패널 보기"
+          className="h-7 shrink-0 cursor-pointer gap-1 text-xs"
+        >
+          <PanelRight className="size-3" />
+          패널 보기
+        </Button>
+      </div>
+
+      <div className="mt-3 rounded-lg border border-border/25 bg-muted/10 p-3">
+        <div className="mb-2 flex flex-wrap items-center gap-1.5">
+          <Badge variant="outline" className="h-5 text-[10px]">
+            {result.status_code}
+          </Badge>
+          <Badge variant="outline" className="h-5 text-[10px]">
+            {result.content_type || "unknown"}
+          </Badge>
+          {result.truncated && (
+            <Badge variant="secondary" className="h-5 text-[10px]">
+              잘림
+            </Badge>
+          )}
+        </div>
+        <p className="line-clamp-4 text-xs leading-5 whitespace-pre-wrap text-muted-foreground">
+          {result.content}
+        </p>
+      </div>
     </div>
   )
 }
@@ -660,7 +849,10 @@ function ToolCallResultBlock({
   onOpen,
 }: {
   toolCallName: string
-  toolResult: Extract<ChatAssistantTurnItem, { kind: "tool-call" }>["toolResult"]
+  toolResult: Extract<
+    ChatAssistantTurnItem,
+    { kind: "tool-call" }
+  >["toolResult"]
   onOpen: () => void
 }) {
   const [isOpen, setIsOpen] = React.useState(false)
@@ -678,7 +870,7 @@ function ToolCallResultBlock({
               )}
               <FlaskConical className="size-3" />
               도구 호출 결과
-              <span className="rounded-full border border-border/40 px-1.5 py-0 text-[10px] font-mono text-foreground">
+              <span className="rounded-full border border-border/40 px-1.5 py-0 font-mono text-[10px] text-foreground">
                 {toolCallName}
               </span>
             </button>
@@ -807,7 +999,10 @@ function ArtifactTimelineCard({
         <Badge variant="outline" className="h-5 text-[10px]">
           v{displayArtifact.version}
         </Badge>
-        <ArtifactActionButtons artifactId={displayArtifact.id} canInteract={canInteract} />
+        <ArtifactActionButtons
+          artifactId={displayArtifact.id}
+          canInteract={canInteract}
+        />
       </div>
     </div>
   )
@@ -885,6 +1080,24 @@ const getDocumentStripLabel = (toolCallName: string) => {
   }
 }
 
+const formatSearchResultSummary = (
+  result: Extract<ChatTurnToolCard, { kind: "web-search" }>["result"]
+) => {
+  if (result.results_count == null) {
+    return `상위 ${result.results.length}건을 표시합니다.`
+  }
+
+  return `총 ${result.results_count.toLocaleString("ko-KR")}건 중 상위 ${result.results.length}건을 표시합니다.`
+}
+
+const getUrlHostname = (value: string) => {
+  try {
+    return new URL(value).hostname
+  } catch {
+    return null
+  }
+}
+
 const buildAssistantTurnCopyText = (
   turn: Extract<ChatGroupedTurn, { kind: "assistant" }>
 ) => {
@@ -898,13 +1111,19 @@ const buildAssistantTurnCopyText = (
         .map((card) =>
           card.kind === "artifact"
             ? getArtifactTitle(card.artifact)
-            : getDocumentTitle(card.document)
+            : card.kind === "library-document"
+              ? getDocumentTitle(card.document)
+              : card.kind === "web-search"
+                ? `웹 검색: ${card.result.query}`
+                : `웹 문서: ${card.result.title ?? card.result.final_url}`
         )
         .join("\n")
 
       return [
         `도구: ${item.toolResult.name}`,
-        item.toolResult.argsSummary ? `입력:\n${item.toolResult.argsSummary}` : null,
+        item.toolResult.argsSummary
+          ? `입력:\n${item.toolResult.argsSummary}`
+          : null,
         item.toolResult.resultSummary
           ? `결과:\n${item.toolResult.resultSummary}`
           : null,
