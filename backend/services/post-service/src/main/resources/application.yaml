@@ -40,6 +40,12 @@ app:
       timeout-seconds: ${POST_CRAWL_TIMEOUT_SECONDS:10}
       article-delay-millis: ${POST_CRAWL_ARTICLE_DELAY_MILLIS:300}
       max-input-characters: ${POST_CRAWL_MAX_INPUT_CHARACTERS:12000}
+    ai-column-update:
+      enabled: ${POST_AI_COLUMN_SCHEDULER_ENABLED:true}
+      cron: ${POST_AI_COLUMN_SCHEDULER_CRON:0 0 4 ? * MON}
+      zone: ${POST_AI_COLUMN_SCHEDULER_ZONE:Asia/Seoul}
+      actor-id: ${POST_AI_COLUMN_SCHEDULER_ACTOR_ID:system-ai-column-scheduler}
+      keyword: ${POST_AI_COLUMN_SCHEDULER_KEYWORD:창업 프랜차이즈 상권 트렌드}
     llm:
       provider: ${POST_LLM_PROVIDER:OPENAI}
       api-key: ${OPENAI_API_KEY:}

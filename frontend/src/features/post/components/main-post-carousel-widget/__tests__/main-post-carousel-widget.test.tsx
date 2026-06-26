@@ -12,7 +12,7 @@ const llmPost = {
 }
 
 describe("MainPostCarouselWidget", () => {
-  it("LLM_REPORT를 AI 칼럼 카드로 표시한다", () => {
+  it("LLM_REPORT를 AI 칼럼 배지로 표시한다", () => {
     render(
       <MainPostCarouselWidget
         posts={[llmPost]}
@@ -94,11 +94,9 @@ describe("MainPostCarouselWidget", () => {
       />
     )
 
+    expect(screen.getByText("아직 표시할 AI 칼럼이 없습니다.")).toBeInTheDocument()
     expect(
-      screen.getByText("아직 표시할 AI 칼럼이 없습니다.")
-    ).toBeInTheDocument()
-    expect(
-      screen.getByText("새로운 AI 칼럼이 발행되면 이곳에 표시됩니다.")
+      screen.getByText("새로운 AI 칼럼이 발행되면 여기에 표시됩니다.")
     ).toBeInTheDocument()
   })
 
@@ -137,7 +135,7 @@ describe("MainPostCarouselWidget", () => {
     expect(onPostClick).toHaveBeenCalledWith(llmPost.id)
   })
 
-  it("onPostClick이 없으면 동작하지 않는 CTA를 표시하지 않는다", () => {
+  it("onPostClick이 없으면 동작 버튼을 표시하지 않는다", () => {
     render(
       <MainPostCarouselWidget
         posts={[llmPost]}
@@ -153,7 +151,7 @@ describe("MainPostCarouselWidget", () => {
     ).not.toBeInTheDocument()
   })
 
-  it("shows example badge for mock posts", () => {
+  it("mock post는 예시 배지를 표시한다", () => {
     render(
       <MainPostCarouselWidget
         posts={[

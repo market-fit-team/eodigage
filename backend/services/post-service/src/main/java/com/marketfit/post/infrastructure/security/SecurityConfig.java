@@ -44,6 +44,12 @@ public class SecurityConfig {
                                                 .permitAll()
                                                 .requestMatchers(HttpMethod.GET, "/api/posts/main-carousel")
                                                 .permitAll()
+                                                .requestMatchers(HttpMethod.GET, "/api/posts/*/comments")
+                                                .permitAll()
+                                                .requestMatchers(HttpMethod.GET, "/api/notifications/events")
+                                                .permitAll()
+                                                .requestMatchers("/api/notifications/**")
+                                                .authenticated()
                                                 .requestMatchers(HttpMethod.GET, "/api/posts/me/**").authenticated()
                                                 .requestMatchers(HttpMethod.GET, "/api/posts/**").permitAll()
                                                 .requestMatchers(HttpMethod.POST, "/api/posts/crawl-summary")
@@ -79,7 +85,7 @@ public class SecurityConfig {
                 configuration.setAllowedOrigins(List.of(
                                 "http://localhost:3000",
                                 "http://127.0.0.1:3000"));
-                configuration.setAllowedMethods(List.of("GET", "POST", "PATCH", "DELETE", "OPTIONS"));
+                configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
                 configuration.setAllowedHeaders(List.of("*"));
                 configuration.setExposedHeaders(List.of("*"));
                 configuration.setAllowCredentials(false);

@@ -121,3 +121,25 @@ export type PostPage = {
   number: number
   last: boolean
 }
+
+export type PostComment = {
+  id: string
+  postId: string
+  userId: string
+  authorName: string
+  content: string
+  canEdit: boolean
+  createdAt: string
+  updatedAt: string
+}
+
+export type PostNotification = {
+  id: string
+  type: "COMMENT_CREATED"
+  title: string
+  message: string
+  targetPostId: string | null
+  targetCommentId: string | null
+  read: boolean
+  createdAt: string
+}
