@@ -58,7 +58,7 @@ class FranchiseIngestServiceTest {
         given(repository.upsertDataSource(any(), any(), any(), any())).willReturn(1L);
         given(repository.createIngestBatch(eq(1L), any(), any())).willReturn(10L);
         given(repository.upsertIndustry(any(), any())).willReturn(100L);
-        given(repository.upsertBrand(any(), any(), any(), any())).willReturn(200L);
+        given(repository.upsertBrand(any(), any(), any(), any(), any())).willReturn(200L);
         // totalCount=3, numOfRows=2 -> 2 페이지
         given(client.fetchPage("https://startup", "startup-key", 1, 2, "json", 2025))
                 .willReturn(new FftcPage("00", "ok", 3, 2, 1, List.of(
@@ -74,7 +74,7 @@ class FranchiseIngestServiceTest {
 
         assertThat(rows).isEqualTo(3);
         verify(repository, times(3)).upsertStartupCost(eq(200L), eq(1L), eq(10L), eq(2025), any());
-        verify(repository, times(3)).upsertBrand(any(), any(), any(), any());
+        verify(repository, times(3)).upsertBrand(any(), any(), any(), any(), any());
         verify(repository, times(1)).upsertIndustry(any(), any()); // 동일 업종은 캐시
         verify(repository).finishIngestBatch(10L, "SUCCESS", "적재 완료", 3, 3);
     }
@@ -84,7 +84,7 @@ class FranchiseIngestServiceTest {
         given(repository.upsertDataSource(any(), any(), any(), any())).willReturn(1L);
         given(repository.createIngestBatch(anyLong(), any(), any())).willReturn(10L);
         given(repository.upsertIndustry(any(), any())).willReturn(100L);
-        given(repository.upsertBrand(any(), any(), any(), any())).willReturn(200L);
+        given(repository.upsertBrand(any(), any(), any(), any(), any())).willReturn(200L);
         given(client.fetchPage(any(), any(), anyInt(), anyInt(), any(), anyInt()))
                 .willReturn(new FftcPage("00", "ok", 2, 2, 1, List.of(
                         item("㈜A", "브랜드1", "외식", "한식"),
