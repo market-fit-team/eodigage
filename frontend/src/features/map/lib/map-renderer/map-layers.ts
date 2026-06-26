@@ -7,9 +7,6 @@ import type {
 import { mapPalette } from "@/features/map/lib/map-renderer/map-palette"
 import type { DongCode } from "@/features/map/types/map"
 
-type SymbolLayerLayout = NonNullable<SymbolLayerSpecification["layout"]>
-type SymbolTextField = SymbolLayerLayout["text-field"]
-
 // MapLibre source/layer id는 setFilter, setPaintProperty, 이벤트 바인딩에서 공유
 export const DONG_SOURCE_ID = "seoul-dongs"
 // 라벨은 폴리곤이 아닌 동별 대표점(centroid) 소스에서 그려 행정동당 1개만 노출
@@ -111,30 +108,21 @@ export const createBoundaryLayer = ({
   ...(filter ? { filter } : {}),
 })
 
-const labelTextWithAlpha = [
-  "case",
-  ["has", "alpha"],
-  ["concat", ["get", "name"], "\n", ["to-string", ["get", "alpha"]]],
-  ["get", "name"],
-] satisfies SymbolTextField
-
-// hover는 이름, selected/recommended는 alpha property 같이 표시
+// 라벨은 동 이름만 표시한다.
 export const createLabelLayer = ({
   filter,
   id,
   textColor,
-  textField,
 }: {
   filter: SymbolLayerSpecification["filter"]
   id: string
   textColor: string
-  textField: SymbolTextField
 }): SymbolLayerSpecification => ({
   filter,
   id,
   layout: {
     "text-allow-overlap": true,
-    "text-field": textField,
+    "text-field": ["get", "name"],
     "text-font": ["Open Sans Semibold", "Arial Unicode MS Bold"],
     "text-size": 12,
   },
@@ -209,19 +197,16 @@ export const dongLabelLayers = {
     filter: getLayerFilterByCode(null),
     id: DONG_HOVER_LABEL_LAYER_ID,
     textColor: mapPalette.text,
-    textField: ["get", "name"],
   }),
   recommended: createLabelLayer({
     filter: getLayerFilterByCodes([]),
     id: DONG_RECOMMENDED_LABEL_LAYER_ID,
     textColor: mapPalette.recommendedBoundary,
-    textField: labelTextWithAlpha,
   }),
   selected: createLabelLayer({
     filter: getLayerFilterByCode(null),
     id: DONG_SELECTED_LABEL_LAYER_ID,
     textColor: mapPalette.activeBoundary,
-    textField: labelTextWithAlpha,
   }),
 } as const
 

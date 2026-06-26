@@ -17,9 +17,9 @@ export function PreviewFranchiseRecommendations({
 
   return (
     <div className="flex flex-col gap-2">
-      {franchises.map((franchise) => (
+      {franchises.map((franchise, index) => (
         <div
-          key={franchise.brandCode}
+          key={`${franchise.brandCode}-${index}`}
           className="rounded-lg border border-border px-3 py-3"
         >
           <div className="min-w-0">

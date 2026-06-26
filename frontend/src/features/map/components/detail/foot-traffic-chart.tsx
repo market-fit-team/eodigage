@@ -117,7 +117,7 @@ function FootTrafficChart({ points }: FootTrafficChartProps) {
           interval={2}
           tickFormatter={(hour) => `${Number(hour)}시`}
         />
-        <YAxis tickLine={false} axisLine={false} width={48} />
+        <YAxis tickLine={false} axisLine={false} width={64} />
         <ChartTooltip
           content={
             <ChartTooltipContent

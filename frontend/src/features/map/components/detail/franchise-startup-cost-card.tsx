@@ -45,8 +45,8 @@ export function FranchiseStartupCostCard({
               </TableRow>
             </TableHeader>
             <TableBody>
-              {franchises.map((franchise) => (
-                <TableRow key={franchise.brandCode}>
+              {franchises.map((franchise, index) => (
+                <TableRow key={`${franchise.brandCode}-${index}`}>
                   <TableCell className="font-medium text-foreground">
                     {franchise.brandName}
                   </TableCell>
