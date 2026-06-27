@@ -10,6 +10,7 @@ import type { AssembledToolCall } from "@langchain/langgraph-sdk/stream"
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query"
 import { fireEvent, render, screen } from "@testing-library/react"
 import { ChatView } from "@/features/chat/components/workspace/chat-view"
+import type { ToolPermissionPreset } from "@/features/chat/lib/tool-policy/tool-permission-presets"
 import type {
   ArtifactResponse,
   DocumentResponse,
@@ -17,6 +18,7 @@ import type {
 
 const sendMessage = vi.fn().mockResolvedValue(undefined)
 const saveArtifactAsDocument = vi.fn()
+const selectPreset = vi.fn()
 const streamState = vi.hoisted(() => ({
   current: {
     hitlInterrupts: [],
@@ -56,6 +58,16 @@ vi.mock("@/features/chat/hooks/use-langgraph-chat-stream", () => ({
     },
     resume: vi.fn(),
     sendMessage,
+    toolPolicy: {
+      allowedToolNames: new Set(["artifact_get"]),
+      allowedTools: ["artifact_get"],
+      interruptOn: {},
+      summary: "1 auto / 1 review",
+      selectedPreset: "allow-default" as ToolPermissionPreset,
+      selectPreset,
+      toggleTool: vi.fn(),
+      resetToDefault: vi.fn(),
+    },
   }),
 }))
 
@@ -180,6 +192,24 @@ describe("ChatView", () => {
     fireEvent.click(screen.getByRole("button", { name: "창업 성향 포함 해제" }))
 
     expect(onRemoveOnboardingContext).toHaveBeenCalledTimes(1)
+  })
+
+  it("권한 변경 메뉴에서 프리셋을 선택할 수 있다.", () => {
+    streamState.current = {
+      hitlInterrupts: [],
+      isBusy: false,
+      isHydrating: false,
+      localNotice: null,
+      messages: [],
+      toolCalls: [],
+    }
+
+    renderChatView()
+
+    fireEvent.pointerDown(screen.getByRole("button", { name: "권한 변경" }))
+    fireEvent.click(screen.getByRole("menuitemradio", { name: "전체 허용" }))
+
+    expect(selectPreset).toHaveBeenCalledWith("allow-all")
   })
 
   it("도구 호출 순서에 맞춰 아티팩트 카드와 라이브러리 카드가 중간에 보인다.", () => {
