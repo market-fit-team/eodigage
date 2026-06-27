@@ -182,6 +182,61 @@ describe("ChatView", () => {
     })
   })
 
+  it("엔터를 누르면 메시지를 전송한다.", () => {
+    streamState.current = {
+      hitlInterrupts: [],
+      isBusy: false,
+      isHydrating: false,
+      localNotice: null,
+      messages: [],
+      toolCalls: [],
+    }
+
+    renderChatView()
+
+    const textarea = screen.getByPlaceholderText("메시지를 입력하세요...")
+    fireEvent.change(textarea, {
+      target: { value: "엔터 전송" },
+    })
+    fireEvent.keyDown(textarea, {
+      key: "Enter",
+    })
+
+    expect(sendMessage).toHaveBeenCalledWith("엔터 전송", {
+      selectedArtifactIds: ["artifact-1"],
+      selectedDocumentIds: ["doc-1"],
+    })
+  })
+
+  it("컨트롤 엔터와 커맨드 엔터는 줄바꿈으로 처리하고 전송하지 않는다.", () => {
+    streamState.current = {
+      hitlInterrupts: [],
+      isBusy: false,
+      isHydrating: false,
+      localNotice: null,
+      messages: [],
+      toolCalls: [],
+    }
+
+    renderChatView()
+
+    const textarea = screen.getByPlaceholderText("메시지를 입력하세요...")
+
+    fireEvent.change(textarea, {
+      target: { value: "줄바꿈 유지" },
+    })
+    fireEvent.keyDown(textarea, {
+      key: "Enter",
+      ctrlKey: true,
+    })
+    fireEvent.keyDown(textarea, {
+      key: "Enter",
+      metaKey: true,
+    })
+
+    expect(sendMessage).not.toHaveBeenCalled()
+  })
+
   it("창업 성향이 포함되면 컴포저 칩을 보여주고 제거 버튼을 누를 수 있다.", () => {
     streamState.current = {
       hitlInterrupts: [],
