@@ -54,6 +54,8 @@ export function ChatWorkspaceComposer({
   placeholder = "메시지를 입력하세요...",
 }: ChatWorkspaceComposerProps) {
   const textareaRef = React.useRef<HTMLTextAreaElement>(null)
+  const isComposingRef = React.useRef(false)
+  const isSubmittingRef = React.useRef(false)
 
   const resizeTextarea = (element: HTMLTextAreaElement) => {
     element.style.height = "auto"
@@ -70,19 +72,24 @@ export function ChatWorkspaceComposer({
 
   const handleSubmit = async () => {
     const trimmed = draft.trim()
-    if (!trimmed || sendDisabled) {
+    if (!trimmed || sendDisabled || isSubmittingRef.current) {
       return
     }
 
-    const result = await onSubmit(trimmed)
-    if (result === false) {
-      return
-    }
+    isSubmittingRef.current = true
+    try {
+      const result = await onSubmit(trimmed)
+      if (result === false) {
+        return
+      }
 
-    onChangeDraft("")
+      onChangeDraft("")
 
-    if (textareaRef.current) {
-      textareaRef.current.style.height = "auto"
+      if (textareaRef.current) {
+        textareaRef.current.style.height = "auto"
+      }
+    } finally {
+      isSubmittingRef.current = false
     }
   }
 
@@ -124,12 +131,20 @@ export function ChatWorkspaceComposer({
             onChangeDraft(event.target.value)
             resizeTextarea(event.target)
           }}
+          onCompositionStart={() => {
+            isComposingRef.current = true
+          }}
+          onCompositionEnd={() => {
+            isComposingRef.current = false
+          }}
           onKeyDown={(event) => {
             if (
               event.key === "Enter" &&
               !event.shiftKey &&
               !event.ctrlKey &&
               !event.metaKey &&
+              !event.nativeEvent.isComposing &&
+              !isComposingRef.current &&
               !sendDisabled
             ) {
               event.preventDefault()
