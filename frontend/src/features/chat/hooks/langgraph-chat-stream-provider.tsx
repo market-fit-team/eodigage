@@ -242,12 +242,8 @@ export function LangGraphChatStreamProvider({
     streamThreadId: stream.threadId,
   })
 
-  const sendMessage = useCallback(
+  const dispatchMessage = useCallback(
     async (content: string, options: ChatTurnOptions = {}) => {
-      const trimmed = content.trim()
-      if (!trimmed || stream.isLoading) {
-        return
-      }
       setLocalErrorNotice(null)
 
       const context = buildSubmitContext(
@@ -257,7 +253,7 @@ export function LangGraphChatStreamProvider({
         options.selectedDocumentIds ?? [],
         options.selectedArtifactIds ?? []
       )
-      const input = buildSubmitInput(trimmed)
+      const input = buildSubmitInput(content)
 
       try {
         await stream.submit(input, {
@@ -274,17 +270,21 @@ export function LangGraphChatStreamProvider({
     [modelSelection, stream, toolPolicy, workspaceThread?.appThreadId]
   )
 
+  const sendMessage = useCallback(
+    async (content: string, options: ChatTurnOptions = {}) => {
+      const trimmed = content.trim()
+      if (!trimmed || stream.isLoading) {
+        return
+      }
+
+      await dispatchMessage(trimmed, options)
+    },
+    [dispatchMessage, stream.isLoading]
+  )
+
   const removeQueuedMessage = useCallback((id: string) => {
     const nextQueuedMessages = queuedMessagesRef.current.filter(
       (item) => item.id !== id
-    )
-    queuedMessagesRef.current = nextQueuedMessages
-    setQueuedMessages(nextQueuedMessages)
-  }, [])
-
-  const markQueuedMessageFailed = useCallback((id: string) => {
-    const nextQueuedMessages = queuedMessagesRef.current.map((item) =>
-      item.id === id ? { ...item, status: "failed" as const } : item
     )
     queuedMessagesRef.current = nextQueuedMessages
     setQueuedMessages(nextQueuedMessages)
@@ -306,20 +306,34 @@ export function LangGraphChatStreamProvider({
       return
     }
 
+    const remainingQueuedMessages = queuedMessagesRef.current.filter(
+      (item) => item.id !== nextQueuedMessage.id
+    )
+    queuedMessagesRef.current = remainingQueuedMessages
+    setQueuedMessages(remainingQueuedMessages)
+
     isQueueDrainingRef.current = true
     try {
-      await sendMessage(nextQueuedMessage.content, nextQueuedMessage.options)
-      removeQueuedMessage(nextQueuedMessage.id)
+      await dispatchMessage(
+        nextQueuedMessage.content,
+        nextQueuedMessage.options
+      )
     } catch {
-      markQueuedMessageFailed(nextQueuedMessage.id)
+      const nextFailedQueuedMessages = [
+        { ...nextQueuedMessage, status: "failed" as const },
+        ...queuedMessagesRef.current,
+      ]
+      queuedMessagesRef.current = nextFailedQueuedMessages
+      setQueuedMessages(nextFailedQueuedMessages)
     } finally {
       isQueueDrainingRef.current = false
+      queueMicrotask(() => {
+        void drainQueuedMessages()
+      })
     }
   }, [
     hitlInterrupts.length,
-    markQueuedMessageFailed,
-    removeQueuedMessage,
-    sendMessage,
+    dispatchMessage,
     stream.isLoading,
     stream.isThreadLoading,
   ])
@@ -353,7 +367,7 @@ export function LangGraphChatStreamProvider({
       setQueuedMessages(nextQueuedMessages)
       setLocalErrorNotice(null)
 
-      await drainQueuedMessages()
+      void drainQueuedMessages()
       return true
     },
     [drainQueuedMessages]
