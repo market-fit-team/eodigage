@@ -1,18 +1,16 @@
 "use client"
 
-import { Check, ChevronDown } from "lucide-react"
 import type {
   ChatModelOption,
   ChatReasoningEffort,
 } from "@/features/chat/types/chat-model-selection"
-import { Button } from "@/shared/components/ui/button"
 import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/shared/components/ui/dropdown-menu"
-import { cn } from "@/shared/lib/utils"
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/shared/components/ui/select"
 
 type ChatModelMenuProps = {
   models: ChatModelOption[]
@@ -40,77 +38,49 @@ export function ChatModelMenu({
 }: ChatModelMenuProps) {
   return (
     <div className="flex min-w-0 items-center gap-1.5">
-      <DropdownMenu>
-        <DropdownMenuTrigger asChild>
-          <Button
-            type="button"
-            variant="ghost"
-            size="sm"
-            disabled={disabled}
-            className="h-7 max-w-[11rem] gap-1 rounded-lg px-2.5 text-xs text-muted-foreground hover:text-foreground"
-          >
-            <span className="truncate">{selectedModel.id}</span>
-            <ChevronDown className="size-3.5 shrink-0" />
-          </Button>
-        </DropdownMenuTrigger>
-        <DropdownMenuContent align="start" className="w-64">
+      <Select
+        disabled={disabled}
+        value={selectedModel.id}
+        onValueChange={onSelectModel}
+      >
+        <SelectTrigger
+          size="default"
+          aria-label="모델 선택"
+          className="h-7 max-w-[11rem] gap-1 rounded-lg border-transparent bg-transparent px-2.5 text-xs text-muted-foreground hover:bg-muted hover:text-foreground dark:hover:bg-muted/50"
+        >
+          <SelectValue placeholder="모델 선택" />
+        </SelectTrigger>
+        <SelectContent align="start">
           {models.map((model) => (
-            <DropdownMenuItem
-              key={model.id}
-              onSelect={() => onSelectModel(model.id)}
-              className="gap-2 py-2"
-            >
-              <span className="min-w-0 flex-1 truncate text-xs text-muted-foreground">
-                {model.id}
-              </span>
-              <Check
-                className={cn(
-                  "size-4 text-foreground",
-                  model.id === selectedModel.id ? "opacity-100" : "opacity-0"
-                )}
-              />
-            </DropdownMenuItem>
+            <SelectItem key={model.id} value={model.id}>
+              {model.id}
+            </SelectItem>
           ))}
-        </DropdownMenuContent>
-      </DropdownMenu>
+        </SelectContent>
+      </Select>
 
-      <DropdownMenu>
-        <DropdownMenuTrigger asChild>
-          <Button
-            type="button"
-            variant="ghost"
-            size="sm"
-            disabled={disabled}
-            className="h-7 max-w-[9rem] gap-1 rounded-lg px-2.5 text-xs text-muted-foreground hover:text-foreground"
-          >
-            <span className="truncate">
-              {reasoningEffortLabel[selectedReasoningEffort]}
-            </span>
-            <ChevronDown className="size-3.5 shrink-0" />
-          </Button>
-        </DropdownMenuTrigger>
-        <DropdownMenuContent align="start" className="w-44">
+      <Select
+        disabled={disabled}
+        value={selectedReasoningEffort}
+        onValueChange={(value) =>
+          onSelectReasoningEffort(value as ChatReasoningEffort)
+        }
+      >
+        <SelectTrigger
+          size="default"
+          aria-label="추론 수준 선택"
+          className="h-7 max-w-[9rem] gap-1 rounded-lg border-transparent bg-transparent px-2.5 text-xs text-muted-foreground hover:bg-muted hover:text-foreground dark:hover:bg-muted/50"
+        >
+          <SelectValue placeholder="추론 수준 선택" />
+        </SelectTrigger>
+        <SelectContent align="start">
           {selectedModel.supportedReasoningEfforts.map((effort) => (
-            <DropdownMenuItem
-              key={effort}
-              onSelect={() => onSelectReasoningEffort(effort)}
-              className="gap-2 py-2"
-            >
-              <span className="min-w-0 flex-1 truncate text-xs text-muted-foreground">
-                {reasoningEffortLabel[effort]}
-              </span>
-              <Check
-                className={cn(
-                  "size-4 text-foreground",
-                  effort === selectedReasoningEffort
-                    ? "opacity-100"
-                    : "opacity-0"
-                )}
-              />
-            </DropdownMenuItem>
+            <SelectItem key={effort} value={effort}>
+              {reasoningEffortLabel[effort]}
+            </SelectItem>
           ))}
-        </DropdownMenuContent>
-      </DropdownMenu>
+        </SelectContent>
+      </Select>
     </div>
   )
 }

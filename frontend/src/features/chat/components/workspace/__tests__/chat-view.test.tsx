@@ -9,6 +9,7 @@ import {
 import type { AssembledToolCall } from "@langchain/langgraph-sdk/stream"
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query"
 import { fireEvent, render, screen } from "@testing-library/react"
+import userEvent from "@testing-library/user-event"
 import { ChatView } from "@/features/chat/components/workspace/chat-view"
 import type { ToolPermissionPreset } from "@/features/chat/lib/tool-policy/tool-permission-presets"
 import type {
@@ -32,6 +33,14 @@ const streamState = vi.hoisted(() => ({
 const workspaceState = vi.hoisted(() => ({
   setRightPanel: vi.fn(),
 }))
+
+if (!HTMLElement.prototype.hasPointerCapture) {
+  HTMLElement.prototype.hasPointerCapture = () => false
+}
+
+if (!HTMLElement.prototype.releasePointerCapture) {
+  HTMLElement.prototype.releasePointerCapture = () => undefined
+}
 
 vi.mock("@/features/chat/hooks/use-langgraph-chat-stream", () => ({
   useLangGraphChatStream: () => ({
@@ -186,14 +195,14 @@ describe("ChatView", () => {
       onRemoveOnboardingContext,
     })
 
-    expect(screen.getByText("포함된 창업 성향")).toBeInTheDocument()
+    expect(screen.getByText("창업 성향")).toBeInTheDocument()
 
     fireEvent.click(screen.getByRole("button", { name: "창업 성향 포함 해제" }))
 
     expect(onRemoveOnboardingContext).toHaveBeenCalledTimes(1)
   })
 
-  it("권한 변경 메뉴에서 프리셋을 선택할 수 있다.", () => {
+  it("권한 변경 메뉴에서 프리셋을 선택할 수 있다.", async () => {
     streamState.current = {
       hitlInterrupts: [],
       isBusy: false,
@@ -202,11 +211,12 @@ describe("ChatView", () => {
       messages: [],
       toolCalls: [],
     }
+    const user = userEvent.setup()
 
     renderChatView()
 
-    fireEvent.pointerDown(screen.getByRole("button", { name: "권한 변경" }))
-    fireEvent.click(screen.getByRole("menuitemradio", { name: "전체 허용" }))
+    await user.click(screen.getByRole("combobox", { name: "권한 변경" }))
+    await user.click(screen.getByText("전체 허용"))
 
     expect(selectPreset).toHaveBeenCalledWith("allow-all")
   })

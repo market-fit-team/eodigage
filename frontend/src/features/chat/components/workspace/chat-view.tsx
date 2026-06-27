@@ -340,7 +340,7 @@ export function ChatView({
                     variant="secondary"
                     className="gap-1 rounded-md px-2 py-0.5 text-xs"
                   >
-                    포함된 창업 성향
+                    창업 성향
                     <Button
                       variant="ghost"
                       size="icon-xs"
