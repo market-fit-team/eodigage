@@ -1,7 +1,6 @@
 "use client"
 
 import { useEffect, useRef, useState } from "react"
-import { useRouter } from "next/navigation"
 import { toast } from "sonner"
 import { useQuery, useQueryClient } from "@tanstack/react-query"
 import { HttpStatusError } from "@/features/auth/lib/fetch-with-auth"
@@ -42,39 +41,10 @@ import { Skeleton } from "@/shared/components/ui/skeleton"
 
 type ChatWorkspaceThreadViewProps = {
   threadId: string
-  starterMessage?: string | null
-}
-
-function ChatWorkspaceThreadStarter({
-  starterMessage,
-}: {
-  starterMessage?: string | null
-}) {
-  const router = useRouter()
-  const { sendMessage } = useLangGraphChatStream()
-  const hasSubmittedRef = useRef(false)
-
-  useEffect(() => {
-    if (!starterMessage || hasSubmittedRef.current) {
-      return
-    }
-
-    hasSubmittedRef.current = true
-    void sendMessage(starterMessage)
-      .then(() => {
-        router.replace(window.location.pathname)
-      })
-      .catch(() => {
-        hasSubmittedRef.current = false
-      })
-  }, [router, sendMessage, starterMessage])
-
-  return null
 }
 
 export function ChatWorkspaceThreadView({
   threadId,
-  starterMessage,
 }: ChatWorkspaceThreadViewProps) {
   const toolsQuery = useListLlmToolsApiV1LlmToolsGet({
     query: {
@@ -160,7 +130,6 @@ export function ChatWorkspaceThreadView({
       <ChatThreadWorkspace
         activeThreadTitle={thread.title}
         appThreadId={thread.id}
-        starterMessage={starterMessage}
       />
     </LangGraphChatStreamProvider>
   )
@@ -169,11 +138,9 @@ export function ChatWorkspaceThreadView({
 function ChatThreadWorkspace({
   activeThreadTitle,
   appThreadId,
-  starterMessage,
 }: {
   activeThreadTitle: string
   appThreadId: string
-  starterMessage?: string | null
 }) {
   const queryClient = useQueryClient()
   const { resume, toolCalls } = useLangGraphChatStream()
@@ -326,7 +293,6 @@ function ChatThreadWorkspace({
       onSetPanel={setRightPanel}
       onHitlDecide={(decisions) => void resume(decisions)}
     >
-      <ChatWorkspaceThreadStarter starterMessage={starterMessage} />
       <ChatView
         activeThreadTitle={activeThreadTitle}
         artifacts={artifacts ?? []}

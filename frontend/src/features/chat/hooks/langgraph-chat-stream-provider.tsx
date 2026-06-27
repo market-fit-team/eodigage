@@ -11,7 +11,6 @@ import { useStream } from "@langchain/react"
 import {
   AuthSessionError,
   HttpStatusError,
-  fetchWithAuthResponse,
 } from "@/features/auth/lib/fetch-with-auth"
 import {
   type ChatTurnOptions,
@@ -20,6 +19,11 @@ import {
 } from "@/features/chat/hooks/langgraph-chat-stream-context"
 import { buildSubmitContext } from "@/features/chat/lib/langgraph/build-submit-config"
 import { buildSubmitInput } from "@/features/chat/lib/langgraph/build-submit-input"
+import {
+  buildAgentApiUrl,
+  createLangGraphClient,
+  langGraphFetch,
+} from "@/features/chat/lib/langgraph/chat-runtime-client"
 import type {
   HitlInterrupt,
   HitlRequest,
@@ -27,9 +31,7 @@ import type {
 } from "@/features/chat/types/hitl-interrupt-payload"
 import type { LlmChatGraphState } from "@/features/chat/types/langgraph-chat-state"
 import type { LlmToolDefinition } from "@/features/chat/types/llm-tool-definition"
-import { withCsrfHeaders } from "@/shared/api/csrf"
 
-const AGENT_PUBLIC_PATH = "/api/agent"
 const CHAT_ASSISTANT_ID = "chat"
 
 type LangGraphChatStreamProviderProps = {
@@ -48,27 +50,6 @@ type VerifiedInterruptSnapshot = {
   key: string
   ids: Set<string>
 }
-
-const buildAgentApiUrl = () => {
-  const origin = process.env.NEXT_PUBLIC_API_ORIGIN ?? "http://localhost:8088"
-
-  return new URL(AGENT_PUBLIC_PATH, origin).toString()
-}
-
-const langGraphFetch: typeof fetch = async (input, init) => {
-  return fetchWithAuthResponse(input, {
-    ...init,
-    headers: withCsrfHeaders(init?.headers),
-  })
-}
-
-const createLangGraphClient = (apiUrl: string) =>
-  new Client({
-    apiUrl,
-    callerOptions: {
-      fetch: langGraphFetch,
-    },
-  })
 
 const extractActiveInterruptIds = (state: unknown) => {
   const tasks = (state as { tasks?: unknown })?.tasks
