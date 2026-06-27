@@ -128,12 +128,16 @@ export function ChatView({
     toolPolicy,
     toolCalls,
   } = useLangGraphChatStream()
-  const {
-    selectedArtifactIds,
-    selectedDocumentIds,
-    setIsSelectionLocked,
-    setRightPanel,
-  } = useChatWorkspace()
+  const selectedArtifactIds = useChatWorkspace(
+    (state) => state.selectedArtifactIds
+  )
+  const selectedDocumentIds = useChatWorkspace(
+    (state) => state.selectedDocumentIds
+  )
+  const setIsSelectionLocked = useChatWorkspace(
+    (state) => state.setIsSelectionLocked
+  )
+  const setRightPanel = useChatWorkspace((state) => state.setRightPanel)
   const { viewportRef, onScroll, scrollToBottom } = useAutoScroll()
   const disabled = isBusy || isHydrating || hitlInterrupts.length > 0
   const groupedTurns = React.useMemo(

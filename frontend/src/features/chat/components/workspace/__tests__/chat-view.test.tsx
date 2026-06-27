@@ -31,7 +31,14 @@ const streamState = vi.hoisted(() => ({
   },
 }))
 const workspaceState = vi.hoisted(() => ({
-  setRightPanel: vi.fn(),
+  current: {
+    selectedArtifactIds: ["artifact-1"],
+    selectedDocumentIds: ["doc-1"],
+    setIsSelectionLocked: vi.fn(),
+    setRightPanel: vi.fn(),
+    toggleArtifact: vi.fn(),
+    toggleDocument: vi.fn(),
+  },
 }))
 
 if (!HTMLElement.prototype.hasPointerCapture) {
@@ -81,14 +88,9 @@ vi.mock("@/features/chat/hooks/use-langgraph-chat-stream", () => ({
 }))
 
 vi.mock("@/features/chat/providers/chat-workspace-provider", () => ({
-  useChatWorkspace: () => ({
-    selectedArtifactIds: ["artifact-1"],
-    selectedDocumentIds: ["doc-1"],
-    setIsSelectionLocked: vi.fn(),
-    setRightPanel: workspaceState.setRightPanel,
-    toggleArtifact: vi.fn(),
-    toggleDocument: vi.fn(),
-  }),
+  useChatWorkspace: (
+    selector?: (state: typeof workspaceState.current) => unknown
+  ) => (selector ? selector(workspaceState.current) : workspaceState.current),
 }))
 
 vi.mock(
@@ -409,7 +411,7 @@ describe("ChatView", () => {
 
     fireEvent.click(screen.getByRole("button", { name: "검색 결과 패널 보기" }))
 
-    expect(workspaceState.setRightPanel).toHaveBeenCalledWith({
+    expect(workspaceState.current.setRightPanel).toHaveBeenCalledWith({
       kind: "web-search",
       result: expect.objectContaining({
         query: "성수동 팝업 스토어",

@@ -185,8 +185,11 @@ function LibraryIndex({
 }
 
 function DocumentViewer({ document }: { document: DocumentResponse }) {
-  const { isSelectionLocked, selectedDocumentIds, toggleDocument } =
-    useChatWorkspace()
+  const isSelectionLocked = useChatWorkspace((state) => state.isSelectionLocked)
+  const selectedDocumentIds = useChatWorkspace(
+    (state) => state.selectedDocumentIds
+  )
+  const toggleDocument = useChatWorkspace((state) => state.toggleDocument)
   const isSelected = selectedDocumentIds.includes(document.id)
 
   return (
