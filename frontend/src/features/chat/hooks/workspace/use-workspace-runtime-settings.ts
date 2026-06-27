@@ -5,6 +5,11 @@ import { useQueryClient } from "@tanstack/react-query"
 import { clampReasoningEffort } from "@/features/chat/lib/model-selection/clamp-reasoning-effort"
 import { buildToolPolicy } from "@/features/chat/lib/tool-policy/build-tool-policy"
 import { buildToolPolicySummary } from "@/features/chat/lib/tool-policy/build-tool-policy-summary"
+import {
+  buildAllowedToolNamesForPreset,
+  resolveToolPermissionPreset,
+} from "@/features/chat/lib/tool-policy/tool-permission-presets"
+import type { ToolPermissionPreset } from "@/features/chat/lib/tool-policy/tool-permission-presets"
 import type {
   ChatModelOption,
   ChatReasoningEffort,
@@ -32,19 +37,10 @@ type OptimisticContext = {
   threadId: string
 }
 
-const buildDefaultPolicy = (tools: LlmToolDefinition[]) => {
-  return buildToolPolicy(
-    tools,
-    new Set(
-      tools.filter((tool) => tool.defaultAllowed).map((tool) => tool.name)
-    )
-  )
-}
-
 const toApiReasoningEffort = (
   reasoningEffort: ChatReasoningEffort
 ): UpdateThreadSettingsRequest["reasoning_effort"] => {
-  return reasoningEffort === "none" ? null : reasoningEffort
+  return reasoningEffort
 }
 
 export function useWorkspaceRuntimeSettings({
@@ -148,6 +144,12 @@ export function useWorkspaceRuntimeSettings({
     }
 
     const allowedToolNames = new Set(settings.allowed_tools)
+    const interruptOn = settings.interrupt_on as InterruptOnConfig
+    const selectedPreset = resolveToolPermissionPreset({
+      tools,
+      allowedTools: settings.allowed_tools,
+      interruptOn,
+    })
 
     return {
       modelSelection: {
@@ -188,11 +190,15 @@ export function useWorkspaceRuntimeSettings({
       toolPolicy: {
         allowedToolNames,
         allowedTools: settings.allowed_tools,
-        interruptOn: settings.interrupt_on as InterruptOnConfig,
+        interruptOn,
         summary: buildToolPolicySummary(
           tools.length,
           settings.allowed_tools.length
         ),
+        selectedPreset,
+        selectPreset: (preset: ToolPermissionPreset) => {
+          commitPolicy(buildAllowedToolNamesForPreset(tools, preset))
+        },
         toggleTool: (toolName: string) => {
           if (!tools.some((tool) => tool.name === toolName)) {
             return
@@ -206,7 +212,7 @@ export function useWorkspaceRuntimeSettings({
           commitPolicy(nextAllowedToolNames)
         },
         resetToDefault: () => {
-          commitPolicy(buildDefaultPolicy(tools).allowedToolNames)
+          commitPolicy(buildAllowedToolNamesForPreset(tools, "allow-default"))
         },
       },
     }

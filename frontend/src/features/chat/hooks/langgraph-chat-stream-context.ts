@@ -1,6 +1,7 @@
 import { createContext } from "react"
 import type { BaseMessage } from "@langchain/core/messages"
 import type { AssembledToolCall } from "@langchain/langgraph-sdk/stream"
+import type { ToolPermissionPreset } from "@/features/chat/lib/tool-policy/tool-permission-presets"
 import type {
   ChatModelOption,
   ChatModelSelection,
@@ -22,6 +23,8 @@ export type ChatModelSelectionControls = ChatModelSelection & {
 }
 
 export type ToolPolicyControls = ToolPolicyState & {
+  selectedPreset: ToolPermissionPreset | null
+  selectPreset: (preset: ToolPermissionPreset) => void
   toggleTool: (toolName: string) => void
   resetToDefault: () => void
 }
