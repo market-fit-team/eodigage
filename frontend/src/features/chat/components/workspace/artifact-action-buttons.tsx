@@ -2,13 +2,11 @@
 
 import * as React from "react"
 import { AtSign, Loader2, Save } from "lucide-react"
-import { useQueryClient } from "@tanstack/react-query"
 import { toast } from "sonner"
+import { useQueryClient } from "@tanstack/react-query"
 import { HttpStatusError } from "@/features/auth/lib/fetch-with-auth"
 import { useChatWorkspace } from "@/features/chat/providers/chat-workspace-provider"
-import {
-  useSaveArtifactAsDocumentApiV1AgentArtifactsArtifactIdSaveAsDocumentPost,
-} from "@/shared/api/generated/agent/endpoints/agent-artifacts/agent-artifacts"
+import { useSaveArtifactAsDocumentApiV1AgentArtifactsArtifactIdSaveAsDocumentPost } from "@/shared/api/generated/agent/endpoints/agent-artifacts/agent-artifacts"
 import { getListDocumentsApiV1AgentDocumentsGetQueryKey } from "@/shared/api/generated/agent/endpoints/agent-documents/agent-documents"
 import { Button } from "@/shared/components/ui/button"
 import {
@@ -49,11 +47,11 @@ export function ArtifactActionButtons({
   className,
 }: ArtifactActionButtonsProps) {
   const queryClient = useQueryClient()
-  const {
-    isSelectionLocked,
-    selectedArtifactIds,
-    toggleArtifact,
-  } = useChatWorkspace()
+  const isSelectionLocked = useChatWorkspace((state) => state.isSelectionLocked)
+  const selectedArtifactIds = useChatWorkspace(
+    (state) => state.selectedArtifactIds
+  )
+  const toggleArtifact = useChatWorkspace((state) => state.toggleArtifact)
   const saveArtifactAsDocument =
     useSaveArtifactAsDocumentApiV1AgentArtifactsArtifactIdSaveAsDocumentPost()
   const isSelected = selectedArtifactIds.includes(artifactId)

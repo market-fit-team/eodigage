@@ -1,12 +1,6 @@
 "use client"
 
 import { Fingerprint, Link2 } from "lucide-react"
-import { useGetResultByCodeSurveysResultsResultCodeGet } from "@/shared/api/generated/onboarding/endpoints/survey/survey"
-import type {
-  SurveyResultResponse,
-  SurveyResultResponseOutput,
-} from "@/shared/api/generated/onboarding/schemas"
-import type { OnboardingContextResponse } from "@/shared/api/generated/agent/schemas"
 import { MarkdownContentRenderer } from "@/features/chat/components/workspace/markdown-content-renderer"
 import {
   getDocumentIcon,
@@ -17,7 +11,13 @@ import type {
   ChatDetailDialogState,
   ChatOnboardingResultPreview,
 } from "@/features/chat/types/workspace"
+import type { OnboardingContextResponse } from "@/shared/api/generated/agent/schemas"
 import type { DocumentResponse } from "@/shared/api/generated/agent/schemas"
+import { useGetResultByCodeSurveysResultsResultCodeGet } from "@/shared/api/generated/onboarding/endpoints/survey/survey"
+import type {
+  SurveyResultResponse,
+  SurveyResultResponseOutput,
+} from "@/shared/api/generated/onboarding/schemas"
 import { Badge } from "@/shared/components/ui/badge"
 import { Button } from "@/shared/components/ui/button"
 import {
@@ -66,14 +66,14 @@ export function WorkspaceDetailDialog({
       : undefined
   const onboardingResultQuery =
     useGetResultByCodeSurveysResultsResultCodeGet<SurveyResultResponse>(
-    onboardingResultCode,
-    {
-      query: {
-        // 기본 프로필 항목은 이미 받은 목록 데이터를 모달 첫 렌더에 재사용한다.
-        enabled: dialog?.kind === "onboarding-result",
-        initialData: onboardingInitialData,
-      },
-    }
+      onboardingResultCode,
+      {
+        query: {
+          // 기본 프로필 항목은 이미 받은 목록 데이터를 모달 첫 렌더에 재사용한다.
+          enabled: dialog?.kind === "onboarding-result",
+          initialData: onboardingInitialData,
+        },
+      }
     )
 
   return (
@@ -107,8 +107,11 @@ function DocumentDialogBody({
   document: DocumentResponse
   onClose: () => void
 }) {
-  const { isSelectionLocked, selectedDocumentIds, toggleDocument } =
-    useChatWorkspace()
+  const isSelectionLocked = useChatWorkspace((state) => state.isSelectionLocked)
+  const selectedDocumentIds = useChatWorkspace(
+    (state) => state.selectedDocumentIds
+  )
+  const toggleDocument = useChatWorkspace((state) => state.toggleDocument)
   const isSelected = selectedDocumentIds.includes(document.id)
 
   return (
@@ -285,7 +288,8 @@ function OnboardingResultDialogBody({
                         </Badge>
                       </div>
                       <p className="mt-1 text-xs text-muted-foreground">
-                        {item.category_group} · 코드 {item.service_category_code}
+                        {item.category_group} · 코드{" "}
+                        {item.service_category_code}
                       </p>
                     </div>
                   ))}
@@ -323,11 +327,9 @@ type ProfileMetricSectionProps<
   values: TValue
 }
 
-function ProfileMetricSection<TValue extends Record<string, number | string | null | undefined>>({
-  title,
-  metrics,
-  values,
-}: ProfileMetricSectionProps<TValue>) {
+function ProfileMetricSection<
+  TValue extends Record<string, number | string | null | undefined>,
+>({ title, metrics, values }: ProfileMetricSectionProps<TValue>) {
   return (
     <section className="space-y-3 rounded-xl border border-border/40 bg-muted/10 p-4">
       <h3 className="text-sm font-semibold">{title}</h3>

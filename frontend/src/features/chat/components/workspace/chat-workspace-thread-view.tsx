@@ -2,11 +2,11 @@
 
 import { useEffect, useRef } from "react"
 import { useRouter } from "next/navigation"
-import { useQuery, useQueryClient } from "@tanstack/react-query"
 import { toast } from "sonner"
+import { useQuery, useQueryClient } from "@tanstack/react-query"
+import { HttpStatusError } from "@/features/auth/lib/fetch-with-auth"
 import { ChatView } from "@/features/chat/components/workspace/chat-view"
 import { ChatWorkspaceShell } from "@/features/chat/components/workspace/chat-workspace-shell"
-import { HttpStatusError } from "@/features/auth/lib/fetch-with-auth"
 import { LangGraphChatStreamProvider } from "@/features/chat/hooks/langgraph-chat-stream-provider"
 import { useLangGraphChatStream } from "@/features/chat/hooks/use-langgraph-chat-stream"
 import { useWorkspaceRuntimeSettings } from "@/features/chat/hooks/workspace/use-workspace-runtime-settings"
@@ -19,11 +19,6 @@ import {
 import { useChatWorkspace } from "@/features/chat/providers/chat-workspace-provider"
 import type { ChatReasoningEffort } from "@/features/chat/types/chat-model-selection"
 import {
-  getGetOnboardingContextApiV1AgentThreadsThreadIdOnboardingContextGetQueryKey,
-  getOnboardingContextApiV1AgentThreadsThreadIdOnboardingContextGet,
-  useDeleteOnboardingContextApiV1AgentThreadsThreadIdOnboardingContextDelete,
-} from "@/shared/api/generated/agent/endpoints/agent-onboarding-context/agent-onboarding-context"
-import {
   getListArtifactsApiV1AgentArtifactsGetQueryKey,
   useListArtifactsApiV1AgentArtifactsGet,
 } from "@/shared/api/generated/agent/endpoints/agent-artifacts/agent-artifacts"
@@ -31,6 +26,11 @@ import {
   getListDocumentsApiV1AgentDocumentsGetQueryKey,
   useListDocumentsApiV1AgentDocumentsGet,
 } from "@/shared/api/generated/agent/endpoints/agent-documents/agent-documents"
+import {
+  getGetOnboardingContextApiV1AgentThreadsThreadIdOnboardingContextGetQueryKey,
+  getOnboardingContextApiV1AgentThreadsThreadIdOnboardingContextGet,
+  useDeleteOnboardingContextApiV1AgentThreadsThreadIdOnboardingContextDelete,
+} from "@/shared/api/generated/agent/endpoints/agent-onboarding-context/agent-onboarding-context"
 import { useListThreadsApiV1AgentThreadsGet } from "@/shared/api/generated/agent/endpoints/agent-threads/agent-threads"
 import {
   useListLlmModelsApiV1LlmModelsGet,
@@ -176,16 +176,20 @@ function ChatThreadWorkspace({
 }) {
   const queryClient = useQueryClient()
   const { resume, toolCalls } = useLangGraphChatStream()
-  const {
-    isLeftSidebarOpen,
-    replaceSelections,
-    resetSelections,
-    rightPanel,
-    selectedArtifactIds,
-    selectedDocumentIds,
-    setIsLeftSidebarOpen,
-    setRightPanel,
-  } = useChatWorkspace()
+  const isLeftSidebarOpen = useChatWorkspace((state) => state.isLeftSidebarOpen)
+  const replaceSelections = useChatWorkspace((state) => state.replaceSelections)
+  const resetSelections = useChatWorkspace((state) => state.resetSelections)
+  const rightPanel = useChatWorkspace((state) => state.rightPanel)
+  const selectedArtifactIds = useChatWorkspace(
+    (state) => state.selectedArtifactIds
+  )
+  const selectedDocumentIds = useChatWorkspace(
+    (state) => state.selectedDocumentIds
+  )
+  const setIsLeftSidebarOpen = useChatWorkspace(
+    (state) => state.setIsLeftSidebarOpen
+  )
+  const setRightPanel = useChatWorkspace((state) => state.setRightPanel)
   const documentsQuery = useListDocumentsApiV1AgentDocumentsGet()
   const artifactsQuery = useListArtifactsApiV1AgentArtifactsGet({
     thread_id: appThreadId,
@@ -208,7 +212,12 @@ function ChatThreadWorkspace({
   const documents = documentsQuery.data?.documents
   const artifacts = artifactsQuery.data?.artifacts
   const hasOnboardingContext = onboardingContextQuery.data !== null
-  const isExpanded = !isLeftSidebarOpen && !rightPanel
+  const resolvedRightPanel = reconcileWorkspaceRightPanel({
+    panel: rightPanel,
+    documents: documents ?? [],
+    artifacts: artifacts ?? [],
+  })
+  const isExpanded = !isLeftSidebarOpen && !resolvedRightPanel
   const previousThreadIdRef = useRef<string | null>(null)
   const processedMutationToolCallIdsRef = useRef<Set<string>>(new Set())
 
@@ -249,18 +258,6 @@ function ChatThreadWorkspace({
     selectedArtifactIds,
     selectedDocumentIds,
   ])
-
-  useEffect(() => {
-    const nextPanel = reconcileWorkspaceRightPanel({
-      panel: rightPanel,
-      documents: documents ?? [],
-      artifacts: artifacts ?? [],
-    })
-
-    if (nextPanel !== rightPanel) {
-      setRightPanel(nextPanel)
-    }
-  }, [artifacts, documents, rightPanel, setRightPanel])
 
   useEffect(() => {
     const refreshPlan = getWorkspaceRefreshPlan({
@@ -327,7 +324,11 @@ function ChatThreadWorkspace({
   }
 
   return (
-    <ChatWorkspaceShell onHitlDecide={(decisions) => void resume(decisions)}>
+    <ChatWorkspaceShell
+      panel={resolvedRightPanel}
+      onSetPanel={setRightPanel}
+      onHitlDecide={(decisions) => void resume(decisions)}
+    >
       <ChatWorkspaceThreadStarter starterMessage={starterMessage} />
       <ChatView
         activeThreadTitle={activeThreadTitle}
@@ -335,7 +336,7 @@ function ChatThreadWorkspace({
         documents={documents ?? []}
         hasOnboardingContext={hasOnboardingContext}
         isOnboardingContextRemoving={deleteOnboardingContext.isPending}
-        isRightPanelOpen={Boolean(rightPanel)}
+        isRightPanelOpen={Boolean(resolvedRightPanel)}
         isExpanded={isExpanded}
         onRemoveOnboardingContext={handleRemoveOnboardingContext}
         onToggleExpand={handleToggleExpand}

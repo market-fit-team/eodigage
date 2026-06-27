@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, type ReactNode } from "react"
+import type { ReactNode } from "react"
 import { useRouter, useSelectedLayoutSegment } from "next/navigation"
 import {
   Fingerprint,
@@ -12,6 +12,7 @@ import {
 } from "lucide-react"
 import { toast } from "sonner"
 import { useQuery, useQueryClient } from "@tanstack/react-query"
+import { HttpStatusError } from "@/features/auth/lib/fetch-with-auth"
 import { LibraryPanel } from "@/features/chat/components/workspace/library-panel"
 import { MemoryPanel } from "@/features/chat/components/workspace/memory-panel"
 import {
@@ -20,17 +21,19 @@ import {
 } from "@/features/chat/components/workspace/onboarding-panel"
 import { ThreadList } from "@/features/chat/components/workspace/thread-list"
 import { WorkspaceDetailDialog } from "@/features/chat/components/workspace/workspace-detail-dialog"
-import { HttpStatusError } from "@/features/auth/lib/fetch-with-auth"
 import { useChatWorkspace } from "@/features/chat/providers/chat-workspace-provider"
-import type { ChatOnboardingResultPreview } from "@/features/chat/types/workspace"
+import type {
+  ChatDetailDialogPayload,
+  ChatOnboardingResultPreview,
+} from "@/features/chat/types/workspace"
+import { useListDocumentsApiV1AgentDocumentsGet } from "@/shared/api/generated/agent/endpoints/agent-documents/agent-documents"
+import { useListMemoriesApiV1AgentMemoriesGet } from "@/shared/api/generated/agent/endpoints/agent-memories/agent-memories"
 import {
   getGetOnboardingContextApiV1AgentThreadsThreadIdOnboardingContextGetQueryKey,
   getOnboardingContextApiV1AgentThreadsThreadIdOnboardingContextGet,
   useDeleteOnboardingContextApiV1AgentThreadsThreadIdOnboardingContextDelete,
   useSetOnboardingContextApiV1AgentThreadsThreadIdOnboardingContextPut,
 } from "@/shared/api/generated/agent/endpoints/agent-onboarding-context/agent-onboarding-context"
-import { useListDocumentsApiV1AgentDocumentsGet } from "@/shared/api/generated/agent/endpoints/agent-documents/agent-documents"
-import { useListMemoriesApiV1AgentMemoriesGet } from "@/shared/api/generated/agent/endpoints/agent-memories/agent-memories"
 import {
   getListThreadsApiV1AgentThreadsGetQueryKey,
   useCreateThreadApiV1AgentThreadsPost,
@@ -64,23 +67,23 @@ type ChatWorkspaceFrameProps = {
   children: ReactNode
 }
 
-export function ChatWorkspaceFrame({
-  children,
-}: ChatWorkspaceFrameProps) {
+export function ChatWorkspaceFrame({ children }: ChatWorkspaceFrameProps) {
   const router = useRouter()
   const queryClient = useQueryClient()
   const currentThreadSegment = useSelectedLayoutSegment()
   const currentThreadId = currentThreadSegment ?? null
-  const {
-    activeLeftTab,
-    detailDialog,
-    isLeftSidebarOpen,
-    selectedDocumentIds,
-    setDetailDialog,
-    setActiveLeftTab,
-    setIsLeftSidebarOpen,
-    toggleDocument,
-  } = useChatWorkspace()
+  const activeLeftTab = useChatWorkspace((state) => state.activeLeftTab)
+  const detailDialog = useChatWorkspace((state) => state.detailDialog)
+  const isLeftSidebarOpen = useChatWorkspace((state) => state.isLeftSidebarOpen)
+  const selectedDocumentIds = useChatWorkspace(
+    (state) => state.selectedDocumentIds
+  )
+  const setDetailDialog = useChatWorkspace((state) => state.setDetailDialog)
+  const setActiveLeftTab = useChatWorkspace((state) => state.setActiveLeftTab)
+  const setIsLeftSidebarOpen = useChatWorkspace(
+    (state) => state.setIsLeftSidebarOpen
+  )
+  const toggleDocument = useChatWorkspace((state) => state.toggleDocument)
   const threadsQuery = useListThreadsApiV1AgentThreadsGet()
   const documentsQuery = useListDocumentsApiV1AgentDocumentsGet()
   const memoriesQuery = useListMemoriesApiV1AgentMemoriesGet()
@@ -94,6 +97,8 @@ export function ChatWorkspaceFrame({
   const documents = documentsQuery.data?.documents ?? []
   const threads = threadsQuery.data?.threads ?? []
   const memories = memoriesQuery.data?.memories ?? []
+  const scopedDetailDialog =
+    detailDialog?.scopeThreadId === currentThreadId ? detailDialog : null
   const isOnboardingTabActive =
     activeLeftTab === "onboarding" && isLeftSidebarOpen
   const onboardingContextQuery = useQuery({
@@ -118,7 +123,8 @@ export function ChatWorkspaceFrame({
   })
   const defaultProfileQuery = useQuery({
     queryKey: getGetMySurveyProfileSurveysMeProfileGetQueryKey(),
-    enabled: isOnboardingTabActive || detailDialog?.kind === "onboarding-result",
+    enabled:
+      isOnboardingTabActive || scopedDetailDialog?.kind === "onboarding-result",
     retry: false,
     queryFn: () => readOptionalResource(getMySurveyProfileSurveysMeProfileGet),
   })
@@ -141,10 +147,6 @@ export function ChatWorkspaceFrame({
     "size-8 cursor-pointer rounded-md text-muted-foreground transition-colors hover:bg-muted/70 hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring/30"
   const activeActivityButtonClassName =
     "bg-muted text-foreground ring-1 ring-border/40 hover:bg-muted"
-
-  useEffect(() => {
-    setDetailDialog(null)
-  }, [currentThreadId, setDetailDialog])
 
   const invalidateThreads = () => {
     void queryClient.invalidateQueries({
@@ -184,10 +186,11 @@ export function ChatWorkspaceFrame({
     )
   }
 
-  const openDetailDialog = (
-    nextDialog: NonNullable<typeof detailDialog>
-  ) => {
-    setDetailDialog(nextDialog)
+  const openDetailDialog = (nextDialog: ChatDetailDialogPayload) => {
+    setDetailDialog({
+      ...nextDialog,
+      scopeThreadId: currentThreadId,
+    })
     if (window.innerWidth < 768) {
       setIsLeftSidebarOpen(false)
     }
@@ -214,7 +217,8 @@ export function ChatWorkspaceFrame({
       return
     }
 
-    const isAttached = currentOnboardingContext?.result_code === result.resultCode
+    const isAttached =
+      currentOnboardingContext?.result_code === result.resultCode
 
     if (isAttached) {
       deleteOnboardingContext.mutate(
@@ -393,7 +397,8 @@ export function ChatWorkspaceFrame({
                   <OnboardingPanel
                     items={onboardingItems}
                     isLoading={
-                      defaultProfileQuery.isLoading || savedResultsQuery.isLoading
+                      defaultProfileQuery.isLoading ||
+                      savedResultsQuery.isLoading
                     }
                     isInteractionPending={isOnboardingInteractionPending}
                     onOpenResult={(result) =>
@@ -432,7 +437,7 @@ export function ChatWorkspaceFrame({
         currentOnboardingContext={currentOnboardingContext}
         currentThreadId={currentThreadId}
         defaultProfile={defaultProfile}
-        dialog={detailDialog}
+        dialog={scopedDetailDialog}
         isOnboardingContextPending={isOnboardingInteractionPending}
         onClose={() => setDetailDialog(null)}
         onToggleOnboardingContext={handleToggleOnboardingContext}

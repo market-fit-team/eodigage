@@ -4,6 +4,7 @@ import type { ReactNode } from "react"
 import { RightSidebar } from "@/features/chat/components/workspace/right-sidebar"
 import { useChatWorkspace } from "@/features/chat/providers/chat-workspace-provider"
 import type { HitlDecision } from "@/features/chat/types/hitl-interrupt-payload"
+import type { ChatRightPanel } from "@/features/chat/types/workspace"
 import { useListDocumentsApiV1AgentDocumentsGet } from "@/shared/api/generated/agent/endpoints/agent-documents/agent-documents"
 import {
   ResizableHandle,
@@ -14,21 +15,33 @@ import {
 type ChatWorkspaceShellProps = {
   children: ReactNode
   onHitlDecide?: (decisions: HitlDecision[]) => void
+  panel?: ChatRightPanel | null
+  onSetPanel?: (panel: ChatRightPanel | null) => void
 }
 
 export function ChatWorkspaceShell({
   children,
   onHitlDecide,
+  panel,
+  onSetPanel,
 }: ChatWorkspaceShellProps) {
   const documentsQuery = useListDocumentsApiV1AgentDocumentsGet()
-  const { rightPanel, setRightPanel } = useChatWorkspace()
+  const workspaceRightPanel = useChatWorkspace((state) => state.rightPanel)
+  const setWorkspaceRightPanel = useChatWorkspace(
+    (state) => state.setRightPanel
+  )
+  const rightPanel = panel ?? workspaceRightPanel
+  const setRightPanel = onSetPanel ?? setWorkspaceRightPanel
   const documents = documentsQuery.data?.documents ?? []
   const isRightPanelOpen = rightPanel !== null
 
   return (
     <div className="flex h-full min-h-0 min-w-0 flex-1 flex-col overflow-hidden bg-background">
       <ResizablePanelGroup orientation="horizontal" className="h-full w-full">
-        <ResizablePanel defaultSize={isRightPanelOpen ? "65%" : "100%"} minSize="40%">
+        <ResizablePanel
+          defaultSize={isRightPanelOpen ? "65%" : "100%"}
+          minSize="40%"
+        >
           {children}
         </ResizablePanel>
 

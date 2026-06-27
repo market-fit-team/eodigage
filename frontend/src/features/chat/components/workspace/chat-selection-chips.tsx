@@ -22,13 +22,15 @@ export function ChatSelectionChips({
   artifacts,
   documents,
 }: ChatSelectionChipsProps) {
-  const {
-    isSelectionLocked,
-    selectedArtifactIds,
-    selectedDocumentIds,
-    toggleArtifact,
-    toggleDocument,
-  } = useChatWorkspace()
+  const isSelectionLocked = useChatWorkspace((state) => state.isSelectionLocked)
+  const selectedArtifactIds = useChatWorkspace(
+    (state) => state.selectedArtifactIds
+  )
+  const selectedDocumentIds = useChatWorkspace(
+    (state) => state.selectedDocumentIds
+  )
+  const toggleArtifact = useChatWorkspace((state) => state.toggleArtifact)
+  const toggleDocument = useChatWorkspace((state) => state.toggleDocument)
 
   const selectedDocuments = documents.filter((document) =>
     selectedDocumentIds.includes(document.id)

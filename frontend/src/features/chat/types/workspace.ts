@@ -20,7 +20,7 @@ export type ChatOnboardingResultPreview = {
   selectedCategoryCode?: string | null
 }
 
-export type ChatDetailDialogState =
+export type ChatDetailDialogPayload =
   | {
       kind: "library-document"
       document: DocumentResponse
@@ -29,6 +29,10 @@ export type ChatDetailDialogState =
       kind: "onboarding-result"
       result: ChatOnboardingResultPreview
     }
+
+export type ChatDetailDialogState = ChatDetailDialogPayload & {
+  scopeThreadId: string | null
+}
 
 export type ChatRightPanel =
   | {
