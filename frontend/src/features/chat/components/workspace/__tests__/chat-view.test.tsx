@@ -267,6 +267,69 @@ describe("ChatView", () => {
     expect(submitMessage).not.toHaveBeenCalled()
   })
 
+  it("한글 조합 입력 중 엔터는 전송하지 않는다.", () => {
+    streamState.current = {
+      hitlInterrupts: [],
+      isBusy: false,
+      isHydrating: false,
+      localNotice: null,
+      messages: [],
+      queuedMessages: [],
+      toolCalls: [],
+    }
+
+    renderChatView()
+
+    const textarea = screen.getByPlaceholderText("메시지를 입력하세요...")
+    fireEvent.change(textarea, {
+      target: { value: "넌 뭐야 ㅋㅋ" },
+    })
+    fireEvent.compositionStart(textarea)
+    fireEvent.keyDown(textarea, {
+      key: "Enter",
+      nativeEvent: { isComposing: true },
+    })
+    fireEvent.compositionEnd(textarea)
+
+    expect(submitMessage).not.toHaveBeenCalled()
+  })
+
+  it("같은 초안에 대한 빠른 연속 엔터는 한 번만 처리한다.", async () => {
+    streamState.current = {
+      hitlInterrupts: [],
+      isBusy: false,
+      isHydrating: false,
+      localNotice: null,
+      messages: [],
+      queuedMessages: [],
+      toolCalls: [],
+    }
+    const resolveSubmitQueue: Array<(value: boolean) => void> = []
+    submitMessage.mockImplementationOnce(
+      () =>
+        new Promise<boolean>((resolve) => {
+          resolveSubmitQueue.push(resolve)
+        })
+    )
+
+    renderChatView()
+
+    const textarea = screen.getByPlaceholderText("메시지를 입력하세요...")
+    fireEvent.change(textarea, {
+      target: { value: "대박 ㅋㅋ" },
+    })
+    fireEvent.keyDown(textarea, {
+      key: "Enter",
+    })
+    fireEvent.keyDown(textarea, {
+      key: "Enter",
+    })
+
+    expect(submitMessage).toHaveBeenCalledTimes(1)
+
+    resolveSubmitQueue[0]?.(true)
+  })
+
   it("응답 중에도 입력과 큐 적재 전송은 가능하다.", () => {
     streamState.current = {
       hitlInterrupts: [],
