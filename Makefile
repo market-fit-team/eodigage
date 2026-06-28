@@ -1,15 +1,22 @@
 .PHONY: dev mac-dev infra mac-infra status api-catalog api-gen frontend down clean
 
+COMPOSE_PROJECT_NAME ?= $(notdir $(CURDIR))
+export COMPOSE_PROJECT_NAME
+export ROOT_COMPOSE_PROJECT_NAME := $(COMPOSE_PROJECT_NAME)
+
 COMPOSE := docker compose
 MAC_COMPOSE := docker compose -f docker-compose.yml -f docker-compose.mac.yml
+UP_COMPOSE := docker compose -f docker-compose.yml -f docker-compose.langgraph-up.override.yml
+MAC_UP_COMPOSE := docker compose -f docker-compose.yml -f docker-compose.mac.yml -f docker-compose.langgraph-up.override.yml
+AGENT_SERVICE_DIR := backend/services/agent-service
 
 infra:
-	@echo "Docker Compose 인프라를 시작합니다..."
-	@$(COMPOSE) up -d --build
+	@echo "langgraph up용 공통 인프라를 시작합니다..."
+	@$(UP_COMPOSE) up -d --build
 
 mac-infra:
-	@echo "Apple Silicon용 AMD64 오버라이드로 Docker Compose 인프라를 시작합니다..."
-	@$(MAC_COMPOSE) up -d --build
+	@echo "Apple Silicon용 langgraph up 공통 인프라를 시작합니다..."
+	@$(MAC_UP_COMPOSE) up -d --build
 
 status:
 	@echo "authentik, traefik의 현재 상태를 확인합니다..."
@@ -34,12 +41,24 @@ frontend:
 	@echo "Compose 네트워크 바깥에서 Next.js를 시작합니다..."
 	@cd frontend && npm run dev
 
-dev: infra status frontend
+# make dev/mac-dev에서는 root compose의 agent-service 대신
+# langgraph up 스택이 같은 네트워크에 합류해 /api/agent를 받습니다.
+dev: infra
+	@echo "agent-service를 langgraph up으로 시작합니다..."
+	@$(MAKE) -C $(AGENT_SERVICE_DIR) run-up
+	@$(MAKE) status
+	@$(MAKE) frontend
 
-mac-dev: mac-infra status frontend
+mac-dev: mac-infra
+	@echo "agent-service를 langgraph up으로 시작합니다..."
+	@$(MAKE) -C $(AGENT_SERVICE_DIR) run-up
+	@$(MAKE) status
+	@$(MAKE) frontend
 
 down:
 	@$(COMPOSE) down
+	@$(MAKE) -C $(AGENT_SERVICE_DIR) down-up
 
 clean:
 	@$(COMPOSE) down --remove-orphans -v
+	@$(MAKE) -C $(AGENT_SERVICE_DIR) clean-up

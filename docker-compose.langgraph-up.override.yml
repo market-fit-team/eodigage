@@ -1,0 +1,8 @@
+services:
+  agent-db:
+    # langgraph up 경로에서는 agent-service 전용 compose가 같은 DB를 띄운다.
+    profiles: ["manual-agent-service"]
+
+  agent-service:
+    # root compose에는 라벨과 문서 기준만 남기고 실제 기동은 막는다.
+    profiles: ["manual-agent-service"]
