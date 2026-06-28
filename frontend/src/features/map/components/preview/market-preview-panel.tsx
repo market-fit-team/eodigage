@@ -1,12 +1,12 @@
 import { FileText } from "lucide-react"
 import { PreviewSummary } from "@/features/map/components/preview/preview-summary"
 import { PreviewTabs } from "@/features/map/components/preview/preview-tabs"
-import { TradeAreaPreviewSkeleton } from "@/features/map/components/preview/trade-area-preview-skeleton"
+import { MarketPreviewSkeleton } from "@/features/map/components/preview/market-preview-skeleton"
 import type { MarketPreviewData } from "@/features/map/types/map"
 import { Button } from "@/shared/components/ui/button"
 import { Card, CardContent } from "@/shared/components/ui/card"
 
-type TradeAreaPreviewPanelProps = {
+type MarketPreviewPanelProps = {
   dongName: string
   isError: boolean
   isLoading: boolean
@@ -16,7 +16,7 @@ type TradeAreaPreviewPanelProps = {
   sigunguName: string
 }
 
-export function TradeAreaPreviewPanel({
+export function MarketPreviewPanel({
   dongName,
   isError,
   isLoading,
@@ -24,7 +24,7 @@ export function TradeAreaPreviewPanel({
   onOpenDetail,
   preview,
   sigunguName,
-}: TradeAreaPreviewPanelProps) {
+}: MarketPreviewPanelProps) {
   return (
     <Card className="h-full gap-0 overflow-hidden py-0">
       <CardContent className="flex min-h-0 flex-1 flex-col p-0">
@@ -36,7 +36,7 @@ export function TradeAreaPreviewPanel({
           />
           <div className="mt-5">
             {isLoading ? (
-              <TradeAreaPreviewSkeleton />
+              <MarketPreviewSkeleton />
             ) : isError ? (
               <p className="rounded-lg border border-destructive/30 bg-destructive/5 px-3 py-4 text-xs leading-relaxed text-destructive">
                 상권 미리보기를 불러오지 못했습니다. 잠시 후 다시 시도해

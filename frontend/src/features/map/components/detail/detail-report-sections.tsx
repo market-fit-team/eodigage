@@ -47,7 +47,7 @@ export function DetailReportSections({ data }: DetailReportSectionsProps) {
       )}
 
       <SalesAnalysisCard
-        rankings={data.sectorSalesRanking}
+        rankings={data.industrySalesRanking}
         weekdayWeekendSales={data.weekdayWeekendSales}
       />
     </>

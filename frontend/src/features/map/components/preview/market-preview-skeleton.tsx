@@ -1,6 +1,6 @@
 import { Skeleton } from "@/shared/components/ui/skeleton"
 
-export function TradeAreaPreviewSkeleton() {
+export function MarketPreviewSkeleton() {
   return (
     <div className="space-y-3">
       <Skeleton className="h-8 w-36" />

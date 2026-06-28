@@ -1,9 +1,5 @@
 import type { Feature, FeatureCollection, Geometry } from "geojson"
 
-export type TradeAreaId = string
-
-export type MapTab = "franchises" | "sales"
-
 export type DongCode = string
 
 export type AdminAreaProperties = {
@@ -113,13 +109,13 @@ export type WeekdayWeekendSalesSummary = {
   weekendRatio: number
 }
 
-export type SectorSalesRank = {
+export type IndustrySalesRank = {
   rank: number
-  sector: string
-  estimatedSales: number
-  qoqChange: number
+  industryName: string
+  estimatedSalesAmount: number
+  previousPeriodChangeRate: number
   storeCount: number
-  salesPerStore: number
+  estimatedSalesPerStore: number
 }
 
 export type IndustryCompetitionRank = {
@@ -160,7 +156,7 @@ export type DetailReportData = {
   footTraffic: FootTrafficData | null
   residentPopulation: ResidentPopulation | null
   weekdayWeekendSales: WeekdayWeekendSalesSummary | null
-  sectorSalesRanking: SectorSalesRank[]
+  industrySalesRanking: IndustrySalesRank[]
   competition: CompetitionStats | null
   commercialChangeIndicator: CommercialChangeIndicator | null
   dataQuality: DetailDataQuality

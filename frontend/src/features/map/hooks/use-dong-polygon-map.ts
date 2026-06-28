@@ -75,6 +75,27 @@ const syncBaseMapTheme = (map: Map, isDarkMode: boolean) => {
   )
 }
 
+// fitBounds는 좌우(또는 상하) 패딩 합이 캔버스보다 크면 "cannot fit" 경고를 내고 카메라를 움직이지 않는다.
+// 비율로 줄이면 fit 결과가 한쪽으로 치우쳐 보이므로, 각 변 패딩을 캔버스의 일정 비율(좌우·상하 각 30%)로 캡한다.
+// 이러면 좌우 합 ≤ 60%, 상하 합 ≤ 60%라 항상 fit 영역이 남고, 넓은 화면에선 원래 패딩이 그대로 쓰인다.
+const MAX_PADDING_RATIO = 0.3
+
+const clampPaddingToCanvas = (
+  map: Map,
+  padding: PaddingOptions
+): PaddingOptions => {
+  const canvas = map.getCanvas()
+  const maxHorizontal = canvas.clientWidth * MAX_PADDING_RATIO
+  const maxVertical = canvas.clientHeight * MAX_PADDING_RATIO
+
+  return {
+    bottom: Math.min(padding.bottom ?? 0, maxVertical),
+    left: Math.min(padding.left ?? 0, maxHorizontal),
+    right: Math.min(padding.right ?? 0, maxHorizontal),
+    top: Math.min(padding.top ?? 0, maxVertical),
+  }
+}
+
 export function useDongPolygonMap({
   adminAreas,
   containerRef,
@@ -93,7 +114,7 @@ export function useDongPolygonMap({
   const mapRef = useRef<Map | null>(null)
   // 기본 마커(maplibregl.Marker) 생성을 위해 lazy import한 maplibre 모듈을 보관한다.
   const maplibreRef = useRef<typeof MapLibreGl | null>(null)
-  // 현재 지도에 떠 있는 검색 결과 핀 마커들. 검색 결과가 바뀔 때마다 통째로 교체한다.
+  // 현재 지도에 떠 있는 검색 결과 마커들. 검색 결과가 바뀔 때마다 통째로 교체한다.
   const searchMarkersRef = useRef<Marker[]>([])
   const isMapLoadedRef = useRef(false)
   const arePolygonEventsBoundRef = useRef(false)
@@ -122,7 +143,7 @@ export function useDongPolygonMap({
       selectedDongCode,
     })
   })
-  // 검색 결과를 기본 핀 마커로 그린다. 기존 마커를 모두 제거한 뒤 현재 결과로 다시 추가한다.
+  // 검색 결과를 기본 마커로 그린다. 기존 마커를 모두 제거한 뒤 현재 결과로 다시 추가한다.
   const syncSearchMarkers = useEffectEvent((map: Map) => {
     const maplibregl = maplibreRef.current
 
@@ -172,7 +193,7 @@ export function useDongPolygonMap({
     fittedRecommendedKeyRef.current = recommendedKey
     map.fitBounds(bounds, {
       duration: 500,
-      padding: viewportPadding,
+      padding: clampPaddingToCanvas(map, viewportPadding),
     })
   })
   // 검색 결과 세트가 바뀔 때 그 동들이 모두 보이도록 카메라를 맞춘다(동일 세트는 한 번만).
@@ -202,7 +223,7 @@ export function useDongPolygonMap({
       duration: 500,
       // 단일 결과에 과도하게 줌인되지 않도록 상한을 둔다.
       maxZoom: 15.5,
-      padding: viewportPadding,
+      padding: clampPaddingToCanvas(map, viewportPadding),
     })
   })
   const ensurePolygonLayers = useEffectEvent((map: Map) => {
@@ -349,23 +370,22 @@ export function useDongPolygonMap({
     }
   }, [containerRef])
 
+  // hover/추천/검색/선택 상태 변화에는 레이어 "필터"만 갱신한다.
+  // 레이어 추가·소스 업로드는 load/adminAreas effect 책임이라 여기서 호출하지 않는다
+  // (이전엔 ensurePolygonLayers가 매 hover마다 서울 전체 GeoJSON을 재업로드했다).
   useEffect(() => {
     const map = mapRef.current
-    const layerState = {
-      hoveredDongCode,
-      recommendedDongCodes,
-      searchResultAreas,
-      selectedDongCode,
-    }
 
     if (!map) {
       return
     }
 
-    ensurePolygonLayers(map)
     syncDongPolygonLayers({
+      hoveredDongCode,
       map,
-      ...layerState,
+      recommendedDongCodes,
+      searchResultAreas,
+      selectedDongCode,
     })
   }, [
     hoveredDongCode,
@@ -374,7 +394,7 @@ export function useDongPolygonMap({
     selectedDongCode,
   ])
 
-  // 검색 결과가 바뀌면 핀 마커를 다시 그리고, 결과 영역이 모두 보이도록 카메라를 맞춘다.
+  // 검색 결과가 바뀌면 마커를 다시 그리고, 결과 영역이 모두 보이도록 카메라를 맞춘다.
   useEffect(() => {
     const map = mapRef.current
 
