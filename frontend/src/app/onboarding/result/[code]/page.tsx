@@ -5,15 +5,9 @@ import { getOnboardingResultByCode } from "@/features/onboarding/lib/onboarding-
 
 export const dynamic = "force-dynamic"
 
-export default async function OnboardingResultPage(
-  props: PageProps<"/onboarding/result/[code]">
-) {
-  const { code } = await props.params
-
+const getSurveyResultOrNotFound = async (code: string) => {
   try {
-    const surveyResult = await getOnboardingResultByCode(code)
-
-    return <OnboardingResultScreen surveyResult={surveyResult} />
+    return await getOnboardingResultByCode(code)
   } catch (error) {
     if (getOnboardingErrorStatus(error) === 404) {
       notFound()
@@ -21,4 +15,13 @@ export default async function OnboardingResultPage(
 
     throw error
   }
+}
+
+export default async function OnboardingResultPage(
+  props: PageProps<"/onboarding/result/[code]">
+) {
+  const { code } = await props.params
+  const surveyResult = await getSurveyResultOrNotFound(code)
+
+  return <OnboardingResultScreen surveyResult={surveyResult} />
 }

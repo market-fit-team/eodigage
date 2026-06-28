@@ -10,6 +10,7 @@ import {
   onboardingSurveyFixture,
 } from "@/features/onboarding/testing/onboarding-fixtures"
 import type { OnboardingSurvey } from "@/features/onboarding/types/onboarding"
+import type * as SurveyApiModule from "@/shared/api/generated/onboarding/endpoints/survey/survey"
 
 const { mutateMock, pushMock, toastErrorMock, toastSuccessMock, testState } =
   vi.hoisted(() => ({
@@ -54,26 +55,22 @@ vi.mock("motion/react", async () => {
       transition?: unknown
       variants?: unknown
     }
-  >(function MotionDiv(
-    {
-      animate: _animate,
-      children,
-      custom: _custom,
-      exit: _exit,
-      initial: _initial,
-      onAnimationComplete,
-      transition: _transition,
-      variants: _variants,
-      ...props
-    },
-    ref
-  ) {
+  >(function MotionDiv({ children, onAnimationComplete, ...props }, ref) {
+    const divProps = { ...props }
+
+    delete divProps.animate
+    delete divProps.custom
+    delete divProps.exit
+    delete divProps.initial
+    delete divProps.transition
+    delete divProps.variants
+
     React.useEffect(() => {
       onAnimationComplete?.()
     }, [children, onAnimationComplete])
 
     return (
-      <div ref={ref} {...props}>
+      <div ref={ref} {...divProps}>
         {children}
       </div>
     )
@@ -95,9 +92,9 @@ vi.mock("motion/react", async () => {
 vi.mock(
   "@/shared/api/generated/onboarding/endpoints/survey/survey",
   async () => {
-    const actual = await vi.importActual<
-      typeof import("@/shared/api/generated/onboarding/endpoints/survey/survey")
-    >("@/shared/api/generated/onboarding/endpoints/survey/survey")
+    const actual = await vi.importActual<typeof SurveyApiModule>(
+      "@/shared/api/generated/onboarding/endpoints/survey/survey"
+    )
 
     return {
       ...actual,
