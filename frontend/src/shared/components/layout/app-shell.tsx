@@ -21,8 +21,8 @@ const NAV_ITEMS: HeaderNavButtonProps[] = [
     href: "/map",
   },
   {
-    label: "AI 리포트",
-    href: "/report",
+    label: "AI 에이전트",
+    href: "/chat",
   },
 ]
 

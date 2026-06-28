@@ -2,7 +2,10 @@
 
 import { useMemo } from "react"
 import { useQueryClient } from "@tanstack/react-query"
-import { clampReasoningEffort } from "@/features/chat/lib/model-selection/clamp-reasoning-effort"
+import {
+  clampReasoningEffort,
+  getDefaultReasoningEffort,
+} from "@/features/chat/lib/model-selection/clamp-reasoning-effort"
 import { buildToolPolicy } from "@/features/chat/lib/tool-policy/build-tool-policy"
 import { buildToolPolicySummary } from "@/features/chat/lib/tool-policy/build-tool-policy-summary"
 import {
@@ -119,8 +122,9 @@ export function useWorkspaceRuntimeSettings({
       throw new Error(`알 수 없는 스레드 모델입니다: ${modelId}`)
     }
 
-    const fallbackReasoningEffort =
-      selectedModel.supportedReasoningEfforts[0] ?? "none"
+    const fallbackReasoningEffort = getDefaultReasoningEffort(
+      selectedModel.supportedReasoningEfforts
+    )
     const requestedReasoningEffort =
       (settings.reasoning_effort as ChatReasoningEffort | null) ??
       fallbackReasoningEffort
