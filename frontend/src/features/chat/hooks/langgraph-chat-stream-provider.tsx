@@ -6,7 +6,7 @@ import {
   useRef,
   useState,
 } from "react"
-import { Client } from "@langchain/langgraph-sdk"
+import type { Client } from "@langchain/langgraph-sdk"
 import { useStream } from "@langchain/react"
 import {
   AuthSessionError,

@@ -1,4 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from "vitest"
+import type * as ReactQueryModule from "@tanstack/react-query"
 import { render, screen, within } from "@testing-library/react"
 import userEvent from "@testing-library/user-event"
 import { HeaderAuthButton } from "@/features/auth/components/header/header-auth-button"
@@ -30,7 +31,7 @@ vi.mock("next/navigation", () => ({
 }))
 
 vi.mock("@tanstack/react-query", async (importOriginal) => {
-  const actual = await importOriginal<typeof import("@tanstack/react-query")>()
+  const actual = await importOriginal<typeof ReactQueryModule>()
   return {
     ...actual,
     useQueryClient: () => ({
