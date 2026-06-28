@@ -35,3 +35,13 @@ class TrendScore(Base):
     score: Mapped[int] = mapped_column(Integer, nullable=False)  # 0~100 백분위 점수
     rank: Mapped[int] = mapped_column(Integer, nullable=False)  # 점수 내림차순 순위
     signals: Mapped[dict] = mapped_column(JSONB, nullable=False)  # 피처값(설명 문구 재생성용)
+
+
+class TrendBannerSnapshot(Base):
+    """배너 API가 원천 CSV 없이 읽는 최신 결과 스냅샷."""
+
+    __tablename__ = "trend_banner_snapshot"
+
+    run_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), primary_key=True)
+    data_mode: Mapped[str] = mapped_column(String(20), nullable=False)
+    sections: Mapped[dict] = mapped_column(JSONB, nullable=False)

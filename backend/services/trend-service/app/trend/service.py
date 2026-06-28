@@ -22,7 +22,7 @@ SEGMENT_THEMES = [
 
 
 def _forecast_phrase(signals: dict[str, float]) -> str:
-    """예측 카드의 짧은 전망 문구. 모델은 역추세라 미래형으로, 신호별로 갈라 적는다."""
+    """예측 카드의 짧은 전망 문구. forward-slope 모델 피처 신호로 갈라 적는다."""
     accel = signals.get("accel", 0.0)
     recent = signals.get("recent_vs_win", 0.0)
     vol = signals.get("vol", 0.0)
@@ -36,15 +36,19 @@ def _forecast_phrase(signals: dict[str, float]) -> str:
 
 
 def _predicted_metrics(picks: list[dict[str, object]]) -> list[TrendForecastMetric]:
-    """검증된 예측 모델의 '곧 뜰 동네' 상위 N. 점수 대신 전망 문구 + 현재 생활인구."""
-    return [
-        TrendForecastMetric(
-            label=str(pick["area_name"]),
-            value=_forecast_phrase(pick.get("signals", {})),  # type: ignore[arg-type]
-            description=f"생활인구 {float(pick['level']):,.0f}명",  # type: ignore[arg-type]
+    """검증된 forward-slope 모델의 '곧 뜰 동네(다음 8주)' 상위 N. 전망 문구 + 현재 규모."""
+    metrics: list[TrendForecastMetric] = []
+    for pick in picks[:TOP_N]:
+        level = float(pick.get("level", 0.0))
+        phrase = _forecast_phrase(pick.get("signals", {}))  # type: ignore[arg-type]
+        metrics.append(
+            TrendForecastMetric(
+                label=str(pick["area_name"]),
+                value=phrase,
+                description=f"생활인구 {level:,.0f}명",
+            )
         )
-        for pick in picks[:TOP_N]
-    ]
+    return metrics
 
 
 def _popular_metrics(picks: list[dict[str, object]]) -> list[TrendForecastMetric]:

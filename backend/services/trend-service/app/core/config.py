@@ -12,10 +12,12 @@ class Settings(BaseSettings):
     data_mode: str = "sample"
     database_url: str = "postgresql+psycopg://trend:trend@trend-db:5432/trend"
     database_echo: bool = False
-    # db 모드에서 테이블이 비어 있으면 .sample CSV를 한 번 적재할지 여부(부트스트랩)
-    auto_ingest_sample_on_empty: bool = True
-    # 부팅 시 학습 아티팩트가 없으면 자동 학습할지 여부
-    bootstrap_train_if_missing: bool = True
+    # 운영 서버는 부팅 중 대용량 원천 파일을 읽지 않는다. 적재/학습은 배치에서만 수행한다.
+    auto_ingest_sample_on_empty: bool = False
+    # 운영 환경에서는 원천 CSV를 다시 읽지 않고 DB에 저장된 최신 배너 스냅샷을 우선 서빙한다.
+    serve_banner_snapshot_from_db: bool = True
+    # DB 스냅샷이 없을 때 API 요청 중 원천 CSV로 즉석 계산할지 여부. 운영에서는 false를 유지한다.
+    allow_runtime_banner_compute: bool = False
 
     model_config = SettingsConfigDict(env_prefix="TREND_SERVICE_")
 

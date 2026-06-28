@@ -1,26 +1,5 @@
-[project]
-name = "trend-service"
-version = "0.1.0"
-description = "상권 트렌드 점수를 예측해 배너용 데이터를 제공하는 서비스"
-readme = "README.md"
-requires-python = ">=3.11,<3.13"
-dependencies = [
-    "fastapi==0.115.6",
-    "holidays==0.99",
-    "lightgbm==4.5.0",
-    "numpy==1.26.4",
-    "pandas==2.2.3",
-    "psycopg[binary]==3.2.12",
-    "pydantic==2.10.4",
-    "pydantic-settings==2.7.1",
-    "sqlalchemy==2.0.51",
-    "uvicorn[standard]==0.34.0",
-]
-
-[build-system]
-requires = ["setuptools>=68"]
-build-backend = "setuptools.build_meta"
-
+# 의존성은 requirements.txt(런타임/공용)와 requirements-dev.txt(도구)에서 단일 관리한다.
+# 이 파일은 ruff 설정만 둔다(패키지 빌드/설치는 하지 않음).
 [tool.ruff]
 line-length = 120
 target-version = "py311"
