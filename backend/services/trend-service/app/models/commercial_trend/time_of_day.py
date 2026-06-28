@@ -7,21 +7,25 @@
 
 from __future__ import annotations
 
+import json
+
 import pandas as pd
 
 from app.models.commercial_trend.features import (
-    ARTIFACTS_DIR,
     SEGMENT_POSITIONS,
     _living_files,
     _segment_data_dir,
+    _source_signature,
     read_csv_auto,
 )
+from app.models.commercial_trend.paths import ARTIFACTS_DIR
 
 COMMERCIAL_HOURS = {f"{hour:02d}" for hour in range(11, 22)}  # 11~21시
 NIGHT_HOURS = {f"{hour:02d}" for hour in range(0, 6)}  # 0~5시
 
 _COMMERCIAL_FILE = ARTIFACTS_DIR / "segment_commercial_dailies.csv.gz"
 _NIGHT_FILE = ARTIFACTS_DIR / "segment_night_dailies.csv.gz"
+_SNAPSHOT_VERSION = 1
 
 _VALUE_POSITIONS = sorted({pos for positions in SEGMENT_POSITIONS.values() for pos in positions})
 _USECOLS = sorted({0, 1, 2, *_VALUE_POSITIONS})
@@ -59,19 +63,48 @@ def _build(hours: set[str], data_mode: str) -> dict[str, pd.DataFrame]:
     return {segment: _daily(segment) for segment in SEGMENT_POSITIONS}
 
 
+def _snapshot_meta(hours: set[str], data_mode: str) -> dict[str, object]:
+    files = _living_files(_segment_data_dir(data_mode))
+    return {
+        "version": _SNAPSHOT_VERSION,
+        "hours": sorted(hours),
+        "source": _source_signature(files),
+        "segments": list(SEGMENT_POSITIONS),
+    }
+
+
+def _is_fresh_snapshot(path, hours: set[str], data_mode: str) -> bool:
+    meta_path = path.with_suffix(path.suffix + ".meta.json")
+    if not path.exists() or not meta_path.exists():
+        return False
+    try:
+        actual = json.loads(meta_path.read_text(encoding="utf-8"))
+    except json.JSONDecodeError:
+        return False
+    return actual == _snapshot_meta(hours, data_mode)
+
+
+def _save_snapshot(path, dailies: dict[str, pd.DataFrame], hours: set[str], data_mode: str) -> None:
+    snapshot = pd.concat(
+        [frame.assign(segment=segment) for segment, frame in dailies.items()], ignore_index=True
+    )[["segment", "area_code", "date", "population"]]
+    path.parent.mkdir(parents=True, exist_ok=True)
+    snapshot.to_csv(path, index=False, compression="gzip")
+    path.with_suffix(path.suffix + ".meta.json").write_text(
+        json.dumps(_snapshot_meta(hours, data_mode), ensure_ascii=False, indent=2),
+        encoding="utf-8",
+    )
+
+
 def _load_or_build(path, hours: set[str], data_mode: str) -> dict[str, pd.DataFrame]:
-    if path.exists():
+    if _is_fresh_snapshot(path, hours, data_mode):
         frame = read_csv_auto(path, dtype={"area_code": str, "segment": str}, parse_dates=["date"])
         return {
             segment: rows.drop(columns=["segment"]).sort_values(["area_code", "date"]).reset_index(drop=True)
             for segment, rows in frame.groupby("segment", sort=False)
         }
     dailies = _build(hours, data_mode)
-    snapshot = pd.concat(
-        [frame.assign(segment=segment) for segment, frame in dailies.items()], ignore_index=True
-    )[["segment", "area_code", "date", "population"]]
-    path.parent.mkdir(parents=True, exist_ok=True)
-    snapshot.to_csv(path, index=False, compression="gzip")
+    _save_snapshot(path, dailies, hours, data_mode)
     return dailies
 
 

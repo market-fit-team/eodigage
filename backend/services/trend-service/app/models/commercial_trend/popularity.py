@@ -11,12 +11,20 @@ from __future__ import annotations
 import pandas as pd
 
 from app.models.commercial_trend.time_of_day import load_commercial_dailies, load_night_dailies
-from app.models.commercial_trend.weekly_forecast import TOP_N, _weekly
 
 # 최근 며칠을 '지금'으로 볼지[주]. 최근 4주 평균으로 한 주 노이즈를 누른다.
 RECENT_WEEKS = 4
 # 상권 최소 활성도(상업/야간). 1.0 미만이면 낮보다 밤이 많은 순수 주거지라 상권에서 뺀다.
 MIN_VITALITY = 1.0
+# 노출 후보 수.
+TOP_N = 3
+
+
+def _weekly(daily: pd.DataFrame) -> pd.DataFrame:
+    """일별 [area_code,date,population] -> 주별 [week x area_code] (주평균)."""
+    frame = daily.copy()
+    frame["week"] = frame["date"].dt.to_period("W-SUN").dt.start_time
+    return frame.groupby(["week", "area_code"])["population"].mean().unstack("area_code").sort_index()
 
 
 def _popular_one(commercial: pd.DataFrame, night: pd.DataFrame) -> list[dict[str, object]]:

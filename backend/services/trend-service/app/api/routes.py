@@ -17,7 +17,7 @@ router = APIRouter()
     "/health",
     tags=["system"],
     summary="서비스 상태 조회",
-    description="트렌드 점수 모델의 적재 상태를 반환한다.",
+    description="배너 예측 모델과 저장형 일별 모델의 상태를 반환한다.",
 )
 async def health() -> dict[str, Any]:
     model = await run_in_threadpool(evaluation_payload)
@@ -33,7 +33,7 @@ async def health() -> dict[str, Any]:
     "/api/v1/trend/banner",
     tags=["trend"],
     summary="상권 트렌드 배너 조회",
-    description="상위 상권의 트렌드 점수를 배너 형태로 반환한다.",
+    description="상업시간대 예측 상권과 최근 인기 상권을 배너 형태로 반환한다.",
     response_model=TrendForecastBanner,
 )
 async def trend_banner() -> TrendForecastBanner:

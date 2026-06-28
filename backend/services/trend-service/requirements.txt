@@ -1,10 +1,10 @@
+# 이미지 의존성 단일 원천(운영 API + 학습/배치 공용). 개발 도구는 requirements-dev.txt.
 fastapi==0.115.6
-holidays==0.99
-lightgbm==4.5.0
-numpy==1.26.4
-pandas==2.2.3
 psycopg[binary]==3.2.12
 pydantic==2.10.4
 pydantic-settings==2.7.1
 sqlalchemy==2.0.51
 uvicorn[standard]==0.34.0
+lightgbm==4.5.0
+numpy==1.26.4
+pandas==2.2.3

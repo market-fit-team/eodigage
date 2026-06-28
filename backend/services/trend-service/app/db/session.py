@@ -27,12 +27,17 @@ def session_scope() -> Session:
 
 
 def prepare_database() -> None:
-    """테이블을 만들고, 비어 있으면 .raw 행정동 이름 CSV를 한 번 적재한다(부트스트랩)."""
-    from app.trend.ingest import ingest_bootstrap_into_db
+    """테이블을 만들고, 설정이 켜져 있으면 행정동 이름 CSV를 한 번 적재한다.
+
+    ingest는 model 스택(pandas)을 끌어오므로, 슬림 API 부팅이 이를 임포트하지 않도록
+    실제 적재가 필요한 분기 안에서만 지연 임포트한다(운영은 auto_ingest=false).
+    """
     from app.trend.repository import is_hdong_area_empty
 
     Base.metadata.create_all(get_engine())
     if settings.auto_ingest_sample_on_empty and is_hdong_area_empty():
+        from app.trend.ingest import ingest_bootstrap_into_db
+
         ingest_bootstrap_into_db()
 
 
