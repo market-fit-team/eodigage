@@ -5,7 +5,10 @@ import type {
   ChatModelSelectionControls,
   ToolPolicyControls,
 } from "@/features/chat/hooks/langgraph-chat-stream-context"
-import { clampReasoningEffort } from "@/features/chat/lib/model-selection/clamp-reasoning-effort"
+import {
+  clampReasoningEffort,
+  getDefaultReasoningEffort,
+} from "@/features/chat/lib/model-selection/clamp-reasoning-effort"
 import { buildToolPolicy } from "@/features/chat/lib/tool-policy/build-tool-policy"
 import { buildToolPolicySummary } from "@/features/chat/lib/tool-policy/build-tool-policy-summary"
 import {
@@ -49,8 +52,9 @@ export function useLocalWorkspaceRuntimeSettings({
       return null
     }
 
-    const fallbackReasoningEffort =
-      selectedModel.supportedReasoningEfforts[0] ?? "none"
+    const fallbackReasoningEffort = getDefaultReasoningEffort(
+      selectedModel.supportedReasoningEfforts
+    )
     const reasoningEffort = clampReasoningEffort(
       selectedReasoningEffort ?? fallbackReasoningEffort,
       selectedModel.supportedReasoningEfforts

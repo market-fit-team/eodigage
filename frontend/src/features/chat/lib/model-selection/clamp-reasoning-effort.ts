@@ -10,6 +10,10 @@ const REASONING_EFFORT_RANK: Record<ChatReasoningEffort, number> = {
 export function getDefaultReasoningEffort(
   supportedEfforts: ChatReasoningEffort[]
 ): ChatReasoningEffort {
+  if (supportedEfforts.includes("high")) {
+    return "high"
+  }
+
   if (supportedEfforts.includes("medium")) {
     return "medium"
   }
