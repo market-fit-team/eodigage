@@ -1,5 +1,5 @@
 import { BarChart3 } from "lucide-react"
-import type { SectorSalesRank } from "@/features/map/types/map"
+import type { IndustrySalesRank } from "@/features/map/types/map"
 import {
   Table,
   TableBody,
@@ -9,17 +9,17 @@ import {
   TableRow,
 } from "@/shared/components/ui/table"
 
-type SectorSalesRankingProps = {
-  rankings: SectorSalesRank[]
+type IndustrySalesRankingProps = {
+  rankings: IndustrySalesRank[]
 }
 
-export function SectorSalesRankingSection({
+export function IndustrySalesRankingSection({
   rankings,
-}: SectorSalesRankingProps) {
+}: IndustrySalesRankingProps) {
   return (
-    <section aria-labelledby="sector-sales-ranking-title">
+    <section aria-labelledby="industry-sales-ranking-title">
       <h3
-        id="sector-sales-ranking-title"
+        id="industry-sales-ranking-title"
         className="flex items-center gap-1.5 text-sm font-semibold text-foreground"
       >
         <BarChart3 className="h-4 w-4 text-primary" />
@@ -50,26 +50,26 @@ export function SectorSalesRankingSection({
                     {row.rank}
                   </TableCell>
                   <TableCell className="font-medium text-foreground">
-                    {row.sector}
+                    {row.industryName}
                   </TableCell>
                   <TableCell className="font-mono">
-                    {row.estimatedSales.toLocaleString()}만원
+                    {row.estimatedSalesAmount.toLocaleString()}만원
                   </TableCell>
                   <TableCell
                     className={`font-mono font-medium ${
-                      row.qoqChange >= 0
+                      row.previousPeriodChangeRate >= 0
                         ? "text-foreground"
                         : "text-destructive"
                     }`}
                   >
-                    {row.qoqChange >= 0 ? "+" : ""}
-                    {row.qoqChange}%
+                    {row.previousPeriodChangeRate >= 0 ? "+" : ""}
+                    {row.previousPeriodChangeRate}%
                   </TableCell>
                   <TableCell className="font-mono">
                     {row.storeCount.toLocaleString()}개
                   </TableCell>
                   <TableCell className="font-mono">
-                    {row.salesPerStore.toLocaleString()}만원
+                    {row.estimatedSalesPerStore.toLocaleString()}만원
                   </TableCell>
                 </TableRow>
               ))}

@@ -350,13 +350,15 @@ export const toDetailReportData = (
           total: toNumberValue(payload.residentPopulation.total),
         }
       : null,
-    sectorSalesRanking: (payload.sales?.industryRankings ?? []).map(
+    industrySalesRanking: (payload.sales?.industryRankings ?? []).map(
       (ranking) => ({
-        estimatedSales: toManwon(ranking.estimatedSalesAmount),
-        qoqChange: toNumberValue(ranking.previousPeriodChangeRate),
+        estimatedSalesAmount: toManwon(ranking.estimatedSalesAmount),
+        estimatedSalesPerStore: toManwon(ranking.estimatedSalesPerStore),
+        industryName: toStringValue(ranking.industryName),
+        previousPeriodChangeRate: toNumberValue(
+          ranking.previousPeriodChangeRate
+        ),
         rank: toNumberValue(ranking.rank),
-        salesPerStore: toManwon(ranking.estimatedSalesPerStore),
-        sector: toStringValue(ranking.industryName),
         storeCount: toNumberValue(ranking.storeCount),
       })
     ),

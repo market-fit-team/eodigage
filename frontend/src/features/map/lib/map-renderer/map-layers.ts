@@ -220,7 +220,7 @@ export const guBoundaryLayer: LineLayerSpecification = {
   type: "line",
 }
 
-// 검색 결과 핀은 maplibregl.Marker(기본 마커) DOM 요소로 그리며, 이 라벨은 핀 아래 동 이름만 표시한다.
+// 검색 결과 마커는 maplibregl 기본 마커(DOM)로 그리고, 이 라벨은 마커 아래 동 이름만 표시한다.
 export const searchResultLabelLayer: SymbolLayerSpecification = {
   id: SEARCH_RESULT_LABEL_LAYER_ID,
   layout: {

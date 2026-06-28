@@ -1,10 +1,10 @@
 import { useRouter } from "next/navigation"
-import { TradeAreaPreviewPanel } from "@/features/map/components/preview/trade-area-preview-panel"
+import { MarketPreviewPanel } from "@/features/map/components/preview/market-preview-panel"
 import { useAdminAreas } from "@/features/map/hooks/use-admin-areas"
 import { useMarketPreview } from "@/features/map/hooks/use-market-preview"
 import { useMapStore } from "@/features/map/store/map-store"
 
-export function TradeAreaPreview() {
+export function MarketPreview() {
   const router = useRouter()
   const selectedDongCode = useMapStore((state) => state.selectedDongCode)
   const selectDong = useMapStore((state) => state.selectDong)
@@ -20,7 +20,7 @@ export function TradeAreaPreview() {
   }
 
   return (
-    <TradeAreaPreviewPanel
+    <MarketPreviewPanel
       dongName={selectedDong?.name ?? selectedDongCode}
       isError={isError}
       isLoading={isLoading}

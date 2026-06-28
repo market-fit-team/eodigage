@@ -417,7 +417,7 @@ export const syncDongPolygonLayers = ({
     map.setFilter(layerId, selectedFilter)
   })
 
-  // 동 라벨은 검색 결과 핀의 이름 라벨과 겹치지 않도록 검색 결과 dongCode를 제외한다.
+  // 동 라벨은 검색 결과 마커의 이름 라벨과 겹치지 않도록 검색 결과 dongCode를 제외한다.
   map.setFilter(
     DONG_RECOMMENDED_LABEL_LAYER_ID,
     excludeSearchResultCodes(recommendedFilter, searchResultCodes)

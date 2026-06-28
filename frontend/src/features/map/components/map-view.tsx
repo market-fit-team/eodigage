@@ -1,10 +1,10 @@
 "use client"
 
-import { Sparkles } from "lucide-react"
+import { ChevronRight, Sparkles } from "lucide-react"
 import { Canvas } from "@/features/map/components/canvas/canvas"
 import { Explore } from "@/features/map/components/explore/explore"
 import { Filter } from "@/features/map/components/filter/filter"
-import { TradeAreaPreview } from "@/features/map/components/preview/trade-area-preview"
+import { MarketPreview } from "@/features/map/components/preview/market-preview"
 import { useMapStore } from "@/features/map/store/map-store"
 import { Button } from "@/shared/components/ui/button"
 
@@ -35,11 +35,12 @@ export function MapView() {
             variant="outline"
             size="lg"
             onClick={openLeftPanel}
-            className="h-auto shrink-0 gap-1.5 border bg-card px-3 font-semibold shadow-sm ring-1 ring-foreground/10 hover:bg-card"
+            className="h-auto shrink-0 gap-1.5 rounded-full bg-card px-6 font-semibold shadow-sm ring-1 ring-foreground/10 hover:bg-card"
             aria-label="추천·AI 패널 열기"
           >
             <Sparkles className="h-4 w-4 text-primary" />
-            추천·AI
+            추천·AI 상담
+            <ChevronRight className="h-6 w-6 text-muted-foreground" />
           </Button>
         ) : null}
 
@@ -59,7 +60,7 @@ export function MapView() {
       {/* 오른쪽 패널은 선택된 동의 상권 미리보기를 보여준다. */}
       {selectedDongCode && (
         <div className="absolute top-4 right-4 bottom-20 z-20 w-80">
-          <TradeAreaPreview />
+          <MarketPreview />
         </div>
       )}
     </div>
