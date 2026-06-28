@@ -1,6 +1,11 @@
 from langchain_core.messages import AIMessage, HumanMessage, ToolMessage
+from langchain_core.tools import tool
 
-from agent.services.chat.nodes import _should_bind_tools
+from agent.services.chat.nodes import (
+    _should_bind_tools,
+    _system_prompt_for_harness,
+    _tools_for_harness,
+)
 
 
 def test_chat_model_binds_tools_before_tool_execution() -> None:
@@ -32,3 +37,31 @@ def test_chat_model_does_not_bind_tools_after_tool_execution() -> None:
     ]
 
     assert _should_bind_tools(messages) is False
+
+
+def test_harness_overrides_system_prompt() -> None:
+    """하네스 eval은 실제 graph 입력의 system prompt를 바꿀 수 있다."""
+
+    overrides = {
+        "system_prompt": "평가용 시스템 프롬프트",
+    }
+
+    assert _system_prompt_for_harness(overrides) == "평가용 시스템 프롬프트"
+
+
+def test_harness_overrides_tool_description_without_mutating_original() -> None:
+    """하네스 eval은 전역 tool 객체를 바꾸지 않고 bind용 설명만 교체한다."""
+
+    @tool
+    def sample_tool(value: str) -> str:
+        """원래 설명."""
+
+        return value
+
+    harness_tools = _tools_for_harness(
+        [sample_tool],
+        {"tool_descriptions": {"sample_tool": "평가용 설명."}},
+    )
+
+    assert harness_tools[0].description == "평가용 설명."
+    assert sample_tool.description == "원래 설명."

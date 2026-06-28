@@ -7,6 +7,13 @@ from agent.services.chat.approvals.schemas import InterruptOnConfig
 from agent.services.chat.model_cards import get_chat_model_card
 
 
+class HarnessOverrides(TypedDict, total=False):
+    """하네스 eval에서만 사용하는 프롬프트/도구 계약 override입니다."""
+
+    system_prompt: NotRequired[str]
+    tool_descriptions: NotRequired[dict[str, str]]
+
+
 class ChatRuntimeContext(TypedDict, total=False):
     """한 번의 run 동안 변하지 않는 실행 설정.
 
@@ -28,6 +35,7 @@ class ChatRuntimeContext(TypedDict, total=False):
     app_thread_id: NotRequired[str]
     selected_document_ids: NotRequired[list[str]]
     selected_artifact_ids: NotRequired[list[str]]
+    harness_overrides: NotRequired[HarnessOverrides]
 
 
 class ResolvedChatRuntimeContext(TypedDict):
@@ -35,6 +43,34 @@ class ResolvedChatRuntimeContext(TypedDict):
 
     model: str
     reasoning_effort: ReasoningEffort
+    harness_overrides: HarnessOverrides
+
+
+def _resolve_harness_overrides(raw_context: dict[str, object]) -> HarnessOverrides:
+    raw_overrides = raw_context.get("harness_overrides")
+    if raw_overrides is None:
+        return {}
+    if not isinstance(raw_overrides, dict):
+        raise ValueError("harness_overrides must be a mapping")
+
+    overrides: HarnessOverrides = {}
+    system_prompt = raw_overrides.get("system_prompt")
+    if system_prompt is not None:
+        if not isinstance(system_prompt, str):
+            raise ValueError("harness_overrides.system_prompt must be a string")
+        overrides["system_prompt"] = system_prompt
+
+    tool_descriptions = raw_overrides.get("tool_descriptions")
+    if tool_descriptions is not None:
+        if not isinstance(tool_descriptions, dict):
+            raise ValueError("harness_overrides.tool_descriptions must be a mapping")
+        overrides["tool_descriptions"] = {
+            str(name): str(description)
+            for name, description in tool_descriptions.items()
+            if isinstance(name, str) and isinstance(description, str)
+        }
+
+    return overrides
 
 
 def resolve_chat_model_context(context: ChatRuntimeContext | None) -> ResolvedChatRuntimeContext:
@@ -65,4 +101,5 @@ def resolve_chat_model_context(context: ChatRuntimeContext | None) -> ResolvedCh
     return {
         "model": model,
         "reasoning_effort": reasoning_effort,
+        "harness_overrides": _resolve_harness_overrides(raw_context),
     }

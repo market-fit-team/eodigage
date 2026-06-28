@@ -1,0 +1,10 @@
+.workdir/
+__pycache__/
+*.py[cod]
+*.sqlite
+*.sqlite3
+*.db
+*.log
+results/**/raw-events/
+results/**/server.log
+results/**/thread-dumps/

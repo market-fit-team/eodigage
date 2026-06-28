@@ -1,0 +1,674 @@
+{
+  "summary": {
+    "total_trials": 9,
+    "mean_score": 0.8209876543209877
+  },
+  "by_model": {
+    "deepseek": {
+      "attempts": 3,
+      "mean_score": 0.8703703703703703,
+      "completed_attempts": 2
+    },
+    "gemma": {
+      "attempts": 3,
+      "mean_score": 0.5925925925925926,
+      "completed_attempts": 2
+    },
+    "gpt-oss": {
+      "attempts": 3,
+      "mean_score": 1.0,
+      "completed_attempts": 3
+    }
+  },
+  "attempts": {
+    "deepseek": [
+      {
+        "attempt": 1,
+        "status": "failed",
+        "score": 0.6111111111111112,
+        "turns": [
+          {
+            "turn_id": "trend_probe",
+            "passed": true,
+            "checks": {
+              "run_completed": true,
+              "no_tool_errors": true,
+              "non_empty_response": true,
+              "tool_called:web_search": true,
+              "min_tool_calls": true,
+              "max_tool_calls": true,
+              "source_signal": true
+            },
+            "metrics": {
+              "final_text_length": 2950,
+              "tool_call_count": 3,
+              "tool_error_count": 0,
+              "chart_block_count": 2,
+              "valid_chart_count": 2,
+              "has_midturn_before_tool": true,
+              "terminal_status": "completed"
+            }
+          },
+          {
+            "turn_id": "commercial_report",
+            "passed": false,
+            "checks": {
+              "run_completed": false,
+              "no_tool_errors": true,
+              "non_empty_response": false,
+              "min_valid_chart_blocks": false,
+              "report_sections": false,
+              "no_internal_type_names": true
+            },
+            "metrics": {
+              "final_text_length": 0,
+              "tool_call_count": 0,
+              "tool_error_count": 0,
+              "chart_block_count": 0,
+              "valid_chart_count": 0,
+              "has_midturn_before_tool": false,
+              "terminal_status": null
+            }
+          },
+          {
+            "turn_id": "artifact_policy",
+            "passed": false,
+            "checks": {
+              "run_completed": false,
+              "no_tool_errors": true,
+              "non_empty_response": false,
+              "artifact_policy": false,
+              "no_internal_type_names": true
+            },
+            "metrics": {
+              "final_text_length": 0,
+              "tool_call_count": 0,
+              "tool_error_count": 0,
+              "chart_block_count": 0,
+              "valid_chart_count": 0,
+              "has_midturn_before_tool": false,
+              "terminal_status": null
+            }
+          }
+        ],
+        "errors": [
+          "TimeoutError: "
+        ]
+      },
+      {
+        "attempt": 2,
+        "status": "completed",
+        "score": 1.0,
+        "turns": [
+          {
+            "turn_id": "trend_probe",
+            "passed": true,
+            "checks": {
+              "run_completed": true,
+              "no_tool_errors": true,
+              "non_empty_response": true,
+              "tool_called:web_search": true,
+              "min_tool_calls": true,
+              "max_tool_calls": true,
+              "source_signal": true
+            },
+            "metrics": {
+              "final_text_length": 2070,
+              "tool_call_count": 3,
+              "tool_error_count": 0,
+              "chart_block_count": 0,
+              "valid_chart_count": 0,
+              "has_midturn_before_tool": true,
+              "terminal_status": "completed"
+            }
+          },
+          {
+            "turn_id": "commercial_report",
+            "passed": true,
+            "checks": {
+              "run_completed": true,
+              "no_tool_errors": true,
+              "non_empty_response": true,
+              "min_valid_chart_blocks": true,
+              "report_sections": true,
+              "no_internal_type_names": true
+            },
+            "metrics": {
+              "final_text_length": 3381,
+              "tool_call_count": 0,
+              "tool_error_count": 0,
+              "chart_block_count": 4,
+              "valid_chart_count": 4,
+              "has_midturn_before_tool": true,
+              "terminal_status": "completed"
+            }
+          },
+          {
+            "turn_id": "artifact_policy",
+            "passed": true,
+            "checks": {
+              "run_completed": true,
+              "no_tool_errors": true,
+              "non_empty_response": true,
+              "artifact_policy": true,
+              "no_internal_type_names": true
+            },
+            "metrics": {
+              "final_text_length": 310,
+              "tool_call_count": 0,
+              "tool_error_count": 0,
+              "chart_block_count": 0,
+              "valid_chart_count": 0,
+              "has_midturn_before_tool": true,
+              "terminal_status": "completed"
+            }
+          }
+        ],
+        "errors": []
+      },
+      {
+        "attempt": 3,
+        "status": "completed",
+        "score": 1.0,
+        "turns": [
+          {
+            "turn_id": "trend_probe",
+            "passed": true,
+            "checks": {
+              "run_completed": true,
+              "no_tool_errors": true,
+              "non_empty_response": true,
+              "tool_called:web_search": true,
+              "min_tool_calls": true,
+              "max_tool_calls": true,
+              "source_signal": true
+            },
+            "metrics": {
+              "final_text_length": 2954,
+              "tool_call_count": 2,
+              "tool_error_count": 0,
+              "chart_block_count": 1,
+              "valid_chart_count": 1,
+              "has_midturn_before_tool": true,
+              "terminal_status": "completed"
+            }
+          },
+          {
+            "turn_id": "commercial_report",
+            "passed": true,
+            "checks": {
+              "run_completed": true,
+              "no_tool_errors": true,
+              "non_empty_response": true,
+              "min_valid_chart_blocks": true,
+              "report_sections": true,
+              "no_internal_type_names": true
+            },
+            "metrics": {
+              "final_text_length": 5670,
+              "tool_call_count": 0,
+              "tool_error_count": 0,
+              "chart_block_count": 5,
+              "valid_chart_count": 5,
+              "has_midturn_before_tool": true,
+              "terminal_status": "completed"
+            }
+          },
+          {
+            "turn_id": "artifact_policy",
+            "passed": true,
+            "checks": {
+              "run_completed": true,
+              "no_tool_errors": true,
+              "non_empty_response": true,
+              "artifact_policy": true,
+              "no_internal_type_names": true
+            },
+            "metrics": {
+              "final_text_length": 450,
+              "tool_call_count": 0,
+              "tool_error_count": 0,
+              "chart_block_count": 0,
+              "valid_chart_count": 0,
+              "has_midturn_before_tool": true,
+              "terminal_status": "completed"
+            }
+          }
+        ],
+        "errors": []
+      }
+    ],
+    "gemma": [
+      {
+        "attempt": 1,
+        "status": "failed",
+        "score": 0.4444444444444444,
+        "turns": [
+          {
+            "turn_id": "trend_probe",
+            "passed": false,
+            "checks": {
+              "run_completed": true,
+              "no_tool_errors": true,
+              "non_empty_response": true,
+              "tool_called:web_search": false,
+              "min_tool_calls": false,
+              "max_tool_calls": true,
+              "source_signal": false
+            },
+            "metrics": {
+              "final_text_length": 43,
+              "tool_call_count": 0,
+              "tool_error_count": 0,
+              "chart_block_count": 0,
+              "valid_chart_count": 0,
+              "has_midturn_before_tool": true,
+              "terminal_status": "completed"
+            }
+          },
+          {
+            "turn_id": "commercial_report",
+            "passed": false,
+            "checks": {
+              "run_completed": false,
+              "no_tool_errors": true,
+              "non_empty_response": false,
+              "min_valid_chart_blocks": false,
+              "report_sections": false,
+              "no_internal_type_names": true
+            },
+            "metrics": {
+              "final_text_length": 0,
+              "tool_call_count": 0,
+              "tool_error_count": 0,
+              "chart_block_count": 0,
+              "valid_chart_count": 0,
+              "has_midturn_before_tool": false,
+              "terminal_status": null
+            }
+          },
+          {
+            "turn_id": "artifact_policy",
+            "passed": false,
+            "checks": {
+              "run_completed": false,
+              "no_tool_errors": true,
+              "non_empty_response": false,
+              "artifact_policy": false,
+              "no_internal_type_names": true
+            },
+            "metrics": {
+              "final_text_length": 0,
+              "tool_call_count": 0,
+              "tool_error_count": 0,
+              "chart_block_count": 0,
+              "valid_chart_count": 0,
+              "has_midturn_before_tool": false,
+              "terminal_status": null
+            }
+          }
+        ],
+        "errors": [
+          "TimeoutError: "
+        ]
+      },
+      {
+        "attempt": 2,
+        "status": "completed",
+        "score": 0.6666666666666666,
+        "turns": [
+          {
+            "turn_id": "trend_probe",
+            "passed": false,
+            "checks": {
+              "run_completed": true,
+              "no_tool_errors": true,
+              "non_empty_response": true,
+              "tool_called:web_search": false,
+              "min_tool_calls": false,
+              "max_tool_calls": true,
+              "source_signal": false
+            },
+            "metrics": {
+              "final_text_length": 45,
+              "tool_call_count": 0,
+              "tool_error_count": 0,
+              "chart_block_count": 0,
+              "valid_chart_count": 0,
+              "has_midturn_before_tool": true,
+              "terminal_status": "completed"
+            }
+          },
+          {
+            "turn_id": "commercial_report",
+            "passed": false,
+            "checks": {
+              "run_completed": true,
+              "no_tool_errors": true,
+              "non_empty_response": false,
+              "min_valid_chart_blocks": false,
+              "report_sections": false,
+              "no_internal_type_names": true
+            },
+            "metrics": {
+              "final_text_length": 0,
+              "tool_call_count": 0,
+              "tool_error_count": 0,
+              "chart_block_count": 0,
+              "valid_chart_count": 0,
+              "has_midturn_before_tool": false,
+              "terminal_status": "completed"
+            }
+          },
+          {
+            "turn_id": "artifact_policy",
+            "passed": true,
+            "checks": {
+              "run_completed": true,
+              "no_tool_errors": true,
+              "non_empty_response": true,
+              "artifact_policy": true,
+              "no_internal_type_names": true
+            },
+            "metrics": {
+              "final_text_length": 1927,
+              "tool_call_count": 2,
+              "tool_error_count": 0,
+              "chart_block_count": 2,
+              "valid_chart_count": 2,
+              "has_midturn_before_tool": false,
+              "terminal_status": "completed"
+            }
+          }
+        ],
+        "errors": []
+      },
+      {
+        "attempt": 3,
+        "status": "completed",
+        "score": 0.6666666666666666,
+        "turns": [
+          {
+            "turn_id": "trend_probe",
+            "passed": false,
+            "checks": {
+              "run_completed": true,
+              "no_tool_errors": true,
+              "non_empty_response": true,
+              "tool_called:web_search": false,
+              "min_tool_calls": false,
+              "max_tool_calls": true,
+              "source_signal": false
+            },
+            "metrics": {
+              "final_text_length": 45,
+              "tool_call_count": 0,
+              "tool_error_count": 0,
+              "chart_block_count": 0,
+              "valid_chart_count": 0,
+              "has_midturn_before_tool": true,
+              "terminal_status": "completed"
+            }
+          },
+          {
+            "turn_id": "commercial_report",
+            "passed": false,
+            "checks": {
+              "run_completed": true,
+              "no_tool_errors": true,
+              "non_empty_response": false,
+              "min_valid_chart_blocks": false,
+              "report_sections": false,
+              "no_internal_type_names": true
+            },
+            "metrics": {
+              "final_text_length": 0,
+              "tool_call_count": 0,
+              "tool_error_count": 0,
+              "chart_block_count": 0,
+              "valid_chart_count": 0,
+              "has_midturn_before_tool": false,
+              "terminal_status": "completed"
+            }
+          },
+          {
+            "turn_id": "artifact_policy",
+            "passed": true,
+            "checks": {
+              "run_completed": true,
+              "no_tool_errors": true,
+              "non_empty_response": true,
+              "artifact_policy": true,
+              "no_internal_type_names": true
+            },
+            "metrics": {
+              "final_text_length": 1969,
+              "tool_call_count": 1,
+              "tool_error_count": 0,
+              "chart_block_count": 2,
+              "valid_chart_count": 2,
+              "has_midturn_before_tool": false,
+              "terminal_status": "completed"
+            }
+          }
+        ],
+        "errors": []
+      }
+    ],
+    "gpt-oss": [
+      {
+        "attempt": 1,
+        "status": "completed",
+        "score": 1.0,
+        "turns": [
+          {
+            "turn_id": "trend_probe",
+            "passed": true,
+            "checks": {
+              "run_completed": true,
+              "no_tool_errors": true,
+              "non_empty_response": true,
+              "tool_called:web_search": true,
+              "min_tool_calls": true,
+              "max_tool_calls": true,
+              "source_signal": true
+            },
+            "metrics": {
+              "final_text_length": 3248,
+              "tool_call_count": 1,
+              "tool_error_count": 0,
+              "chart_block_count": 1,
+              "valid_chart_count": 1,
+              "has_midturn_before_tool": false,
+              "terminal_status": "completed"
+            }
+          },
+          {
+            "turn_id": "commercial_report",
+            "passed": true,
+            "checks": {
+              "run_completed": true,
+              "no_tool_errors": true,
+              "non_empty_response": true,
+              "min_valid_chart_blocks": true,
+              "report_sections": true,
+              "no_internal_type_names": true
+            },
+            "metrics": {
+              "final_text_length": 6531,
+              "tool_call_count": 0,
+              "tool_error_count": 0,
+              "chart_block_count": 5,
+              "valid_chart_count": 5,
+              "has_midturn_before_tool": true,
+              "terminal_status": "completed"
+            }
+          },
+          {
+            "turn_id": "artifact_policy",
+            "passed": true,
+            "checks": {
+              "run_completed": true,
+              "no_tool_errors": true,
+              "non_empty_response": true,
+              "artifact_policy": true,
+              "no_internal_type_names": true
+            },
+            "metrics": {
+              "final_text_length": 857,
+              "tool_call_count": 0,
+              "tool_error_count": 0,
+              "chart_block_count": 0,
+              "valid_chart_count": 0,
+              "has_midturn_before_tool": true,
+              "terminal_status": "completed"
+            }
+          }
+        ],
+        "errors": []
+      },
+      {
+        "attempt": 2,
+        "status": "completed",
+        "score": 1.0,
+        "turns": [
+          {
+            "turn_id": "trend_probe",
+            "passed": true,
+            "checks": {
+              "run_completed": true,
+              "no_tool_errors": true,
+              "non_empty_response": true,
+              "tool_called:web_search": true,
+              "min_tool_calls": true,
+              "max_tool_calls": true,
+              "source_signal": true
+            },
+            "metrics": {
+              "final_text_length": 3553,
+              "tool_call_count": 1,
+              "tool_error_count": 0,
+              "chart_block_count": 1,
+              "valid_chart_count": 1,
+              "has_midturn_before_tool": false,
+              "terminal_status": "completed"
+            }
+          },
+          {
+            "turn_id": "commercial_report",
+            "passed": true,
+            "checks": {
+              "run_completed": true,
+              "no_tool_errors": true,
+              "non_empty_response": true,
+              "min_valid_chart_blocks": true,
+              "report_sections": true,
+              "no_internal_type_names": true
+            },
+            "metrics": {
+              "final_text_length": 5394,
+              "tool_call_count": 0,
+              "tool_error_count": 0,
+              "chart_block_count": 4,
+              "valid_chart_count": 4,
+              "has_midturn_before_tool": true,
+              "terminal_status": "completed"
+            }
+          },
+          {
+            "turn_id": "artifact_policy",
+            "passed": true,
+            "checks": {
+              "run_completed": true,
+              "no_tool_errors": true,
+              "non_empty_response": true,
+              "artifact_policy": true,
+              "no_internal_type_names": true
+            },
+            "metrics": {
+              "final_text_length": 912,
+              "tool_call_count": 0,
+              "tool_error_count": 0,
+              "chart_block_count": 0,
+              "valid_chart_count": 0,
+              "has_midturn_before_tool": true,
+              "terminal_status": "completed"
+            }
+          }
+        ],
+        "errors": []
+      },
+      {
+        "attempt": 3,
+        "status": "completed",
+        "score": 1.0,
+        "turns": [
+          {
+            "turn_id": "trend_probe",
+            "passed": true,
+            "checks": {
+              "run_completed": true,
+              "no_tool_errors": true,
+              "non_empty_response": true,
+              "tool_called:web_search": true,
+              "min_tool_calls": true,
+              "max_tool_calls": true,
+              "source_signal": true
+            },
+            "metrics": {
+              "final_text_length": 2592,
+              "tool_call_count": 1,
+              "tool_error_count": 0,
+              "chart_block_count": 1,
+              "valid_chart_count": 1,
+              "has_midturn_before_tool": false,
+              "terminal_status": "completed"
+            }
+          },
+          {
+            "turn_id": "commercial_report",
+            "passed": true,
+            "checks": {
+              "run_completed": true,
+              "no_tool_errors": true,
+              "non_empty_response": true,
+              "min_valid_chart_blocks": true,
+              "report_sections": true,
+              "no_internal_type_names": true
+            },
+            "metrics": {
+              "final_text_length": 4202,
+              "tool_call_count": 0,
+              "tool_error_count": 0,
+              "chart_block_count": 4,
+              "valid_chart_count": 4,
+              "has_midturn_before_tool": true,
+              "terminal_status": "completed"
+            }
+          },
+          {
+            "turn_id": "artifact_policy",
+            "passed": true,
+            "checks": {
+              "run_completed": true,
+              "no_tool_errors": true,
+              "non_empty_response": true,
+              "artifact_policy": true,
+              "no_internal_type_names": true
+            },
+            "metrics": {
+              "final_text_length": 936,
+              "tool_call_count": 0,
+              "tool_error_count": 0,
+              "chart_block_count": 0,
+              "valid_chart_count": 0,
+              "has_midturn_before_tool": true,
+              "terminal_status": "completed"
+            }
+          }
+        ],
+        "errors": []
+      }
+    ]
+  }
+}

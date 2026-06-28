@@ -1,0 +1,26 @@
+name: market_report_control_v1
+description: 실제 사용자가 대충 말하는 상권 분석 대화를 통제변수로 고정한다.
+turns:
+  - id: trend_probe
+    prompt: |
+      성수역 근처에 베이커리 카페를 내볼까 하는데 요즘 분위기 좀 봐줘.
+    expectations:
+      require_tool: web_search
+      min_tool_calls: 1
+      max_tool_calls: 4
+      require_source_signal: true
+  - id: commercial_report
+    prompt: |
+      그럼 창업 판단용으로 볼 수 있게 보고서처럼 정리해줘.
+      숫자로 비교할 수 있는 건 차트로도 보이게 해주고.
+    expectations:
+      require_report_sections: true
+      min_chart_blocks: 1
+      forbid_internal_type_names: true
+  - id: artifact_policy
+    prompt: |
+      이 보고서랑 검색한 자료는 나중에 다시 보려면 각각 어떤 자료로 남기는 게 좋을지도 알려줘.
+      너무 기술적인 말 말고 내가 이해하게 짧게 정리해줘.
+    expectations:
+      require_artifact_policy: true
+      forbid_internal_type_names: true

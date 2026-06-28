@@ -1,0 +1,70 @@
+server:
+  base_url: http://127.0.0.1:2024
+  timeout_seconds: 300
+  runtime_env:
+    DATABASE_URL: sqlite+aiosqlite:///harness-evals/.workdir/harness.db
+    AUTO_CREATE_SCHEMA: "true"
+    FF_V2_EVENT_STREAMING: "true"
+    LANGGRAPH_DISABLE_FILE_PERSISTENCE: "true"
+
+run:
+  repetitions: 3
+  results_dir: results
+  workdir: .workdir
+  per_model_concurrency: 1
+  parallel_models: true
+  turn_timeout_seconds: 180
+  write_raw_events: false
+
+models:
+  - name: gpt-oss
+    model: gpt-oss:120b
+    reasoning_effort: high
+  - name: gemma
+    model: gemma-4-31b-it
+    reasoning_effort: high
+  - name: deepseek
+    model: deepseek-v4-flash
+    reasoning_effort: high
+
+control:
+  conversation: control/conversation.yaml
+
+rounds_dir: rounds
+
+defaults:
+  allowed_tools:
+    - web_search
+    - web_fetch
+  interrupt_on:
+    web_search: false
+    web_fetch: false
+    artifact_get:
+      allowed_decisions: [approve, reject, respond]
+    artifact_create:
+      allowed_decisions: [approve, reject, respond]
+    artifact_update:
+      allowed_decisions: [approve, reject, respond]
+    artifact_save_as_document:
+      allowed_decisions: [approve, reject, respond]
+    document_search:
+      allowed_decisions: [approve, reject, respond]
+    document_read:
+      allowed_decisions: [approve, reject, respond]
+    document_create:
+      allowed_decisions: [approve, reject, respond]
+    document_update:
+      allowed_decisions: [approve, reject, respond]
+    document_delete:
+      allowed_decisions: [approve, reject, respond]
+    memory_search:
+      allowed_decisions: [approve, reject, respond]
+    memory_create:
+      allowed_decisions: [approve, reject, respond]
+    memory_update:
+      allowed_decisions: [approve, reject, respond]
+    memory_delete:
+      allowed_decisions: [approve, reject, respond]
+  auto_resume:
+    decision: respond
+    message: 저장 작업은 지금 실행하지 말고, 필요한 본문과 저장 제안만 사용자에게 설명해 주세요.

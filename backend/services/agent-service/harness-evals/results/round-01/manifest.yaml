@@ -1,0 +1,149 @@
+round:
+  id: round-01
+  title: baseline-current-harness
+  hypothesis: 현재 production 하네스의 baseline을 측정한다.
+  change_reason: 첫 관측 기준선이다. 시스템 프롬프트, 실제 system_context 렌더링, 도구 설명을 덮어쓰지 않는다.
+  round_file: /home/coder/project/market-fit/backend/services/agent-service/harness-evals/rounds/round-01.yaml
+control_variables:
+  server_runtime:
+    base_url: http://127.0.0.1:2024
+    launch_env:
+      DATABASE_URL: sqlite+aiosqlite:///harness-evals/.workdir/harness-clean-20260628-1358.db
+      AUTO_CREATE_SCHEMA: 'true'
+      FF_V2_EVENT_STREAMING: 'true'
+      LANGGRAPH_DISABLE_FILE_PERSISTENCE: 'true'
+    ff_v2_event_streaming: 'true'
+    auto_create_schema: 'true'
+    langgraph_disable_file_persistence: 'true'
+  conversation:
+    name: market_report_control_v1
+    description: 실제 사용자가 대충 말하는 상권 분석 대화를 통제변수로 고정한다.
+    path: /home/coder/project/market-fit/backend/services/agent-service/harness-evals/control/conversation.yaml
+    turns:
+    - id: trend_probe
+      prompt: 성수역 근처에 베이커리 카페를 내볼까 하는데 요즘 분위기 좀 봐줘.
+      expectations:
+        require_tool: web_search
+        min_tool_calls: 1
+        max_tool_calls: 4
+        min_chart_blocks: null
+        require_source_signal: true
+        require_report_sections: false
+        require_artifact_policy: false
+        forbid_internal_type_names: false
+    - id: commercial_report
+      prompt: '그럼 창업 판단용으로 볼 수 있게 보고서처럼 정리해줘.
+
+        숫자로 비교할 수 있는 건 차트로도 보이게 해주고.'
+      expectations:
+        require_tool: null
+        min_tool_calls: null
+        max_tool_calls: null
+        min_chart_blocks: 1
+        require_source_signal: false
+        require_report_sections: true
+        require_artifact_policy: false
+        forbid_internal_type_names: true
+    - id: artifact_policy
+      prompt: '이 보고서랑 검색한 자료는 나중에 다시 보려면 각각 어떤 자료로 남기는 게 좋을지도 알려줘.
+
+        너무 기술적인 말 말고 내가 이해하게 짧게 정리해줘.'
+      expectations:
+        require_tool: null
+        min_tool_calls: null
+        max_tool_calls: null
+        min_chart_blocks: null
+        require_source_signal: false
+        require_report_sections: false
+        require_artifact_policy: true
+        forbid_internal_type_names: true
+  repetitions: 3
+  parallel_models: false
+  turn_timeout_seconds: 180.0
+  models:
+  - name: gpt-oss
+    model: gpt-oss:120b
+    reasoning_effort: high
+  - name: gemma
+    model: gemma-4-31b-it
+    reasoning_effort: high
+  - name: deepseek
+    model: deepseek-v4-flash
+    reasoning_effort: high
+independent_variables:
+  harness_overrides: {}
+  allowed_tools:
+  - web_search
+  - web_fetch
+  interrupt_on:
+    web_search: false
+    web_fetch: false
+    artifact_get:
+      allowed_decisions:
+      - approve
+      - reject
+      - respond
+    artifact_create:
+      allowed_decisions:
+      - approve
+      - reject
+      - respond
+    artifact_update:
+      allowed_decisions:
+      - approve
+      - reject
+      - respond
+    artifact_save_as_document:
+      allowed_decisions:
+      - approve
+      - reject
+      - respond
+    document_search:
+      allowed_decisions:
+      - approve
+      - reject
+      - respond
+    document_read:
+      allowed_decisions:
+      - approve
+      - reject
+      - respond
+    document_create:
+      allowed_decisions:
+      - approve
+      - reject
+      - respond
+    document_update:
+      allowed_decisions:
+      - approve
+      - reject
+      - respond
+    document_delete:
+      allowed_decisions:
+      - approve
+      - reject
+      - respond
+    memory_search:
+      allowed_decisions:
+      - approve
+      - reject
+      - respond
+    memory_create:
+      allowed_decisions:
+      - approve
+      - reject
+      - respond
+    memory_update:
+      allowed_decisions:
+      - approve
+      - reject
+      - respond
+    memory_delete:
+      allowed_decisions:
+      - approve
+      - reject
+      - respond
+  auto_resume:
+    decision: respond
+    message: 저장 작업은 지금 실행하지 말고, 필요한 본문과 저장 제안만 사용자에게 설명해 주세요.
+created_at: '2026-06-28T14:10:40.539276+00:00'
