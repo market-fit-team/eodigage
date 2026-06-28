@@ -19,7 +19,7 @@ export const proxy = async (request: NextRequest) => {
   })
 
   if (!session) {
-    const url = new URL("/example/sign-in", request.url)
+    const url = new URL("/login", request.url)
     url.searchParams.set("callbackURL", request.nextUrl.pathname)
     return NextResponse.redirect(url)
   }

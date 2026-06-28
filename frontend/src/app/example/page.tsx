@@ -29,8 +29,8 @@ export default async function HomePage() {
 
 const HOME_LINKS = [
   {
-    href: "/example/sign-in",
-    label: "/example/sign-in",
+    href: "/login",
+    label: "/login",
     description: "Better Auth 로그인 진입 페이지",
   },
   {
@@ -42,11 +42,6 @@ const HOME_LINKS = [
     href: "/example/playground",
     label: "/example/playground",
     description: "세션, JWT, SSR 프리패치, hydration을 확인하는 실험 페이지",
-  },
-  {
-    href: "/example/chat",
-    label: "/example/chat",
-    description: "LLM 채팅 화면 진입 페이지",
   },
   {
     href: "/example/community/posts",

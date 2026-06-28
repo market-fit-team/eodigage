@@ -8,7 +8,7 @@ export const dynamic = "force-dynamic"
 
 export default async function DashboardPage() {
   const session = await getServerSession()
-  if (!session) redirect("/example/sign-in?callbackURL=/example/dashboard")
+  if (!session) redirect("/login?callbackURL=/example/dashboard")
 
   return (
     <main>
