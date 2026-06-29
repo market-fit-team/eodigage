@@ -1,12 +1,15 @@
 from __future__ import annotations
 
 import unittest
+from unittest.mock import patch
 
 import numpy as np
 import pandas as pd
 
 from app.models.onboarding_category_tower.predict import _scale_scores_to_unit_interval
+from app.models.onboarding_category_tower import runtime as category_runtime
 from app.models.onboarding_category_tower.runtime import predict_payload, train_runtime
+from app.models.onboarding_category_tower.train import resolve_data_mode
 from app.models.onboarding_category_tower.user_profiles import build_user_prototype
 
 
@@ -21,10 +24,16 @@ class OnboardingCategoryTowerTestCase(unittest.TestCase):
         """학습 결과 메타데이터는 이후 API 연결에 필요한 핵심 필드를 포함해야 한다."""
 
         self.assertEqual(self.metadata["model_id"], "onboarding_category_tower")
+        self.assertEqual(self.metadata["data_mode"], "sample")
         self.assertEqual(self.metadata["category_count"], 5)
         self.assertGreaterEqual(self.metadata["embedding_dim"], 16)
         self.assertIn("user_numeric_features", self.metadata)
         self.assertIn("item_numeric_features", self.metadata)
+
+    def test_resolve_data_mode_prefers_artifact_metadata(self) -> None:
+        """런타임 data mode를 넘기지 않으면 저장된 artifact metadata 값을 우선 사용해야 한다."""
+
+        self.assertEqual(resolve_data_mode(None, {"data_mode": "raw"}), "raw")
 
     def test_known_sample_profile_returns_target_category_within_top_k(self) -> None:
         """기준 프로토타입으로 예측하면 해당 업종이 상위 추천 안에 포함돼야 한다."""
@@ -93,6 +102,16 @@ class OnboardingCategoryTowerTestCase(unittest.TestCase):
         self.assertEqual(payload["competition_tolerance_level"], 0.0)
         self.assertEqual(payload["labor_intensity_tolerance"], 1.0)
         self.assertEqual(payload["space_efficiency_preference"], 0.0)
+
+    def test_runtime_prediction_uses_metadata_data_mode(self) -> None:
+        """런타임 예측은 현재 로드된 metadata의 data mode를 그대로 predict 계층에 넘겨야 한다."""
+
+        with patch.object(category_runtime, "get_runtime", return_value=(object(), {"data_mode": "raw"})):
+            with patch.object(category_runtime, "predict_with_runtime", return_value={"ok": True}) as mock_predict:
+                payload = predict_payload({"user_id": "category_user"}, top_k=3)
+
+        self.assertEqual(payload, {"ok": True})
+        self.assertEqual(mock_predict.call_args.kwargs["data_mode"], "raw")
 
 
 if __name__ == "__main__":

@@ -20,6 +20,7 @@ from app.models.onboarding_category_tower.train import (
     USER_NUMERIC_FIELDS,
     _tensor_dict,
     load_model,
+    resolve_data_mode,
 )
 from app.models.onboarding_category_tower.user_profiles import sample_user_profiles
 
@@ -53,10 +54,11 @@ def predict_with_runtime(
     metadata: dict[str, Any],
     user_profile: dict[str, Any],
     top_k: int = 5,
-    data_mode: str = "sample",
+    data_mode: str | None = None,
 ) -> dict[str, Any]:
-    items = build_category_profiles(data_mode=data_mode, trainable_only=True).copy()
-    user = _resolve_user_profile(user_profile, data_mode=data_mode)
+    resolved_data_mode = resolve_data_mode(data_mode, metadata)
+    items = build_category_profiles(data_mode=resolved_data_mode, trainable_only=True).copy()
+    user = _resolve_user_profile(user_profile, data_mode=resolved_data_mode)
 
     item_tensors = {
         name: tf.convert_to_tensor(
@@ -127,6 +129,6 @@ if __name__ == "__main__":
     parser.add_argument("--user-id", type=str, default=None)
     parser.add_argument("--profile-json", type=str, default=None)
     parser.add_argument("--top-k", type=int, default=5)
-    parser.add_argument("--data-mode", type=str, default="sample")
+    parser.add_argument("--data-mode", type=str, default=None)
     parsed_args = parser.parse_args()
     print(json.dumps(predict(parsed_args), ensure_ascii=False, indent=2))

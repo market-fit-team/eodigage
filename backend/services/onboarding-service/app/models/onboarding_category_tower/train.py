@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import logging
 import os
 from datetime import datetime, timezone
 from pathlib import Path
@@ -18,6 +19,7 @@ from app.models.category_profile.features import (
     CATEGORY_PROFILE_STRING_FEATURES,
     build_category_profiles,
 )
+from app.core.config import settings
 from app.models.onboarding_category_tower.user_profiles import (
     SYNTHETIC_VARIANTS_PER_CATEGORY,
     USER_NUMERIC_FIELDS,
@@ -31,6 +33,8 @@ SEED = 42
 USER_STRING_FEATURES: list[str] = []
 ITEM_STRING_FEATURES = CATEGORY_PROFILE_STRING_FEATURES.copy()
 ITEM_NUMERIC_FEATURES = CATEGORY_PROFILE_NUMERIC_FEATURES.copy()
+VALID_DATA_MODES = {"sample", "raw"}
+logger = logging.getLogger(__name__)
 
 
 def _tensor_dict(
@@ -66,6 +70,22 @@ def _training_frames(data_mode: str = "sample") -> tuple[pd.DataFrame, pd.DataFr
         train_rows[column] = train_rows[column].fillna("unknown").astype(str)
 
     return users, items, train_rows, eval_users
+
+
+def resolve_data_mode(
+    data_mode: str | None = None,
+    metadata: dict[str, Any] | None = None,
+) -> str:
+    candidates = [
+        data_mode,
+        metadata.get("data_mode") if metadata is not None else None,
+        settings.category_data_mode,
+    ]
+    for candidate in candidates:
+        normalized = str(candidate or "").strip().lower()
+        if normalized in VALID_DATA_MODES:
+            return normalized
+    raise ValueError("data_mode must be 'sample' or 'raw'")
 
 
 def build_model(items: pd.DataFrame) -> Any:
@@ -171,11 +191,12 @@ def _evaluate_model(model: Any, items: pd.DataFrame, eval_users: pd.DataFrame) -
     return round(hit_rate_at_3, 6), round(mrr, 6)
 
 
-def train_and_save(epochs: int = 24, data_mode: str = "sample") -> dict[str, Any]:
+def train_and_save(epochs: int = 24, data_mode: str | None = None) -> dict[str, Any]:
     import tensorflow as tf
 
+    resolved_data_mode = resolve_data_mode(data_mode)
     tf.random.set_seed(SEED)
-    users, items, train_rows, eval_users = _training_frames(data_mode=data_mode)
+    users, items, train_rows, eval_users = _training_frames(data_mode=resolved_data_mode)
     train_columns = [*USER_NUMERIC_FIELDS, *ITEM_STRING_FEATURES, *ITEM_NUMERIC_FEATURES]
     dataset = tf.data.Dataset.from_tensor_slices(
         _tensor_dict(
@@ -224,6 +245,7 @@ def train_and_save(epochs: int = 24, data_mode: str = "sample") -> dict[str, Any
 
     metadata = {
         "model_id": "onboarding_category_tower",
+        "data_mode": resolved_data_mode,
         "trained_at": datetime.now(timezone.utc).isoformat(),
         "epochs": epochs,
         "rows": int(len(train_rows)),
@@ -250,14 +272,8 @@ def train_and_save(epochs: int = 24, data_mode: str = "sample") -> dict[str, Any
     return metadata
 
 
-def load_model(data_mode: str = "sample") -> tuple[Any, dict[str, Any]]:
+def _build_initialized_model(data_mode: str) -> Any:
     import tensorflow as tf
-
-    metadata_path = ARTIFACT_DIR / "metadata.json"
-    if not metadata_path.exists():
-        metadata = train_and_save(data_mode=data_mode)
-    else:
-        metadata = json.loads(metadata_path.read_text(encoding="utf-8"))
 
     items = build_category_profiles(data_mode=data_mode, trainable_only=True).copy()
     model = build_model(items)
@@ -281,8 +297,33 @@ def load_model(data_mode: str = "sample") -> tuple[Any, dict[str, Any]]:
             for name in [*ITEM_STRING_FEATURES, *ITEM_NUMERIC_FEATURES]
         }
     )
-    model.user_model.load_weights(ARTIFACT_DIR / "user_tower.weights.h5")
-    model.item_model.load_weights(ARTIFACT_DIR / "item_tower.weights.h5")
+    return model
+
+
+def load_model(data_mode: str | None = None) -> tuple[Any, dict[str, Any]]:
+    metadata_path = ARTIFACT_DIR / "metadata.json"
+    if not metadata_path.exists():
+        metadata = train_and_save(data_mode=data_mode)
+    else:
+        metadata = json.loads(metadata_path.read_text(encoding="utf-8"))
+
+    resolved_data_mode = resolve_data_mode(data_mode, metadata)
+    model = _build_initialized_model(resolved_data_mode)
+
+    try:
+        model.user_model.load_weights(ARTIFACT_DIR / "user_tower.weights.h5")
+        model.item_model.load_weights(ARTIFACT_DIR / "item_tower.weights.h5")
+    except (OSError, ValueError) as error:
+        logger.warning(
+            "onboarding_category_tower artifacts are stale for data_mode=%s; retraining to recover.",
+            resolved_data_mode,
+            exc_info=error,
+        )
+        metadata = train_and_save(data_mode=resolved_data_mode)
+        model = _build_initialized_model(resolved_data_mode)
+        model.user_model.load_weights(ARTIFACT_DIR / "user_tower.weights.h5")
+        model.item_model.load_weights(ARTIFACT_DIR / "item_tower.weights.h5")
+
     return model, metadata
 
 

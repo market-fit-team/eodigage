@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from pydantic import Field
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -21,6 +22,7 @@ class Settings(BaseSettings):
     jwt_algorithm: str = "RS256"
     bootstrap_train_if_missing: bool = True
     bootstrap_train_epochs: int = 1
+    category_data_mode: str = Field(default="sample", validation_alias="ONBOARDING_CATEGORY_DATA_MODE")
 
     model_config = SettingsConfigDict(env_prefix="ONBOARDING_SERVICE_")
 
