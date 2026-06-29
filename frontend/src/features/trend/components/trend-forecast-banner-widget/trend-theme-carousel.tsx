@@ -30,8 +30,8 @@ const AUTOPLAY_MS = 4000
 // 상단 토글 2개. predicted=곧 뜰(예측), popular=요즘 뜨는(실측).
 type Kind = "predicted" | "popular"
 const KIND_TABS: { key: Kind; label: string }[] = [
-  { key: "predicted", label: "곧 뜰 동네" },
-  { key: "popular", label: "지금 인기" },
+  { key: "predicted", label: "상승 후보" },
+  { key: "popular", label: "현재 인기" },
 ]
 
 const metricsOf = (theme: TrendForecastThemeOutput, kind: Kind) =>
@@ -60,7 +60,7 @@ const descriptionOf = (
     case "저점 회복 흐름":
       return "잠잠했던 유입이 다시 살아나는 구간입니다."
     case "안정적 상승 전망":
-      return "흔들림이 작아 흐름이 안정적인 후보입니다."
+      return "흔들림이 작아 흐름이 안정적인 상권입니다."
     default:
       return "유입 증가 가능성을 높게 본 상권입니다."
   }
@@ -104,20 +104,20 @@ export function TrendBannerBlock({
 
   const FooterIcon = kind === "predicted" ? TrendingUp : Flame
 
-  // 헤더는 선택한 모드(곧 뜰/지금 인기)와 현재 세그먼트의 1위 동네에 맞춰 바뀐다.
-  const activeTheme = themes[current] ?? themes[0]
-  const topLabel = metricsOf(activeTheme, kind)[0]?.label
+  // 헤더는 전체 기준 1위로 고정하고, 세그먼트 선택은 카드 영역에만 반영한다.
+  const overallTheme =
+    themes.find((theme) => theme.key === "combined") ?? themes[0]
+  const topLabel = metricsOf(overallTheme, kind)[0]?.label
   const HeaderIcon = kind === "predicted" ? Sparkles : Flame
-  const headerEyebrow =
-    kind === "predicted" ? "AI 트렌드 예측" : "지금 인기 상권"
+  const headerEyebrow = kind === "predicted" ? "AI 트렌드 예측" : "현재 인기"
   const headerTitle =
     kind === "predicted"
       ? topLabel
-        ? `앞으로 주목할 동네, ${topLabel}`
-        : "앞으로 주목할 동네"
+        ? `앞으로 주목할 상권, ${topLabel}`
+        : "앞으로 주목할 상권"
       : topLabel
-        ? `지금 가장 북적이는 상권, ${topLabel}`
-        : "지금 인기 있는 상권"
+        ? `현재 유입이 많은 상권, ${topLabel}`
+        : "현재 유입이 많은 상권"
 
   return (
     <div
@@ -197,26 +197,28 @@ export function TrendBannerBlock({
                   return (
                     <Card
                       key={metric.label}
-                      className="min-h-36 justify-between ring-inset"
+                      className="h-48 justify-between px-7 py-5 ring-inset"
                     >
-                      <CardHeader className="gap-2">
-                        <CardTitle className="pr-10 text-2xl font-semibold tracking-tight break-keep">
+                      <CardHeader className="gap-2 p-0">
+                        <CardTitle className="pr-8 text-lg leading-snug font-semibold tracking-tight break-keep sm:text-xl">
                           {metric.label}
                         </CardTitle>
                         {cardLabel && (
                           <CardDescription>
                             <Badge
                               variant="secondary"
-                              className="mt-1.5 w-fit px-4 py-2 text-sm break-keep"
+                              className="mt-2 min-h-7 w-fit px-2.5 py-1 text-[11px] leading-snug break-keep"
                             >
                               {cardLabel}
                             </Badge>
                           </CardDescription>
                         )}
                       </CardHeader>
-                      <CardFooter className="min-w-0 items-start gap-1.5 text-xs leading-relaxed text-muted-foreground">
-                        <FooterIcon className="mt-0.5 size-3.5 shrink-0" />
-                        <span className="break-keep">{description}</span>
+                      <CardFooter className="min-h-12 min-w-0 p-0 text-xs leading-relaxed text-muted-foreground">
+                        <span className="line-clamp-2 break-keep">
+                          <FooterIcon className="mr-1 inline size-3.5 align-[-2px]" />
+                          {description}
+                        </span>
                       </CardFooter>
                     </Card>
                   )
