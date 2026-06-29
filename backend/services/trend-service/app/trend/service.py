@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from typing import cast
+
 from app.core.config import settings
 from app.models.commercial_trend.runtime import get_banner_sections
 from app.trend.contracts import (
@@ -35,36 +37,54 @@ def _forecast_phrase(signals: dict[str, float]) -> str:
     return "상승 전망"
 
 
+def _forecast_description(signals: dict[str, float]) -> str:
+    """예측 카드에 붙이는 짧은 근거 문구. 수치 대신 흐름만 설명한다."""
+    accel = signals.get("accel", 0.0)
+    recent = signals.get("recent_vs_win", 0.0)
+    vol = signals.get("vol", 0.0)
+    if accel > 0:
+        return "최근 흐름보다 앞으로의 상승 여지가 큽니다."
+    if recent < -0.01:
+        return "잠잠했던 유입이 다시 살아나는 구간입니다."
+    if vol < 0.02:
+        return "흔들림이 작고 완만한 상승세가 예상됩니다."
+    return "다음 8주 유입 증가 가능성을 높게 본 상권입니다."
+
+
 def _predicted_metrics(picks: list[dict[str, object]]) -> list[TrendForecastMetric]:
-    """검증된 forward-slope 모델의 '곧 뜰 동네(다음 8주)' 상위 N. 전망 문구 + 현재 규모."""
+    """검증된 forward-slope 모델의 '곧 뜰 동네' 상위 N.
+
+    미래 예측이라 현재 절대값(생활인구 등)은 보여주지 않는다. 모델은 절대 인원이 아니라
+    상대적 상승 가능성을 예측하므로, 전망 문구와 짧은 설명만 노출한다.
+    """
     metrics: list[TrendForecastMetric] = []
     for pick in picks[:TOP_N]:
-        level = float(pick.get("level", 0.0))
-        phrase = _forecast_phrase(pick.get("signals", {}))  # type: ignore[arg-type]
+        signals = cast(dict[str, float], pick.get("signals", {}))
+        phrase = _forecast_phrase(signals)
         metrics.append(
             TrendForecastMetric(
                 label=str(pick["area_name"]),
                 value=phrase,
-                description=f"생활인구 {level:,.0f}명",
+                description=_forecast_description(signals),
             )
         )
     return metrics
 
 
 def _popular_metrics(picks: list[dict[str, object]]) -> list[TrendForecastMetric]:
-    """상업시간대 규모 기준 '지금 인기 상권' 상위 N(예측 아님, 사실 보고). 명=실제 동시 인원."""
-    metrics: list[TrendForecastMetric] = []
-    for pick in picks[:TOP_N]:
-        level = float(pick["level"])  # type: ignore[arg-type]
-        vitality = float(pick["vitality"])  # type: ignore[arg-type]
-        metrics.append(
-            TrendForecastMetric(
-                label=str(pick["area_name"]),
-                value=f"{level:,.0f}명",
-                description=f"낮 유동 {vitality:.1f}배",
-            )
+    """상업시간대 실측 규모 상위 '지금 인기 상권'. 순위만 노출(이름의 정렬 순서 = 순위).
+
+    level은 '최근 4주 낮시간대 평균 생활인구(추정·존재)'라 실시간도 유동인구도 아니어서 그대로
+    노출하면 오해를 부른다. 그래서 절대 인원·비율은 보여주지 않고, 순위(리스트 순서)만 남긴다.
+    """
+    return [
+        TrendForecastMetric(
+            label=str(pick["area_name"]),
+            value="",
+            description="최근 상업시간대 생활인구가 많은 상권입니다.",
         )
-    return metrics
+        for pick in picks[:TOP_N]
+    ]
 
 
 def build_banner(data_mode: str | None = None) -> TrendForecastBanner:

@@ -2,11 +2,13 @@
 
 import { useEffect, useState } from "react"
 import { Flame, Sparkles, TrendingUp } from "lucide-react"
-import type { TrendForecastBannerOutput, TrendForecastThemeOutput } from "@/shared/api/generated/trend/schemas"
+import type {
+  TrendForecastBannerOutput,
+  TrendForecastThemeOutput,
+} from "@/shared/api/generated/trend/schemas"
 import { Badge } from "@/shared/components/ui/badge"
 import {
   Card,
-  CardAction,
   CardDescription,
   CardFooter,
   CardHeader,
@@ -35,9 +37,42 @@ const KIND_TABS: { key: Kind; label: string }[] = [
 const metricsOf = (theme: TrendForecastThemeOutput, kind: Kind) =>
   kind === "predicted" ? theme.predicted : theme.popular
 
+const descriptionOf = (
+  kind: Kind,
+  metric: TrendForecastThemeOutput["predicted"][number],
+  index: number
+) => {
+  if (metric.description) return metric.description
+
+  if (kind === "popular") {
+    return (
+      [
+        "최근 상업시간대 방문이 가장 두드러진 상권입니다.",
+        "상업시간대 유입이 꾸준히 높은 상권입니다.",
+        "생활인구 흐름이 상위권에 머무는 상권입니다.",
+      ][index] ?? "최근 상업시간대 유입이 많은 상권입니다."
+    )
+  }
+
+  switch (metric.value) {
+    case "반등 시작":
+      return "최근 흐름보다 앞으로의 상승 여지가 큽니다."
+    case "저점 회복 흐름":
+      return "잠잠했던 유입이 다시 살아나는 구간입니다."
+    case "안정적 상승 전망":
+      return "흔들림이 작고 완만한 상승세가 예상됩니다."
+    default:
+      return "다음 흐름에서 유입 증가 가능성을 높게 본 상권입니다."
+  }
+}
+
 // 단일 배너 블록: 상단 2-탭 토글(예측/인기) + 세그먼트 탭 + 카드 캐러셀(양옆 화살표·하단 도트).
 // 카드 슬라이드는 세그먼트(전체·남성·여성·20·30대)를 넘기고, 토글이 예측/인기를 바꾼다.
-export function TrendBannerBlock({ banner }: { banner: TrendForecastBannerOutput }) {
+export function TrendBannerBlock({
+  banner,
+}: {
+  banner: TrendForecastBannerOutput
+}) {
   const [api, setApi] = useState<CarouselApi>()
   const [current, setCurrent] = useState(0)
   const [isPaused, setIsPaused] = useState(false)
@@ -73,7 +108,8 @@ export function TrendBannerBlock({ banner }: { banner: TrendForecastBannerOutput
   const activeTheme = themes[current] ?? themes[0]
   const topLabel = metricsOf(activeTheme, kind)[0]?.label
   const HeaderIcon = kind === "predicted" ? Sparkles : Flame
-  const headerEyebrow = kind === "predicted" ? "AI 트렌드 예측" : "지금 인기 상권"
+  const headerEyebrow =
+    kind === "predicted" ? "AI 트렌드 예측" : "지금 인기 상권"
   const headerTitle =
     kind === "predicted"
       ? topLabel
@@ -98,7 +134,7 @@ export function TrendBannerBlock({ banner }: { banner: TrendForecastBannerOutput
             <HeaderIcon className="size-3.5" />
             {headerEyebrow}
           </Badge>
-          <h2 className="text-xl font-semibold tracking-tight text-foreground break-keep sm:text-2xl">
+          <h2 className="text-xl font-semibold tracking-tight break-keep text-foreground sm:text-2xl">
             {headerTitle}
           </h2>
         </div>
@@ -144,32 +180,47 @@ export function TrendBannerBlock({ banner }: { banner: TrendForecastBannerOutput
       </div>
 
       {/* 카드 캐러셀: 양옆 화살표 */}
-      <Carousel setApi={setApi} opts={{ loop: true, align: "start" }} className="px-10">
+      <Carousel
+        setApi={setApi}
+        opts={{ loop: true, align: "start" }}
+        className="px-10"
+      >
         <CarouselContent className="py-1">
           {themes.map((theme) => (
             <CarouselItem key={theme.key}>
               <div className="grid grid-cols-1 gap-3 sm:grid-cols-3 sm:gap-5">
-                {metricsOf(theme, kind).map((metric, index) => (
-                  <Card key={metric.label} className="min-h-36 justify-between ring-inset">
-                    <CardHeader>
-                      <CardTitle className="pr-10 text-lg font-semibold break-keep sm:text-xl">
-                        {metric.label}
-                      </CardTitle>
-                      <CardDescription className="text-sm font-medium text-foreground/80 tabular-nums">
-                        {metric.value}
-                      </CardDescription>
-                      <CardAction>
-                        <Badge variant="outline" className="tabular-nums">
-                          {index + 1}위
-                        </Badge>
-                      </CardAction>
-                    </CardHeader>
-                    <CardFooter className="min-w-0 gap-1.5 text-xs text-muted-foreground">
-                      <FooterIcon className="size-3.5 shrink-0" />
-                      <span className="break-keep tabular-nums">{metric.description}</span>
-                    </CardFooter>
-                  </Card>
-                ))}
+                {metricsOf(theme, kind).map((metric, index) => {
+                  const cardLabel =
+                    kind === "popular" ? `${index + 1}위` : metric.value
+                  const description = descriptionOf(kind, metric, index)
+
+                  return (
+                    <Card
+                      key={metric.label}
+                      className="min-h-36 justify-between ring-inset"
+                    >
+                      <CardHeader className="gap-2">
+                        <CardTitle className="pr-10 text-2xl font-semibold tracking-tight break-keep">
+                          {metric.label}
+                        </CardTitle>
+                        {cardLabel && (
+                          <CardDescription>
+                            <Badge
+                              variant="secondary"
+                              className="mt-1.5 w-fit px-4 py-2 text-sm break-keep"
+                            >
+                              {cardLabel}
+                            </Badge>
+                          </CardDescription>
+                        )}
+                      </CardHeader>
+                      <CardFooter className="min-w-0 items-start gap-1.5 text-xs leading-relaxed text-muted-foreground">
+                        <FooterIcon className="mt-0.5 size-3.5 shrink-0" />
+                        <span className="break-keep">{description}</span>
+                      </CardFooter>
+                    </Card>
+                  )
+                })}
               </div>
             </CarouselItem>
           ))}
@@ -189,7 +240,9 @@ export function TrendBannerBlock({ banner }: { banner: TrendForecastBannerOutput
             onClick={() => api?.scrollTo(index)}
             className={cn(
               "size-2 rounded-full transition focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none",
-              index === current ? "bg-foreground" : "bg-muted-foreground/30 hover:bg-muted-foreground/50"
+              index === current
+                ? "bg-foreground"
+                : "bg-muted-foreground/30 hover:bg-muted-foreground/50"
             )}
           />
         ))}
