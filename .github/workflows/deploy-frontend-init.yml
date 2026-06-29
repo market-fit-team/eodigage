@@ -16,14 +16,13 @@ permissions:
 
 jobs:
   deploy-frontend-init:
-    # 전체 compose 상태를 초기화한 뒤 backend dump/model과 frontend standalone까지 다시 올린다.
+    # 백엔드/DB는 건드리지 않고 frontend standalone만 초기화해서 다시 올린다.
     uses: ./.github/workflows/_deploy-runner-common.yml
     with:
       workflow_label: deploy-frontend-init
       branch: ${{ inputs.branch }}
-      copy_dumps: true
-      copy_trend_assets: true
-      # reset은 기존 컨테이너, compose 볼륨, 로컬 compose 이미지를 먼저 제거한다.
-      # up으로 backend stack을 복원한 뒤 frontend codegen/build를 이어서 실행한다.
+      copy_dumps: false
+      copy_trend_assets: false
+      # reset-frontend는 frontend 컨테이너와 익명 볼륨만 제거한다.
       # NO_CACHE=1은 VPS 전역 build cache를 삭제하지 않고 이번 배포 빌드에서만 cache 재사용을 막는다.
-      deploy_command: NO_CACHE=1 make reset up frontend
+      deploy_command: NO_CACHE=1 make reset-frontend frontend

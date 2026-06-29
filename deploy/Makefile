@@ -1,6 +1,6 @@
 SHELL := /bin/bash
 
-.PHONY: validate-env reset reset-hard gateway data restore-db services frontend-codegen frontend train-onboarding-models train-trend-models train-models up up-mac ps logs status down clean
+.PHONY: validate-env reset reset-hard reset-frontend gateway data restore-db services frontend-codegen frontend train-onboarding-models train-trend-models train-models up up-mac ps logs status down clean
 
 COMPOSE := docker compose --env-file .env -f compose/backend-public-stack.yml
 MAC_COMPOSE := docker compose --env-file .env -f compose/backend-public-stack.yml -f compose/backend-public-stack.mac.yml
@@ -32,6 +32,10 @@ reset-hard: reset
 	@echo "VPS 전체 Docker BuildKit build cache와 dangling image를 정리합니다..."
 	@docker builder prune -af
 	@docker image prune -f
+
+reset-frontend: validate-env
+	@echo "프론트엔드 컨테이너와 익명 볼륨만 초기화합니다..."
+	@$(COMPOSE) rm -sfv $(FRONTEND_SERVICE)
 
 gateway: validate-env
 	@echo "Traefik 공개 게이트웨이를 시작합니다..."
@@ -79,9 +83,9 @@ frontend: frontend-codegen
 	@if [[ "$(NO_CACHE)" == "1" ]]; then \
 		echo "Docker build cache를 사용하지 않고 frontend를 빌드합니다..."; \
 		$(COMPOSE) build --no-cache $(FRONTEND_SERVICE); \
-		$(COMPOSE) up -d $(FRONTEND_SERVICE); \
+		$(COMPOSE) up -d --no-deps $(FRONTEND_SERVICE); \
 	else \
-		$(COMPOSE) up -d --build $(FRONTEND_SERVICE); \
+		$(COMPOSE) up -d --build --no-deps $(FRONTEND_SERVICE); \
 	fi
 
 train-onboarding-models: validate-env
