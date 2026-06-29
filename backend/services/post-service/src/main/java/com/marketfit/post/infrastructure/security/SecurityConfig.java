@@ -33,12 +33,13 @@ public class SecurityConfig {
         @Bean
         SecurityFilterChain securityFilterChain(
                         HttpSecurity http,
-                        Environment environment
+                        Environment environment,
+                        CorsConfigurationSource corsConfigurationSource
         ) throws Exception {
                 boolean localDevelopment = environment.acceptsProfiles(Profiles.of("local", "dev"));
                 return http
                                 .csrf(csrf -> csrf.disable())
-                                .cors(cors -> cors.configurationSource(corsConfigurationSource()))
+                                .cors(cors -> cors.configurationSource(corsConfigurationSource))
                                 .authorizeHttpRequests(authorize -> authorize
                                                 .requestMatchers("/", "/error", "/v3/api-docs/**", "/swagger-ui/**")
                                                 .permitAll()
