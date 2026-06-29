@@ -41,18 +41,9 @@ jobs:
       # 원격 저장소 주소다. 매 실행마다 최신 브랜치를 depth 1로 맞춘다.
       REPO_URL: https://github.com/market-fit-team/market-fit.git
       REPO_REF: ${{ inputs.branch }}
-      # 로컬에서 관리 중인 원본 배포 자산 위치다.
-      SOURCE_REPO_DIR: /home/ubuntu/code-server/volumes/home/project/market-fit
       # 실제 배포를 수행할 별도 clone 작업 디렉터리다.
       TARGET_REPO_DIR: /home/ubuntu/code-server/volumes/home/project/market-fit-deploy
-      # 원본 deploy/.env 파일을 액션에서 그대로 복사해 사용한다.
-      SOURCE_ENV_FILE: /home/ubuntu/code-server/volumes/home/project/market-fit/deploy/.env
-      # 원본 dump 파일 디렉터리다. dump가 필요한 워크플로에서만 복사한다.
-      SOURCE_DUMP_DIR: /home/ubuntu/code-server/volumes/home/project/market-fit/deploy/.local/backend-db-market-franchise
-      # trend-service 운영 자산 원본 위치다. 배포 워크플로에서 필요한 경우에만 복사한다.
-      SOURCE_TREND_ARTIFACTS_DIR: /home/ubuntu/code-server/volumes/home/project/market-fit/backend/services/trend-service/.artifacts
-      SOURCE_TREND_RAW_DIR: /home/ubuntu/code-server/volumes/home/project/market-fit/backend/services/trend-service/.raw
-      # clone 받은 배포 저장소 안에서 실제로 사용할 env와 dump 경로다.
+      # 배포에 필요한 로컬 env / dump / trend 자산은 모두 배포용 clone 디렉터리 안에 둔다.
       TARGET_ENV_FILE: /home/ubuntu/code-server/volumes/home/project/market-fit-deploy/deploy/.env
       TARGET_DUMP_DIR: /home/ubuntu/code-server/volumes/home/project/market-fit-deploy/deploy/.local/backend-db-market-franchise
       TARGET_TREND_ARTIFACTS_DIR: /home/ubuntu/code-server/volumes/home/project/market-fit-deploy/backend/services/trend-service/.artifacts
@@ -73,6 +64,36 @@ jobs:
         run: |
           set -euo pipefail
 
+          preserve_dir="$(mktemp -d)"
+          restore_preserved_path() {
+            local saved_relative_path="$1"
+            local target_path="$2"
+            if [ -e "$preserve_dir/$saved_relative_path" ]; then
+              mkdir -p "$(dirname "$target_path")"
+              rm -rf "$target_path"
+              cp -R "$preserve_dir/$saved_relative_path" "$target_path"
+            fi
+          }
+
+          if [ -d "$TARGET_REPO_DIR" ]; then
+            if [ -f "$TARGET_ENV_FILE" ]; then
+              mkdir -p "$preserve_dir/deploy"
+              cp "$TARGET_ENV_FILE" "$preserve_dir/deploy/.env"
+            fi
+            if [ -d "$TARGET_DUMP_DIR" ]; then
+              mkdir -p "$preserve_dir/deploy/.local"
+              cp -R "$TARGET_DUMP_DIR" "$preserve_dir/deploy/.local/backend-db-market-franchise"
+            fi
+            if [ -d "$TARGET_TREND_ARTIFACTS_DIR" ]; then
+              mkdir -p "$preserve_dir/backend/services/trend-service"
+              cp -R "$TARGET_TREND_ARTIFACTS_DIR" "$preserve_dir/backend/services/trend-service/.artifacts"
+            fi
+            if [ -d "$TARGET_TREND_RAW_DIR" ]; then
+              mkdir -p "$preserve_dir/backend/services/trend-service"
+              cp -R "$TARGET_TREND_RAW_DIR" "$preserve_dir/backend/services/trend-service/.raw"
+            fi
+          fi
+
           mkdir -p "$TARGET_REPO_DIR"
 
           if [ -d "$TARGET_REPO_DIR/.git" ]; then
@@ -86,41 +107,38 @@ jobs:
             git clone --depth 1 --branch "$REPO_REF" "https://x-access-token:${GH_TOKEN}@github.com/market-fit-team/market-fit.git" "$TARGET_REPO_DIR"
           fi
 
+          restore_preserved_path "deploy/.env" "$TARGET_ENV_FILE"
+          restore_preserved_path "deploy/.local/backend-db-market-franchise" "$TARGET_DUMP_DIR"
+          restore_preserved_path "backend/services/trend-service/.artifacts" "$TARGET_TREND_ARTIFACTS_DIR"
+          restore_preserved_path "backend/services/trend-service/.raw" "$TARGET_TREND_RAW_DIR"
+          rm -rf "$preserve_dir"
+
           git -C "$TARGET_REPO_DIR" rev-parse HEAD
 
-      # 배포용 비밀값은 GitHub Secret 대신 서버 로컬 deploy/.env를 그대로 재사용한다.
-      - name: 배포용 env 파일 복사
+      # 배포용 비밀값은 배포 clone 디렉터리의 로컬 deploy/.env 하나만 사용한다.
+      - name: 배포용 env 파일 확인
         run: |
           set -euo pipefail
 
-          test -f "$SOURCE_ENV_FILE"
-          mkdir -p "$(dirname "$TARGET_ENV_FILE")"
-          cp "$SOURCE_ENV_FILE" "$TARGET_ENV_FILE"
+          test -f "$TARGET_ENV_FILE"
 
-      # dump가 필요한 워크플로만 market.dump, franchise.dump를 clone 디렉터리로 복사한다.
-      - name: 덤프 파일 복사
+      # dump가 필요한 워크플로만 배포 clone 디렉터리의 로컬 dump 존재를 확인한다.
+      - name: 덤프 파일 확인
         if: ${{ inputs.copy_dumps }}
         run: |
           set -euo pipefail
 
-          test -d "$SOURCE_DUMP_DIR"
-          mkdir -p "$TARGET_DUMP_DIR"
-          cp "$SOURCE_DUMP_DIR/market.dump" "$TARGET_DUMP_DIR/market.dump"
-          cp "$SOURCE_DUMP_DIR/franchise.dump" "$TARGET_DUMP_DIR/franchise.dump"
+          test -f "$TARGET_DUMP_DIR/market.dump"
+          test -f "$TARGET_DUMP_DIR/franchise.dump"
 
-      # trend-service가 읽는 운영 아티팩트와 원본 CSV를 별도 clone 디렉터리로 맞춘다.
-      - name: trend 자산 복사
+      # trend-service가 읽는 운영 아티팩트와 선택 raw CSV는 배포 clone 디렉터리 로컬 자산을 그대로 사용한다.
+      - name: trend 자산 확인
         if: ${{ inputs.copy_trend_assets }}
         run: |
           set -euo pipefail
 
-          test -d "$SOURCE_TREND_ARTIFACTS_DIR"
-          rm -rf "$TARGET_TREND_ARTIFACTS_DIR" "$TARGET_TREND_RAW_DIR"
-          mkdir -p "$TARGET_TREND_ARTIFACTS_DIR" "$TARGET_TREND_RAW_DIR"
-          cp -R "$SOURCE_TREND_ARTIFACTS_DIR"/. "$TARGET_TREND_ARTIFACTS_DIR"/
-          if [ -d "$SOURCE_TREND_RAW_DIR" ]; then
-            cp -R "$SOURCE_TREND_RAW_DIR"/. "$TARGET_TREND_RAW_DIR"/
-          fi
+          test -d "$TARGET_TREND_ARTIFACTS_DIR"
+          mkdir -p "$TARGET_TREND_RAW_DIR"
 
       # 개별 워크플로가 넘긴 make 또는 docker compose 명령을 deploy 디렉터리에서 실행한다.
       - name: 배포 명령 실행

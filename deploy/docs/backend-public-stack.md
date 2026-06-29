@@ -284,15 +284,14 @@ backend/services/trend-service/.raw
 `.raw`는 선택 자산이다.
 있으면 trend 배치가 행정동 이름 CSV를 함께 재적재하고, 없어도 기존 DB 이름 매핑을 유지한 채 점수·배너 스냅샷은 갱신한다.
 
-`deploy-backend`, `deploy-backend-init`, `deploy-backend-dump` 워크플로는 self-hosted runner의 원본 작업 저장소에 있는 `backend/services/trend-service/.artifacts`를 배포용 clone 디렉터리로 한 번 더 복사한다.
-`.raw`는 있으면 같이 복사하고, 없으면 빈 디렉터리만 유지한다.
+`deploy-backend`, `deploy-backend-init`, `deploy-backend-dump` 워크플로는 self-hosted runner의 배포용 작업 저장소 `market-fit-deploy` 안에 있는 로컬 `backend/services/trend-service/.artifacts`를 그대로 사용한다.
+워크플로는 repo 최신화 전에 `.artifacts`, `.raw`, `deploy/.env`, dump 디렉터리를 임시 보관했다가 `git reset --hard`와 `git clean -fd` 뒤 다시 복원한다.
+`.raw`는 있으면 같이 유지하고, 없어도 빈 디렉터리만 만들어 둔다.
 
 ```text
-/home/ubuntu/code-server/volumes/home/project/market-fit
--> backend/services/trend-service/.artifacts
--> backend/services/trend-service/.raw
-
 /home/ubuntu/code-server/volumes/home/project/market-fit-deploy
+-> deploy/.env
+-> deploy/.local/backend-db-market-franchise
 -> backend/services/trend-service/.artifacts
 -> backend/services/trend-service/.raw
 ```
