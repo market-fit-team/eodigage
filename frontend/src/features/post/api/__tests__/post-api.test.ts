@@ -1,5 +1,8 @@
 import { beforeEach, describe, expect, it, vi } from "vitest"
-import { fetchWithAuth } from "@/features/auth/lib/fetch-with-auth"
+import {
+  fetchWithAuth,
+  getClientOidcAccessToken,
+} from "@/features/auth/lib/fetch-with-auth"
 import {
   createLlmReport,
   createPost,
@@ -17,12 +20,14 @@ import {
 
 vi.mock("@/features/auth/lib/fetch-with-auth", () => ({
   fetchWithAuth: vi.fn(),
+  getClientOidcAccessToken: vi.fn(),
 }))
 
 describe("post-api", () => {
   beforeEach(() => {
     vi.restoreAllMocks()
     vi.mocked(fetchWithAuth).mockReset()
+    vi.mocked(getClientOidcAccessToken).mockReset()
   })
 
   it("메인 캐러셀 응답을 반환한다", async () => {
@@ -147,20 +152,48 @@ describe("post-api", () => {
     )
   })
 
-  it("댓글 CRUD API 경로를 사용한다", async () => {
-    vi.mocked(fetchWithAuth).mockResolvedValue({} as never)
+  it("댓글 목록 조회는 토큰이 있으면 함께 보내고 공개 경로로 요청한다", async () => {
+    vi.mocked(getClientOidcAccessToken).mockResolvedValue("token-1")
+    const fetchMock = vi.fn().mockResolvedValue(
+      new Response(JSON.stringify([]), {
+        status: 200,
+        headers: { "content-type": "application/json" },
+      })
+    )
+    vi.stubGlobal("fetch", fetchMock)
 
     await getPostComments("post-1")
+
+    expect(fetchMock).toHaveBeenCalledWith(
+      expect.stringContaining("/api/post/api/posts/post-1/comments"),
+      expect.objectContaining({
+        cache: "no-store",
+        headers: expect.any(Headers),
+      })
+    )
+    expect(
+      (fetchMock.mock.calls[0]?.[1] as RequestInit | undefined)?.headers
+    ).toEqual(
+      expect.objectContaining({
+        get: expect.any(Function),
+      })
+    )
+    expect(
+      ((fetchMock.mock.calls[0]?.[1] as RequestInit | undefined)?.headers as Headers).get(
+        "authorization"
+      )
+    ).toBe("Bearer token-1")
+  })
+
+  it("댓글 작성/수정/삭제는 인증 경로를 사용한다", async () => {
+    vi.mocked(fetchWithAuth).mockResolvedValue({} as never)
+
     await createPostComment("post-1", "댓글")
     await updatePostComment("post-1", "comment-1", "수정 댓글")
     await deletePostComment("post-1", "comment-1")
 
     expect(fetchWithAuth).toHaveBeenNthCalledWith(
       1,
-      expect.stringContaining("/api/post/api/posts/post-1/comments")
-    )
-    expect(fetchWithAuth).toHaveBeenNthCalledWith(
-      2,
       expect.stringContaining("/api/post/api/posts/post-1/comments"),
       expect.objectContaining({
         method: "POST",
@@ -168,7 +201,7 @@ describe("post-api", () => {
       })
     )
     expect(fetchWithAuth).toHaveBeenNthCalledWith(
-      3,
+      2,
       expect.stringContaining("/api/post/api/posts/post-1/comments/comment-1"),
       expect.objectContaining({
         method: "PUT",
@@ -176,7 +209,7 @@ describe("post-api", () => {
       })
     )
     expect(fetchWithAuth).toHaveBeenNthCalledWith(
-      4,
+      3,
       expect.stringContaining("/api/post/api/posts/post-1/comments/comment-1"),
       expect.objectContaining({ method: "DELETE" })
     )

@@ -1,4 +1,7 @@
-import { fetchWithAuth } from "@/features/auth/lib/fetch-with-auth"
+import {
+  fetchWithAuth,
+  getClientOidcAccessToken,
+} from "@/features/auth/lib/fetch-with-auth"
 import type {
   CreateLlmReportInput,
   MainPostCarouselSection,
@@ -19,6 +22,23 @@ const parsePublicResponse = async <T>(response: Response): Promise<T> => {
     throw new Error(`Post API request failed: ${response.status}`)
   }
   return response.json() as Promise<T>
+}
+
+const fetchWithOptionalAuth = async (input: string, init?: RequestInit) => {
+  const headers = new Headers(init?.headers)
+
+  if (!headers.has("authorization") && typeof window !== "undefined") {
+    const accessToken = await getClientOidcAccessToken().catch(() => null)
+
+    if (accessToken) {
+      headers.set("authorization", `Bearer ${accessToken}`)
+    }
+  }
+
+  return fetch(input, {
+    ...init,
+    headers,
+  })
 }
 
 export const getMainPostCarousel = async () => {
@@ -43,8 +63,14 @@ export const getPost = async (id: string) => {
   return parsePublicResponse<PostDetail>(response)
 }
 
-export const getPostComments = (postId: string) =>
-  fetchWithAuth<PostComment[]>(`${postApiBaseUrl}/${postId}/comments`)
+export const getPostComments = async (postId: string) => {
+  const response = await fetchWithOptionalAuth(
+    `${postApiBaseUrl}/${postId}/comments`,
+    { cache: "no-store" }
+  )
+
+  return parsePublicResponse<PostComment[]>(response)
+}
 
 export const createPostComment = (postId: string, content: string) =>
   fetchWithAuth<PostComment>(`${postApiBaseUrl}/${postId}/comments`, {
