@@ -9,49 +9,23 @@ import {
   toMarketIndustryOptions,
   toMarketPreviewData,
 } from "@/features/map/lib/map-api-mappers"
-import { fetchPublicMarketApi } from "@/features/map/lib/map-public-fetch"
 import type { DongCode, MarketRecommendedArea } from "@/features/map/types/map"
-import { getGetAdminAreasUrl } from "@/shared/api/generated/market/endpoints/admin-areas/admin-areas"
-import { getGetMarketIndustriesUrl } from "@/shared/api/generated/market/endpoints/market-industry/market-industry"
+import { getAdminAreas as requestAdminAreas } from "@/shared/api/generated/market/endpoints/admin-areas/admin-areas"
+import { getMarketIndustries as requestMarketIndustries } from "@/shared/api/generated/market/endpoints/market-industry/market-industry"
 import {
-  getGetMarketReportByDongUrl,
-  getGetMarketReportPreviewByDongUrl,
+  getMarketReportPreviewByDong as requestMarketPreview,
+  getMarketReportByDong as requestMarketReport,
 } from "@/shared/api/generated/market/endpoints/market-reports/market-reports"
-import { getSearchAreasUrl } from "@/shared/api/generated/market/endpoints/market-search/market-search"
-import type {
-  ApiResponseAdminAreaHierarchyResponse,
-  ApiResponseAreaSearchResponse,
-  ApiResponseIndustryCategoriesResponse,
-  ApiResponseMarketReportPreviewResponse,
-  ApiResponseMarketReportResponse,
-} from "@/shared/api/generated/market/schemas"
+import { searchAreas as requestSearchAreas } from "@/shared/api/generated/market/endpoints/market-search/market-search"
 
 export const getAdminAreas = async () =>
-  toAdminAreaMapData(
-    (
-      await fetchPublicMarketApi<ApiResponseAdminAreaHierarchyResponse>(
-        getGetAdminAreasUrl()
-      )
-    ).data
-  )
+  toAdminAreaMapData((await requestAdminAreas()).data)
 
 export const getMarketPreview = async (dongCode: DongCode) =>
-  toMarketPreviewData(
-    (
-      await fetchPublicMarketApi<ApiResponseMarketReportPreviewResponse>(
-        getGetMarketReportPreviewByDongUrl(dongCode)
-      )
-    ).data
-  )
+  toMarketPreviewData((await requestMarketPreview(dongCode)).data)
 
 export const getMarketReport = async (dongCode: DongCode) =>
-  toDetailReportData(
-    (
-      await fetchPublicMarketApi<ApiResponseMarketReportResponse>(
-        getGetMarketReportByDongUrl(dongCode)
-      )
-    ).data ?? {}
-  )
+  toDetailReportData((await requestMarketReport(dongCode)).data ?? {})
 
 export const searchMarketAreas = async (params: {
   industryCode?: string
@@ -59,22 +33,16 @@ export const searchMarketAreas = async (params: {
 }) =>
   toMarketAreaSearchResult(
     (
-      await fetchPublicMarketApi<ApiResponseAreaSearchResponse>(
-        getSearchAreasUrl({
-          industryCode: params.industryCode,
-          keyword: params.keyword,
-        })
-      )
+      await requestSearchAreas({
+        industryCode: params.industryCode,
+        keyword: params.keyword,
+      })
     ).data
   )
 
 export const getMarketIndustries = async (): Promise<IndustryMajorOption[]> => {
   const options = toMarketIndustryOptions(
-    (
-      await fetchPublicMarketApi<ApiResponseIndustryCategoriesResponse>(
-        getGetMarketIndustriesUrl()
-      )
-    ).data
+    (await requestMarketIndustries()).data
   )
 
   // 업종 응답이 비면 검색/필터 UI가 동작하도록 임시 옵션으로 폴백한다.
