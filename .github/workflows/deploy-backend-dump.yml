@@ -16,11 +16,13 @@ permissions:
 
 jobs:
   deploy-backend-dump:
-    # 서비스 전체 재배포 없이 dump 복원과 온보딩 학습만 따로 다시 돌리는 배포다.
+    # 서비스 전체 재배포 없이 dump 복원과 모델 후처리만 따로 다시 돌리는 배포다.
     uses: ./.github/workflows/_deploy-runner-common.yml
     with:
       workflow_label: deploy-backend-dump
       branch: ${{ inputs.branch }}
       copy_dumps: true
-      # DB 복원과 모델 학습 타깃만 순서대로 수행한다.
+      copy_trend_assets: true
+      # DB 복원과 모델 후처리 타깃만 순서대로 수행한다.
+      # train-models는 온보딩 학습과 trend 배치를 함께 실행한다.
       deploy_command: make restore-db train-models

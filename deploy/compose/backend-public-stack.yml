@@ -10,7 +10,7 @@ services:
         BETTER_AUTH_SECRET: ${BETTER_AUTH_SECRET:?set BETTER_AUTH_SECRET}
         AUTHENTIK_CLIENT_ID: ${AUTHENTIK_CLIENT_ID:-pickle-web}
         AUTHENTIK_CLIENT_SECRET: ${AUTHENTIK_CLIENT_SECRET:?set AUTHENTIK_CLIENT_SECRET}
-        AUTHENTIK_DISCOVERY_URL: http://authentik-server:9000/application/o/${AUTHENTIK_CLIENT_ID:-pickle-web}/.well-known/openid-configuration
+        AUTHENTIK_DISCOVERY_URL: ${AUTH_PUBLIC_ORIGIN:?set AUTH_PUBLIC_ORIGIN}/application/o/${AUTHENTIK_CLIENT_ID:-pickle-web}/.well-known/openid-configuration
         NEXT_PUBLIC_API_ORIGIN: ${API_PUBLIC_ORIGIN:?set API_PUBLIC_ORIGIN}
         AGENT_ASSISTANT_ID: ${AGENT_ASSISTANT_ID:-chat}
     restart: unless-stopped
@@ -21,7 +21,7 @@ services:
       BETTER_AUTH_SECRET: ${BETTER_AUTH_SECRET:?set BETTER_AUTH_SECRET}
       AUTHENTIK_CLIENT_ID: ${AUTHENTIK_CLIENT_ID:-pickle-web}
       AUTHENTIK_CLIENT_SECRET: ${AUTHENTIK_CLIENT_SECRET:?set AUTHENTIK_CLIENT_SECRET}
-      AUTHENTIK_DISCOVERY_URL: http://authentik-server:9000/application/o/${AUTHENTIK_CLIENT_ID:-pickle-web}/.well-known/openid-configuration
+      AUTHENTIK_DISCOVERY_URL: ${AUTH_PUBLIC_ORIGIN:?set AUTH_PUBLIC_ORIGIN}/application/o/${AUTHENTIK_CLIENT_ID:-pickle-web}/.well-known/openid-configuration
       NEXT_PUBLIC_API_ORIGIN: ${API_PUBLIC_ORIGIN:?set API_PUBLIC_ORIGIN}
       AGENT_ASSISTANT_ID: ${AGENT_ASSISTANT_ID:-chat}
     depends_on:

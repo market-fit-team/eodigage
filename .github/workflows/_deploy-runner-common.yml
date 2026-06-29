@@ -115,11 +115,12 @@ jobs:
           set -euo pipefail
 
           test -d "$SOURCE_TREND_ARTIFACTS_DIR"
-          test -d "$SOURCE_TREND_RAW_DIR"
           rm -rf "$TARGET_TREND_ARTIFACTS_DIR" "$TARGET_TREND_RAW_DIR"
           mkdir -p "$TARGET_TREND_ARTIFACTS_DIR" "$TARGET_TREND_RAW_DIR"
           cp -R "$SOURCE_TREND_ARTIFACTS_DIR"/. "$TARGET_TREND_ARTIFACTS_DIR"/
-          cp -R "$SOURCE_TREND_RAW_DIR"/. "$TARGET_TREND_RAW_DIR"/
+          if [ -d "$SOURCE_TREND_RAW_DIR" ]; then
+            cp -R "$SOURCE_TREND_RAW_DIR"/. "$TARGET_TREND_RAW_DIR"/
+          fi
 
       # 개별 워크플로가 넘긴 make 또는 docker compose 명령을 deploy 디렉터리에서 실행한다.
       - name: 배포 명령 실행

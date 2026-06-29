@@ -125,6 +125,7 @@ AUTHENTIK_BETTER_AUTH_CALLBACK_URL=http://market-fit.jongchoi.com:2080/api/auth/
 
 `agent-service`는 `langgraph.json`의 `"env": ".env"`를 읽는다.  
 compose는 `deploy/.env`를 `/app/.env`로 마운트해서 별도 agent 전용 env 파일을 만들지 않는다.
+프론트 standalone의 Better Auth는 `AUTH_PUBLIC_ORIGIN` 기준 discovery 문서를 읽는다.
 
 ```json
 {
@@ -178,6 +179,7 @@ make frontend
 
 make train-models
 -> onboarding-service 모델 학습
+-> trend-service 배치 실행
 ```
 
 덤프 복원과 모델 학습은 플래그로 생략할 수 있다.
@@ -255,6 +257,17 @@ backend/services/onboarding-service/app/models/onboarding_two_tower/train.py
 backend/services/onboarding-service/app/models/onboarding_category_tower/train.py
 ```
 
+## deploy/scripts/train-trend-models.sh
+
+이 스크립트는 `trend-db`, `trend-service`를 맞춰 띄운 뒤 `python -m app.batch`를 실행한다.
+`.raw/hdong_code_name.sample.csv`가 있으면 `--ingest --force`를 사용하고, 없으면 `--force`만 사용한다.
+
+```text
+docker compose up -d --build trend-db trend-service
+-> trend-service python -m app.batch --ingest --force
+-> 또는 .raw 없음 -> python -m app.batch --force
+```
+
 ## trend-service 운영 모드
 
 `trend-service`는 배포에서 추가 학습을 수행하지 않고, 기존 `backend/services/trend-service/.artifacts` 산출물을 그대로 읽는다.
@@ -268,9 +281,11 @@ backend/services/trend-service/.raw
 -> /app/.raw
 ```
 
-`.raw`는 수동 배치나 재적재가 필요할 때만 사용한다. 일반 `make up`이나 GitHub Actions 배포에서는 별도 학습을 실행하지 않는다.
+`.raw`는 선택 자산이다.
+있으면 trend 배치가 행정동 이름 CSV를 함께 재적재하고, 없어도 기존 DB 이름 매핑을 유지한 채 점수·배너 스냅샷은 갱신한다.
 
-`deploy-backend`, `deploy-backend-init` 워크플로는 self-hosted runner의 원본 작업 저장소에 있는 `backend/services/trend-service/.artifacts`, `backend/services/trend-service/.raw`를 배포용 clone 디렉터리로 한 번 더 복사한다.
+`deploy-backend`, `deploy-backend-init`, `deploy-backend-dump` 워크플로는 self-hosted runner의 원본 작업 저장소에 있는 `backend/services/trend-service/.artifacts`를 배포용 clone 디렉터리로 한 번 더 복사한다.
+`.raw`는 있으면 같이 복사하고, 없으면 빈 디렉터리만 유지한다.
 
 ```text
 /home/ubuntu/code-server/volumes/home/project/market-fit
@@ -313,6 +328,7 @@ make frontend
 - `deploy/scripts/generate-frontend-api-clients.sh`
 - `deploy/scripts/restore-backend-db-market-franchise.sh`
 - `deploy/scripts/train-onboarding-models.sh`
+- `deploy/scripts/train-trend-models.sh`
 
 ## 참고 문서
 

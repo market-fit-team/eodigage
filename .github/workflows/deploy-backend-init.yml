@@ -16,7 +16,7 @@ permissions:
 
 jobs:
   deploy-backend-init:
-    # 초기 서버 세팅이나 전체 재기동처럼 dump 복원과 모델 학습까지 모두 수행하는 배포다.
+    # 초기 서버 세팅이나 전체 재기동처럼 dump 복원과 모델 후처리까지 모두 수행하는 배포다.
     uses: ./.github/workflows/_deploy-runner-common.yml
     with:
       workflow_label: deploy-backend-init
@@ -24,4 +24,5 @@ jobs:
       copy_dumps: true
       copy_trend_assets: true
       # make up은 gateway -> data -> restore-db -> services -> train-models 순서를 모두 수행한다.
+      # train-models는 온보딩 학습과 trend 배치를 함께 실행한다.
       deploy_command: make up
