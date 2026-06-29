@@ -48,40 +48,48 @@ def _forecast_description(signals: dict[str, float]) -> str:
     vitality_trend = signals.get("ratio_trend", 0.0)
     mom = signals.get("mom4", 0.0)
 
-    clauses: list[tuple[float, str]] = []
+    clauses: list[tuple[float, str, str]] = []
     if accel > 0:
-        clauses.append((3.0 + accel, "유입 흐름이 전보다 빠르게 좋아지는"))
+        clauses.append((3.0 + accel, "momentum", "유입 흐름이 전보다 빠르게 좋아지는"))
     if recent < -0.01:
-        clauses.append((2.8 + abs(recent), "잠잠했던 유입이 다시 살아나는"))
+        clauses.append((2.8 + abs(recent), "rebound", "잠잠했던 유입이 다시 살아나는"))
     if vol < 0.02:
-        clauses.append((2.6 + (0.02 - vol), "흔들림이 작아 흐름이 안정적인"))
+        clauses.append((2.6 + (0.02 - vol), "stability", "흔들림이 작아 흐름이 안정적인"))
     if excess > 0:
-        clauses.append((2.4 + excess, "서울 평균보다 흐름이 앞서는"))
+        clauses.append((2.4 + excess, "relative", "서울 평균보다 흐름이 앞서는"))
     if vitality >= 1.05:
-        clauses.append((2.2 + vitality / 10, "상업시간대 유입 비중이 강한"))
+        clauses.append((2.2 + vitality / 10, "commercial", "상업시간대 유입 비중이 강한"))
     if vitality_trend > 0:
-        clauses.append((2.0 + vitality_trend, "상권성도 함께 개선되는"))
+        clauses.append((2.0 + vitality_trend, "commercial", "상업시간대 유입도 함께 개선되는"))
     if mom > 0:
-        clauses.append((1.8 + mom, "전보다 유입 체력이 붙는"))
+        clauses.append((1.8 + mom, "momentum", "전보다 유입 체력이 붙는"))
     if 0 < scale < 0.65:
-        clauses.append((1.6 + (0.65 - scale), "현재 규모보다 변화 가능성이 돋보이는"))
+        clauses.append((1.6 + (0.65 - scale), "scale", "현재 규모보다 변화 가능성이 돋보이는"))
     elif scale >= 0.8:
-        clauses.append((1.6 + scale / 10, "기본 유입 규모도 뒷받침되는"))
+        clauses.append((1.6 + scale / 10, "scale", "기본 유입 규모도 뒷받침되는"))
 
     if not clauses:
         return "유입 증가 가능성을 높게 본 상권입니다."
 
-    selected = [clause for _, clause in sorted(clauses, reverse=True)[:2]]
+    selected: list[str] = []
+    used_groups: set[str] = set()
+    for _, group, clause in sorted(clauses, reverse=True):
+        if group in used_groups:
+            continue
+        selected.append(clause)
+        used_groups.add(group)
+        if len(selected) == 2:
+            break
     if len(selected) == 1:
         return f"{selected[0]} 상권입니다."
-    return f"{selected[0]} 상권으로, {selected[1]} 후보입니다."
+    return f"{selected[0]} 상권으로, {selected[1]} 흐름입니다."
 
 
 def _popular_description(pick: dict[str, object], index: int) -> str:
     """인기 카드 설명. 점수는 숨기고 순위와 상권성만 말로 풀어 쓴다."""
     vitality = float(pick.get("vitality", 0.0))
     if index == 0 and vitality >= 1.15:
-        return "상업시간대 유입이 가장 두드러지고, 상권 성격도 강하게 나타납니다."
+        return "상업시간대 유입이 가장 두드러지고, 생활인구 흐름도 선명합니다."
     if index == 0:
         return "상업시간대 생활인구가 가장 크게 잡힌 상권입니다."
     if vitality >= 1.15:
@@ -143,14 +151,14 @@ def build_banner(data_mode: str | None = None) -> TrendForecastBanner:
 
     predicted_combined = themes[0].predicted if themes else []
     if predicted_combined:
-        title = f"앞으로 주목할 동네, {predicted_combined[0].label}"
+        title = f"앞으로 주목할 상권, {predicted_combined[0].label}"
     else:
-        title = "뚜렷한 반등 상권이 아직 보이지 않습니다."
+        title = "뚜렷한 반등 흐름이 아직 보이지 않습니다."
 
     return TrendForecastBanner(
         eyebrow="AI 트렌드 예측",
         title=title,
-        description="AI가 고른 '곧 뜰 동네'와, 요즘 실제로 사람이 몰리는 동네를 함께 보여줍니다.",
+        description="앞으로 주목할 상권과, 요즘 실제로 사람이 몰리는 상권을 함께 보여줍니다.",
         primary_cta=TrendForecastCta(label="상권 지도에서 검증하기", href="/map"),
         secondary_cta=TrendForecastCta(label="성향 분석 먼저 하기", href="/onboarding"),
         metrics=predicted_combined,
