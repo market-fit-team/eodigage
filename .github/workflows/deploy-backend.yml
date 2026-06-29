@@ -22,5 +22,6 @@ jobs:
       workflow_label: deploy-backend
       branch: ${{ inputs.branch }}
       copy_dumps: false
+      copy_trend_assets: true
       # gateway + data + backend services만 기동한다.
       deploy_command: make gateway data services

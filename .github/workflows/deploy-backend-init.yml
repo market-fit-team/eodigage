@@ -22,5 +22,6 @@ jobs:
       workflow_label: deploy-backend-init
       branch: ${{ inputs.branch }}
       copy_dumps: true
+      copy_trend_assets: true
       # make up은 gateway -> data -> restore-db -> services -> train-models 순서를 모두 수행한다.
       deploy_command: make up

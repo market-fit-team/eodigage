@@ -270,6 +270,18 @@ backend/services/trend-service/.raw
 
 `.raw`는 수동 배치나 재적재가 필요할 때만 사용한다. 일반 `make up`이나 GitHub Actions 배포에서는 별도 학습을 실행하지 않는다.
 
+`deploy-backend`, `deploy-backend-init` 워크플로는 self-hosted runner의 원본 작업 저장소에 있는 `backend/services/trend-service/.artifacts`, `backend/services/trend-service/.raw`를 배포용 clone 디렉터리로 한 번 더 복사한다.
+
+```text
+/home/ubuntu/code-server/volumes/home/project/market-fit
+-> backend/services/trend-service/.artifacts
+-> backend/services/trend-service/.raw
+
+/home/ubuntu/code-server/volumes/home/project/market-fit-deploy
+-> backend/services/trend-service/.artifacts
+-> backend/services/trend-service/.raw
+```
+
 ## deploy/scripts/generate-frontend-api-clients.sh
 
 `make frontend`는 `deploy/scripts/generate-frontend-api-clients.sh`를 먼저 실행한다.
