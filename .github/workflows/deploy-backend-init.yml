@@ -23,8 +23,8 @@ jobs:
       branch: ${{ inputs.branch }}
       copy_dumps: true
       copy_trend_assets: true
-      # reset은 기존 컨테이너, compose 볼륨, 로컬 compose 이미지를 먼저 제거한다.
+      # reset-backend는 frontend를 남기고 backend 컨테이너, compose 볼륨, 로컬 backend 이미지를 먼저 제거한다.
       # make up은 gateway -> data -> restore-db -> services -> train-models 순서를 모두 수행한다.
       # train-models는 온보딩 학습과 trend 배치를 함께 실행한다.
       # NO_CACHE=1은 VPS 전역 build cache를 삭제하지 않고 이번 배포 빌드에서만 cache 재사용을 막는다.
-      deploy_command: NO_CACHE=1 make reset up
+      deploy_command: NO_CACHE=1 make reset-backend up
