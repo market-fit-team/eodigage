@@ -1,11 +1,13 @@
 from __future__ import annotations
 
 import unittest
+from pathlib import Path
 from unittest.mock import patch
 
 import numpy as np
 import pandas as pd
 
+from app.models.category_profile.features import load_store_category_features
 from app.models.onboarding_category_tower.predict import _scale_scores_to_unit_interval
 from app.models.onboarding_category_tower import runtime as category_runtime
 from app.models.onboarding_category_tower.runtime import predict_payload, train_runtime
@@ -112,6 +114,39 @@ class OnboardingCategoryTowerTestCase(unittest.TestCase):
 
         self.assertEqual(payload, {"ok": True})
         self.assertEqual(mock_predict.call_args.kwargs["data_mode"], "raw")
+
+    def test_train_runtime_passes_explicit_data_mode_to_training(self) -> None:
+        """런타임 학습은 호출자가 넘긴 data mode로 raw/sample 학습을 명시적으로 전환할 수 있어야 한다."""
+
+        with patch.object(category_runtime, "train_and_save", return_value={"data_mode": "raw"}) as mock_train:
+            with patch.object(category_runtime, "load_model", return_value=("model", {"data_mode": "raw"})) as mock_load:
+                metadata = train_runtime(epochs=3, data_mode="raw")
+
+        self.assertEqual(metadata["data_mode"], "raw")
+        self.assertEqual(mock_train.call_args.kwargs["data_mode"], "raw")
+        self.assertEqual(mock_load.call_args.kwargs["data_mode"], "raw")
+
+    def test_store_feature_franchise_ratio_uses_similar_store_denominator(self) -> None:
+        """프랜차이즈 비율은 전체 유사 업종 점포 수를 분모로 써서 0~1 범위에 머물러야 한다."""
+
+        stores = pd.DataFrame(
+            {
+                "기준_년분기_코드": [20251, 20251],
+                "서비스_업종_코드": ["CSX", "CSX"],
+                "서비스_업종_코드_명": ["테스트", "테스트"],
+                "점포_수": [2, 3],
+                "유사_업종_점포_수": [10, 15],
+                "개업_점포_수": [1, 2],
+                "폐업_점포_수": [0, 1],
+                "프랜차이즈_점포_수": [8, 9],
+            }
+        )
+
+        with patch("app.models.category_profile.features.read_csv_auto", return_value=stores):
+            frame = load_store_category_features(path=Path("ignored"))
+
+        self.assertAlmostEqual(float(frame.at[0, "franchise_ratio"]), 17 / 25, places=6)
+        self.assertLessEqual(float(frame.at[0, "franchise_ratio"]), 1.0)
 
 
 if __name__ == "__main__":

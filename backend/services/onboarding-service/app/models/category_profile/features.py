@@ -55,6 +55,12 @@ def _safe_ratio(numerator: pd.Series, denominator: pd.Series) -> pd.Series:
     return numerator / denominator.replace(0, np.nan)
 
 
+def _clip_unit_interval_columns(frame: pd.DataFrame, columns: list[str]) -> pd.DataFrame:
+    for column in columns:
+        frame[column] = pd.to_numeric(frame[column], errors="coerce").fillna(0).clip(0, 1)
+    return frame
+
+
 def _resolve_sales_path(data_mode: str) -> Path:
     if data_mode == "sample":
         return SALES_SAMPLE
@@ -254,7 +260,7 @@ def load_store_category_features(path: Path) -> pd.DataFrame:
     ).fillna(0)
     grouped["franchise_ratio"] = _safe_ratio(
         grouped["franchise_store_count_total"],
-        grouped["store_count_total"],
+        grouped["similar_store_count_total"],
     ).fillna(0)
     grouped["opening_rate"] = _safe_ratio(
         grouped["opening_store_count_total"],
@@ -362,6 +368,30 @@ def build_category_profiles(data_mode: str = "sample", trainable_only: bool = Fa
     ]
     for column in numeric_fill_columns:
         category[column] = pd.to_numeric(category[column], errors="coerce").fillna(0)
+
+    _clip_unit_interval_columns(
+        category,
+        [
+            "weekday_sales_ratio",
+            "weekend_sales_ratio",
+            "lunch_sales_ratio",
+            "afternoon_sales_ratio",
+            "evening_sales_ratio",
+            "late_night_sales_ratio",
+            "male_sales_ratio",
+            "female_sales_ratio",
+            "age_10_ratio",
+            "age_20_ratio",
+            "age_30_ratio",
+            "age_40_ratio",
+            "age_50_ratio",
+            "age_60_plus_ratio",
+            "age_50_plus_ratio",
+            "franchise_ratio",
+            "opening_rate",
+            "closing_rate",
+        ],
+    )
 
     category["sales_amount_score"] = _minmax(category["sales_amount_log"]).fillna(0)
     category["sales_count_score"] = _minmax(category["sales_count_log"]).fillna(0)

@@ -31,6 +31,10 @@ def _scale_scores_to_unit_interval(scores: np.ndarray) -> np.ndarray:
     return np.clip(scaled, 1e-6, 1.0 - 1e-6).astype(np.float32)
 
 
+def _unit_interval(value: Any) -> float:
+    return round(float(np.clip(float(value), 0.0, 1.0)), 6)
+
+
 def _resolve_user_profile(payload: dict[str, Any], data_mode: str) -> pd.DataFrame:
     samples = sample_user_profiles(data_mode=data_mode)
     user_id = str(payload.get("user_id") or "")
@@ -87,17 +91,17 @@ def predict_with_runtime(
         recommendations.append(
             CategoryRecommendation(
                 rank=rank,
-                score=round(float(scaled_scores[int(index)]), 6),
+                score=_unit_interval(scaled_scores[int(index)]),
                 service_category_code=str(item["service_category_code"]),
                 service_category_name=str(item["service_category_name"]),
                 category_group=str(item["category_group"]),
-                stability_prior_score=round(float(item["stability_prior_score"]), 6),
-                competition_pressure_score=round(float(item["competition_pressure_score"]), 6),
-                weekend_sales_ratio=round(float(item["weekend_sales_ratio"]), 6),
-                evening_sales_ratio=round(float(item["evening_sales_ratio"]), 6),
-                late_night_sales_ratio=round(float(item["late_night_sales_ratio"]), 6),
-                female_sales_ratio=round(float(item["female_sales_ratio"]), 6),
-                franchise_ratio=round(float(item["franchise_ratio"]), 6),
+                stability_prior_score=_unit_interval(item["stability_prior_score"]),
+                competition_pressure_score=_unit_interval(item["competition_pressure_score"]),
+                weekend_sales_ratio=_unit_interval(item["weekend_sales_ratio"]),
+                evening_sales_ratio=_unit_interval(item["evening_sales_ratio"]),
+                late_night_sales_ratio=_unit_interval(item["late_night_sales_ratio"]),
+                female_sales_ratio=_unit_interval(item["female_sales_ratio"]),
+                franchise_ratio=_unit_interval(item["franchise_ratio"]),
             ).model_dump()
         )
 

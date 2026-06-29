@@ -26,10 +26,10 @@ def get_runtime() -> tuple[Any, dict[str, Any]]:
     return _RUNTIME_MODEL, _RUNTIME_METADATA
 
 
-def train_runtime(epochs: int) -> dict[str, Any]:
+def train_runtime(epochs: int, data_mode: str | None = None) -> dict[str, Any]:
     global _RUNTIME_MODEL, _RUNTIME_METADATA
-    metadata = train_and_save(epochs=epochs)
-    _RUNTIME_MODEL, _RUNTIME_METADATA = load_model()
+    metadata = train_and_save(epochs=epochs, data_mode=data_mode)
+    _RUNTIME_MODEL, _RUNTIME_METADATA = load_model(data_mode=metadata.get("data_mode"))
     return metadata
 
 
