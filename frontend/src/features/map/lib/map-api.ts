@@ -9,23 +9,52 @@ import {
   toMarketIndustryOptions,
   toMarketPreviewData,
 } from "@/features/map/lib/map-api-mappers"
+import { fetchPublicMarketApi } from "@/features/map/lib/map-public-fetch"
 import type { DongCode, MarketRecommendedArea } from "@/features/map/types/map"
-import { getAdminAreas as requestAdminAreas } from "@/shared/api/generated/market/endpoints/admin-areas/admin-areas"
-import { getMarketIndustries as requestMarketIndustries } from "@/shared/api/generated/market/endpoints/market-industry/market-industry"
+import { getGetAdminAreasUrl } from "@/shared/api/generated/market/endpoints/admin-areas/admin-areas"
+import { getGetMarketIndustriesUrl } from "@/shared/api/generated/market/endpoints/market-industry/market-industry"
 import {
-  getMarketReportPreviewByDong as requestMarketPreview,
-  getMarketReportByDong as requestMarketReport,
+  getGetMarketReportByDongUrl,
+  getGetMarketReportPreviewByDongUrl,
 } from "@/shared/api/generated/market/endpoints/market-reports/market-reports"
-import { searchAreas as requestSearchAreas } from "@/shared/api/generated/market/endpoints/market-search/market-search"
+import { getSearchAreasUrl } from "@/shared/api/generated/market/endpoints/market-search/market-search"
+import type {
+  ApiResponseAdminAreaHierarchyResponse,
+  ApiResponseAreaSearchResponse,
+  ApiResponseIndustryCategoriesResponse,
+  ApiResponseMarketReportPreviewResponse,
+  ApiResponseMarketReportResponse,
+} from "@/shared/api/generated/market/schemas"
+
+// market 엔드포인트는 공개(비로그인 진입 + 서버 prefetch)라 인증 없는 fetchPublicMarketApi를 쓴다.
+// 생성된 fetchWithAuth는 토큰/서버 환경에서 throw하므로 여기서는 URL 빌더만 사용한다.
 
 export const getAdminAreas = async () =>
-  toAdminAreaMapData((await requestAdminAreas()).data)
+  toAdminAreaMapData(
+    (
+      await fetchPublicMarketApi<ApiResponseAdminAreaHierarchyResponse>(
+        getGetAdminAreasUrl()
+      )
+    ).data
+  )
 
 export const getMarketPreview = async (dongCode: DongCode) =>
-  toMarketPreviewData((await requestMarketPreview(dongCode)).data)
+  toMarketPreviewData(
+    (
+      await fetchPublicMarketApi<ApiResponseMarketReportPreviewResponse>(
+        getGetMarketReportPreviewByDongUrl(dongCode)
+      )
+    ).data
+  )
 
 export const getMarketReport = async (dongCode: DongCode) =>
-  toDetailReportData((await requestMarketReport(dongCode)).data ?? {})
+  toDetailReportData(
+    (
+      await fetchPublicMarketApi<ApiResponseMarketReportResponse>(
+        getGetMarketReportByDongUrl(dongCode)
+      )
+    ).data ?? {}
+  )
 
 export const searchMarketAreas = async (params: {
   industryCode?: string
@@ -33,16 +62,22 @@ export const searchMarketAreas = async (params: {
 }) =>
   toMarketAreaSearchResult(
     (
-      await requestSearchAreas({
-        industryCode: params.industryCode,
-        keyword: params.keyword,
-      })
+      await fetchPublicMarketApi<ApiResponseAreaSearchResponse>(
+        getSearchAreasUrl({
+          industryCode: params.industryCode,
+          keyword: params.keyword,
+        })
+      )
     ).data
   )
 
 export const getMarketIndustries = async (): Promise<IndustryMajorOption[]> => {
   const options = toMarketIndustryOptions(
-    (await requestMarketIndustries()).data
+    (
+      await fetchPublicMarketApi<ApiResponseIndustryCategoriesResponse>(
+        getGetMarketIndustriesUrl()
+      )
+    ).data
   )
 
   // 업종 응답이 비면 검색/필터 UI가 동작하도록 임시 옵션으로 폴백한다.
