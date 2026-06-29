@@ -17,6 +17,7 @@ api.market-fit.jongchoi.com:2081
 -> /api/onboarding  -> onboarding-service:8000
 -> /api/agent       -> agent-service:2024
 -> /api/post        -> post-service:8080
+-> /api/trend       -> trend-service:8000
 
 auth.market-fit.jongchoi.com:2081
 -> Traefik
@@ -83,18 +84,27 @@ GET /api/market/api/v1/status
 
 /api/post/api/posts
 -> post-service /api/posts
+
+/api/trend/health
+-> trend-service /health
+
+/api/trend/api/v1/trend/banner
+-> trend-service /api/v1/trend/banner
 ```
 
 ## deploy/.env.example
 
 실제 배포 값은 `deploy/.env` 하나에 모은다.  
 Auth host, API host, frontend origin, frontend Better Auth secret, DB 비밀번호, OAuth secret, LLM key가 여기 들어간다.
+트렌드 서비스 DB 비밀번호와 서울 열린데이터 API 키도 같은 파일에서 관리한다.
 
 ```dotenv
 FRONTEND_PUBLIC_ORIGIN=http://market-fit.jongchoi.com:2080
 API_PUBLIC_ORIGIN=http://api.market-fit.jongchoi.com:2081
 AUTH_PUBLIC_ORIGIN=http://auth.market-fit.jongchoi.com:2081
 BETTER_AUTH_SECRET=CHANGE_ME_32+_CHARS_RANDOM_VALUE
+TREND_DB_PASSWORD=CHANGE_ME_TREND_DB_PASSWORD
+TREND_SERVICE_SEOUL_API_KEY=
 
 AUTHENTIK_CLIENT_ID=pickle-web
 AUTHENTIK_CLIENT_SECRET=CHANGE_ME_AUTHENTIK_CLIENT_SECRET
@@ -141,12 +151,14 @@ make gateway
 
 make data
 -> PostgreSQL / Redis / RabbitMQ / MinIO 시작
+-> trend-db 포함
 
 make restore-db
 -> market.dump / franchise.dump 복원
 
 make services
 -> frontend + Authentik + backend service 시작
+-> trend-service 포함
 
 make train-models
 -> onboarding-service 모델 학습
@@ -222,6 +234,21 @@ load_model()
 backend/services/onboarding-service/app/models/onboarding_two_tower/train.py
 backend/services/onboarding-service/app/models/onboarding_category_tower/train.py
 ```
+
+## trend-service 운영 모드
+
+`trend-service`는 배포에서 추가 학습을 수행하지 않고, 기존 `backend/services/trend-service/.artifacts` 산출물을 그대로 읽는다.
+DB 모드는 `deploy/.env`의 `TREND_SERVICE_DATA_MODE=db`로 고정한다.
+
+```text
+backend/services/trend-service/.artifacts
+-> /app/.artifacts
+
+backend/services/trend-service/.raw
+-> /app/.raw
+```
+
+`.raw`는 수동 배치나 재적재가 필요할 때만 사용한다. 일반 `make up`이나 GitHub Actions 배포에서는 별도 학습을 실행하지 않는다.
 
 ## 주요 파일
 

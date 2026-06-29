@@ -210,6 +210,21 @@ services:
       timeout: 3s
       retries: 20
 
+  trend-db:
+    image: postgres:17-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${TREND_DB_NAME:-trend}
+      POSTGRES_USER: ${TREND_DB_USER:-trend}
+      POSTGRES_PASSWORD: ${TREND_DB_PASSWORD:-trend}
+    volumes:
+      - trend_postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${TREND_DB_USER:-trend} -d ${TREND_DB_NAME:-trend}"]
+      interval: 3s
+      timeout: 3s
+      retries: 20
+
   redis:
     image: redis:7-alpine
     restart: unless-stopped
@@ -482,6 +497,32 @@ services:
       - traefik.http.middlewares.post-strip.stripprefix.prefixes=/api/post
       - traefik.http.services.post.loadbalancer.server.port=8080
 
+  trend-service:
+    build: ../../backend/services/trend-service
+    restart: unless-stopped
+    environment:
+      TREND_SERVICE_DATA_MODE: ${TREND_SERVICE_DATA_MODE:-db}
+      TREND_SERVICE_DATABASE_URL: postgresql+psycopg://${TREND_DB_USER:-trend}:${TREND_DB_PASSWORD:-trend}@trend-db:5432/${TREND_DB_NAME:-trend}
+      TREND_SERVICE_AUTO_INGEST_SAMPLE_ON_EMPTY: "false"
+      TREND_SERVICE_SERVE_BANNER_SNAPSHOT_FROM_DB: "true"
+      TREND_SERVICE_ALLOW_RUNTIME_BANNER_COMPUTE: "false"
+      TREND_SERVICE_FRONTEND_ORIGIN: ${FRONTEND_PUBLIC_ORIGIN}
+      TREND_SERVICE_FRONTEND_ORIGIN_ALT: ${FRONTEND_PUBLIC_ORIGIN}
+      TREND_SERVICE_SEOUL_API_KEY: ${TREND_SERVICE_SEOUL_API_KEY:-}
+    volumes:
+      - ../../backend/services/trend-service/.raw:/app/.raw
+      - ../../backend/services/trend-service/.artifacts:/app/.artifacts
+    depends_on:
+      trend-db:
+        condition: service_healthy
+    labels:
+      - traefik.enable=true
+      - traefik.http.routers.trend.rule=Host(`${API_PUBLIC_HOST}`) && PathPrefix(`/api/trend`)
+      - traefik.http.routers.trend.entrypoints=public
+      - traefik.http.routers.trend.middlewares=trend-strip,api-cors
+      - traefik.http.middlewares.trend-strip.stripprefix.prefixes=/api/trend
+      - traefik.http.services.trend.loadbalancer.server.port=8000
+
 volumes:
   authentik_postgres_data:
   backend_postgres_data:
@@ -490,5 +531,6 @@ volumes:
   agent_postgres_data:
   agent_langgraph_api_data:
   post_postgres_data:
+  trend_postgres_data:
   redis_data:
   minio_data:

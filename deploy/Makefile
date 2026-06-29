@@ -8,8 +8,8 @@ RESTORE_SCRIPT := ./scripts/restore-backend-db-market-franchise.sh
 TRAIN_SCRIPT := ./scripts/train-onboarding-models.sh
 
 GATEWAY_SERVICES := traefik
-DATA_SERVICES := authentik-db backend-db community-db onboarding-db agent-db post-db redis rabbitmq minio minio-init
-APP_SERVICES := authentik-server authentik-worker profile-service echo-service franchise-service market-service onboarding-service agent-service community-service post-service
+DATA_SERVICES := authentik-db backend-db community-db onboarding-db agent-db post-db trend-db redis rabbitmq minio minio-init
+APP_SERVICES := authentik-server authentik-worker profile-service echo-service franchise-service market-service onboarding-service agent-service community-service post-service trend-service
 FRONTEND_SERVICE := frontend
 
 gateway:
@@ -65,7 +65,8 @@ status:
 		echo "auth host 확인: $$AUTH_PUBLIC_ORIGIN/application/o/$$AUTHENTIK_CLIENT_ID/.well-known/openid-configuration"; \
 		echo "market status 확인: $$API_PUBLIC_ORIGIN/api/market/api/v1/status"; \
 		echo "franchise status 확인: $$API_PUBLIC_ORIGIN/api/franchise/api/v1/status"; \
-		echo "onboarding health 확인: $$API_PUBLIC_ORIGIN/api/onboarding/health"
+		echo "onboarding health 확인: $$API_PUBLIC_ORIGIN/api/onboarding/health"; \
+		echo "trend health 확인: $$API_PUBLIC_ORIGIN/api/trend/health"
 
 down:
 	@$(COMPOSE) down
