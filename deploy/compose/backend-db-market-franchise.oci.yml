@@ -1,0 +1,25 @@
+name: market-fit-backend-db-market-franchise
+
+services:
+  backend-db:
+    image: postgis/postgis:17-3.5-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: postgres
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: ${BACKEND_DB_POSTGRES_PASSWORD:?set BACKEND_DB_POSTGRES_PASSWORD in .env}
+      TZ: Asia/Seoul
+    ports:
+      - "5432:5432"
+    volumes:
+      - backend_postgres_data:/var/lib/postgresql/data
+      - ../.local/backend-db-market-franchise/market.dump:/dump/market.dump:ro
+      - ../.local/backend-db-market-franchise/franchise.dump:/dump/franchise.dump:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
+volumes:
+  backend_postgres_data:

@@ -1,0 +1,17 @@
+#!/bin/sh
+set -e
+
+MARKET_DB_PASSWORD="${MARKET_DB_PASSWORD:-market}"
+FRANCHISE_DB_PASSWORD="${FRANCHISE_DB_PASSWORD:-franchise}"
+
+psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "$POSTGRES_DB" <<-EOSQL
+    CREATE USER market WITH PASSWORD '${MARKET_DB_PASSWORD}';
+    CREATE DATABASE market OWNER market;
+
+    CREATE USER franchise WITH PASSWORD '${FRANCHISE_DB_PASSWORD}';
+    CREATE DATABASE franchise OWNER franchise;
+EOSQL
+
+psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname market <<-EOSQL
+    CREATE EXTENSION IF NOT EXISTS postgis;
+EOSQL

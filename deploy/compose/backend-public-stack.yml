@@ -1,0 +1,465 @@
+name: market-fit-backend
+
+services:
+  traefik:
+    image: traefik:v3.7.5
+    restart: unless-stopped
+    command:
+      - --entrypoints.public.address=:2081
+      - --providers.docker=true
+      - --providers.docker.exposedbydefault=false
+    ports:
+      - "${API_PUBLIC_PORT:-2081}:2081"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    labels:
+      - traefik.enable=true
+      - traefik.http.middlewares.api-cors.headers.accesscontrolalloworiginlist=${TRAEFIK_CORS_ORIGINS:-http://market-fit.jongchoi.com:2080}
+      - traefik.http.middlewares.api-cors.headers.accesscontrolallowmethods=GET,POST,PUT,PATCH,DELETE,OPTIONS
+      - traefik.http.middlewares.api-cors.headers.accesscontrolallowheaders=Authorization,Content-Type,X-CSRF-Token,X-User-Id
+      - traefik.http.middlewares.api-cors.headers.accesscontrolmaxage=86400
+      - traefik.http.middlewares.api-cors.headers.addvaryheader=true
+
+  authentik-db:
+    image: postgres:17-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: authentik
+      POSTGRES_USER: authentik
+      POSTGRES_PASSWORD: ${AUTHENTIK_DB_PASSWORD:?set AUTHENTIK_DB_PASSWORD}
+      TZ: Asia/Seoul
+    volumes:
+      - authentik_postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U authentik -d authentik"]
+      interval: 3s
+      timeout: 3s
+      retries: 20
+
+  authentik-server:
+    image: ghcr.io/goauthentik/server:${AUTHENTIK_TAG:-2026.5}
+    restart: unless-stopped
+    command: server
+    env_file:
+      - ../.env
+    environment:
+      AUTHENTIK_SECRET_KEY: ${AUTHENTIK_SECRET_KEY:?set AUTHENTIK_SECRET_KEY}
+      AUTHENTIK_ERROR_REPORTING__ENABLED: ${AUTHENTIK_ERROR_REPORTING__ENABLED:-false}
+      AUTHENTIK_POSTGRESQL__HOST: authentik-db
+      AUTHENTIK_POSTGRESQL__NAME: authentik
+      AUTHENTIK_POSTGRESQL__USER: authentik
+      AUTHENTIK_POSTGRESQL__PASSWORD: ${AUTHENTIK_DB_PASSWORD:?set AUTHENTIK_DB_PASSWORD}
+      AUTHENTIK_BOOTSTRAP_EMAIL: ${AUTHENTIK_BOOTSTRAP_EMAIL:-example@example.com}
+      AUTHENTIK_BOOTSTRAP_PASSWORD: ${AUTHENTIK_BOOTSTRAP_PASSWORD:?set AUTHENTIK_BOOTSTRAP_PASSWORD}
+      AUTHENTIK_BOOTSTRAP_TOKEN: ${AUTHENTIK_BOOTSTRAP_TOKEN:?set AUTHENTIK_BOOTSTRAP_TOKEN}
+      AUTHENTIK_CLIENT_ID: ${AUTHENTIK_CLIENT_ID:-pickle-web}
+      AUTHENTIK_CLIENT_SECRET: ${AUTHENTIK_CLIENT_SECRET:?set AUTHENTIK_CLIENT_SECRET}
+      AUTHENTIK_SERVICE_ROLE_KEY: ${AUTHENTIK_SERVICE_ROLE_KEY:?set AUTHENTIK_SERVICE_ROLE_KEY}
+      FRONTEND_PUBLIC_ORIGIN: ${FRONTEND_PUBLIC_ORIGIN:?set FRONTEND_PUBLIC_ORIGIN}
+      AUTH_PUBLIC_ORIGIN: ${AUTH_PUBLIC_ORIGIN:?set AUTH_PUBLIC_ORIGIN}
+      AUTHENTIK_BETTER_AUTH_CALLBACK_URL: ${AUTHENTIK_BETTER_AUTH_CALLBACK_URL:?set AUTHENTIK_BETTER_AUTH_CALLBACK_URL}
+      GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID:-}
+      GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET:-}
+    volumes:
+      - ../authentik/pickle-web.yaml:/blueprints/pickle-web.yaml:ro
+    depends_on:
+      authentik-db:
+        condition: service_healthy
+    labels:
+      - traefik.enable=true
+      - traefik.http.routers.authentik.rule=Host(`${AUTH_PUBLIC_HOST}`)
+      - traefik.http.routers.authentik.entrypoints=public
+      - traefik.http.services.authentik.loadbalancer.server.port=9000
+
+  authentik-worker:
+    image: ghcr.io/goauthentik/server:${AUTHENTIK_TAG:-2026.5}
+    restart: unless-stopped
+    command: worker
+    user: root
+    env_file:
+      - ../.env
+    environment:
+      AUTHENTIK_SECRET_KEY: ${AUTHENTIK_SECRET_KEY:?set AUTHENTIK_SECRET_KEY}
+      AUTHENTIK_ERROR_REPORTING__ENABLED: ${AUTHENTIK_ERROR_REPORTING__ENABLED:-false}
+      AUTHENTIK_POSTGRESQL__HOST: authentik-db
+      AUTHENTIK_POSTGRESQL__NAME: authentik
+      AUTHENTIK_POSTGRESQL__USER: authentik
+      AUTHENTIK_POSTGRESQL__PASSWORD: ${AUTHENTIK_DB_PASSWORD:?set AUTHENTIK_DB_PASSWORD}
+      AUTHENTIK_CLIENT_ID: ${AUTHENTIK_CLIENT_ID:-pickle-web}
+      AUTHENTIK_CLIENT_SECRET: ${AUTHENTIK_CLIENT_SECRET:?set AUTHENTIK_CLIENT_SECRET}
+      AUTHENTIK_SERVICE_ROLE_KEY: ${AUTHENTIK_SERVICE_ROLE_KEY:?set AUTHENTIK_SERVICE_ROLE_KEY}
+      FRONTEND_PUBLIC_ORIGIN: ${FRONTEND_PUBLIC_ORIGIN:?set FRONTEND_PUBLIC_ORIGIN}
+      AUTH_PUBLIC_ORIGIN: ${AUTH_PUBLIC_ORIGIN:?set AUTH_PUBLIC_ORIGIN}
+      AUTHENTIK_BETTER_AUTH_CALLBACK_URL: ${AUTHENTIK_BETTER_AUTH_CALLBACK_URL:?set AUTHENTIK_BETTER_AUTH_CALLBACK_URL}
+      GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID:-}
+      GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET:-}
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - ../authentik/pickle-web.yaml:/blueprints/pickle-web.yaml:ro
+    depends_on:
+      authentik-db:
+        condition: service_healthy
+
+  backend-db:
+    image: postgis/postgis:17-3.5-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: postgres
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: ${BACKEND_DB_POSTGRES_PASSWORD:?set BACKEND_DB_POSTGRES_PASSWORD}
+      TZ: Asia/Seoul
+      MARKET_DB_PASSWORD: ${MARKET_DB_PASSWORD:?set MARKET_DB_PASSWORD}
+      FRANCHISE_DB_PASSWORD: ${FRANCHISE_DB_PASSWORD:?set FRANCHISE_DB_PASSWORD}
+    volumes:
+      - backend_postgres_data:/var/lib/postgresql/data
+      - ../postgres/init-service-databases.sh:/docker-entrypoint-initdb.d/20-init-service-databases.sh:ro
+      - ../.local/backend-db-market-franchise/market.dump:/dump/market.dump:ro
+      - ../.local/backend-db-market-franchise/franchise.dump:/dump/franchise.dump:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d postgres"]
+      interval: 3s
+      timeout: 3s
+      retries: 20
+
+  community-db:
+    image: postgres:17-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${COMMUNITY_DB_NAME:-demo}
+      POSTGRES_USER: ${COMMUNITY_DB_USER:-demo}
+      POSTGRES_PASSWORD: ${COMMUNITY_DB_PASSWORD:-demo}
+    volumes:
+      - community_postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${COMMUNITY_DB_USER:-demo} -d ${COMMUNITY_DB_NAME:-demo}"]
+      interval: 3s
+      timeout: 3s
+      retries: 20
+
+  onboarding-db:
+    image: postgres:17-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${ONBOARDING_DB_NAME:-onboarding}
+      POSTGRES_USER: ${ONBOARDING_DB_USER:-onboarding}
+      POSTGRES_PASSWORD: ${ONBOARDING_DB_PASSWORD:-onboarding}
+    volumes:
+      - onboarding_postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${ONBOARDING_DB_USER:-onboarding} -d ${ONBOARDING_DB_NAME:-onboarding}"]
+      interval: 3s
+      timeout: 3s
+      retries: 20
+
+  agent-db:
+    image: postgres:17-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${AGENT_DB_NAME:-agent}
+      POSTGRES_USER: ${AGENT_DB_USER:-agent}
+      POSTGRES_PASSWORD: ${AGENT_DB_PASSWORD:-agent}
+    volumes:
+      - agent_postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${AGENT_DB_USER:-agent} -d ${AGENT_DB_NAME:-agent}"]
+      interval: 3s
+      timeout: 3s
+      retries: 20
+
+  post-db:
+    image: postgres:17-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${POST_DB_NAME:-post}
+      POSTGRES_USER: ${POST_DB_USER:-post}
+      POSTGRES_PASSWORD: ${POST_DB_PASSWORD:-post}
+    volumes:
+      - post_postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POST_DB_USER:-post} -d ${POST_DB_NAME:-post}"]
+      interval: 3s
+      timeout: 3s
+      retries: 20
+
+  redis:
+    image: redis:7-alpine
+    restart: unless-stopped
+    command: redis-server --appendonly yes
+    volumes:
+      - redis_data:/data
+
+  rabbitmq:
+    image: rabbitmq:4-management
+    restart: unless-stopped
+    environment:
+      RABBITMQ_DEFAULT_USER: ${RABBITMQ_DEFAULT_USER:-guest}
+      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_DEFAULT_PASS:-guest}
+
+  minio:
+    image: quay.io/minio/minio:latest
+    restart: unless-stopped
+    environment:
+      MINIO_ROOT_USER: ${MINIO_ROOT_USER:-demo}
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD:-demo12345}
+    command: server /data --address ":8900" --console-address ":8901"
+    volumes:
+      - minio_data:/data
+
+  minio-init:
+    image: quay.io/minio/mc:latest
+    depends_on:
+      - minio
+    entrypoint: >
+      /bin/sh -c "
+      until mc alias set local http://minio:8900 ${MINIO_ROOT_USER:-demo} ${MINIO_ROOT_PASSWORD:-demo12345}; do
+        echo 'waiting for minio...';
+        sleep 2;
+      done;
+      mc mb --ignore-existing local/${S3_BUCKET:-pickle-post-images};
+      exit 0;
+      "
+
+  profile-service:
+    build: ../../backend/services/profile-service
+    restart: unless-stopped
+    env_file:
+      - ../.env
+    environment:
+      PORT: "3001"
+      JWKS_URL: http://authentik-server:9000/application/o/${AUTHENTIK_CLIENT_ID:-pickle-web}/jwks/
+      JWT_ISSUER: ${AUTH_PUBLIC_ORIGIN}/application/o/${AUTHENTIK_CLIENT_ID:-pickle-web}/
+      JWT_AUDIENCE: ${AUTHENTIK_CLIENT_ID:-pickle-web}
+      JWT_ALGS: RS256
+      AUTHENTIK_API_URL: http://authentik-server:9000/api/v3
+      AUTHENTIK_SERVICE_ROLE_KEY: ${AUTHENTIK_SERVICE_ROLE_KEY:?set AUTHENTIK_SERVICE_ROLE_KEY}
+    depends_on:
+      authentik-server:
+        condition: service_started
+    labels:
+      - traefik.enable=true
+      - traefik.http.routers.profile.rule=Host(`${API_PUBLIC_HOST}`) && PathPrefix(`/api/profile`)
+      - traefik.http.routers.profile.entrypoints=public
+      - traefik.http.routers.profile.middlewares=profile-strip,api-cors
+      - traefik.http.middlewares.profile-strip.stripprefix.prefixes=/api/profile
+      - traefik.http.services.profile.loadbalancer.server.port=3001
+
+  echo-service:
+    build: ../../backend/services/echo-service
+    restart: unless-stopped
+    environment:
+      PORT: "3002"
+      PROFILE_BASE_URL: http://profile-service:3001
+    labels:
+      - traefik.enable=true
+      - traefik.http.routers.echo.rule=Host(`${API_PUBLIC_HOST}`) && PathPrefix(`/api/echo`)
+      - traefik.http.routers.echo.entrypoints=public
+      - traefik.http.routers.echo.middlewares=echo-strip,api-cors
+      - traefik.http.middlewares.echo-strip.stripprefix.prefixes=/api/echo
+      - traefik.http.services.echo.loadbalancer.server.port=3002
+
+  market-service:
+    build: ../../backend/services/market-service
+    restart: unless-stopped
+    environment:
+      DB_HOST: backend-db
+      DB_PORT: "5432"
+      DB_NAME: market
+      DB_USERNAME: ${MARKET_DB_USER:-market}
+      DB_PASSWORD: ${MARKET_DB_PASSWORD:?set MARKET_DB_PASSWORD}
+      MARKET_DATA_IMPORT_ENABLED: "false"
+      MARKET_BOUNDARY_IMPORT_ENABLED: "false"
+      FRANCHISE_BASE_URL: http://franchise-service:8080
+    depends_on:
+      backend-db:
+        condition: service_healthy
+      franchise-service:
+        condition: service_started
+    labels:
+      - traefik.enable=true
+      - traefik.http.routers.market.rule=Host(`${API_PUBLIC_HOST}`) && PathPrefix(`/api/market`)
+      - traefik.http.routers.market.entrypoints=public
+      - traefik.http.routers.market.middlewares=market-strip,api-cors
+      - traefik.http.middlewares.market-strip.stripprefix.prefixes=/api/market
+      - traefik.http.services.market.loadbalancer.server.port=8080
+
+  franchise-service:
+    build: ../../backend/services/franchise-service
+    restart: unless-stopped
+    environment:
+      DB_HOST: backend-db
+      DB_PORT: "5432"
+      DB_NAME: franchise
+      DB_USERNAME: ${FRANCHISE_DB_USER:-franchise}
+      DB_PASSWORD: ${FRANCHISE_DB_PASSWORD:?set FRANCHISE_DB_PASSWORD}
+      FRANCHISE_INGEST_ENABLED: "false"
+      FRANCHISE_INGEST_YEAR: ${FRANCHISE_INGEST_YEAR:-2025}
+      FRANCHISE_INGEST_NUM_OF_ROWS: ${FRANCHISE_INGEST_NUM_OF_ROWS:-1000}
+      STARTUP_COST_SERVICE_KEY: ${STARTUP_COST_SERVICE_KEY:-}
+      BRAND_FRCS_STATUS_SERVICE_KEY: ${BRAND_FRCS_STATUS_SERVICE_KEY:-}
+    depends_on:
+      backend-db:
+        condition: service_healthy
+    labels:
+      - traefik.enable=true
+      - traefik.http.routers.franchise.rule=Host(`${API_PUBLIC_HOST}`) && PathPrefix(`/api/franchise`)
+      - traefik.http.routers.franchise.entrypoints=public
+      - traefik.http.routers.franchise.middlewares=franchise-strip,api-cors
+      - traefik.http.middlewares.franchise-strip.stripprefix.prefixes=/api/franchise
+      - traefik.http.services.franchise.loadbalancer.server.port=8080
+
+  onboarding-service:
+    build: ../../backend/services/onboarding-service
+    restart: unless-stopped
+    environment:
+      ONBOARDING_SERVICE_DATABASE_URL: postgresql+psycopg://${ONBOARDING_DB_USER:-onboarding}:${ONBOARDING_DB_PASSWORD:-onboarding}@onboarding-db:5432/${ONBOARDING_DB_NAME:-onboarding}
+      ONBOARDING_SERVICE_AUTO_CREATE_SCHEMA: "true"
+      ONBOARDING_SERVICE_FRONTEND_ORIGIN: ${FRONTEND_PUBLIC_ORIGIN}
+      ONBOARDING_SERVICE_FRONTEND_ORIGIN_ALT: ${FRONTEND_PUBLIC_ORIGIN}
+      ONBOARDING_SERVICE_FRONTEND_RESULT_BASE_URL: ${FRONTEND_PUBLIC_ORIGIN}/onboarding/result
+      ONBOARDING_SERVICE_DEMO_AUTH_USER_UUID: ${ONBOARDING_SERVICE_DEMO_AUTH_USER_UUID:-123e4567-e89b-12d3-a456-426614174000}
+      ONBOARDING_SERVICE_JWKS_URL: http://authentik-server:9000/application/o/${AUTHENTIK_CLIENT_ID:-pickle-web}/jwks/
+      ONBOARDING_SERVICE_JWT_ISSUER: ${AUTH_PUBLIC_ORIGIN}/application/o/${AUTHENTIK_CLIENT_ID:-pickle-web}/
+      ONBOARDING_SERVICE_JWT_AUDIENCE: ${AUTHENTIK_CLIENT_ID:-pickle-web}
+      ONBOARDING_SERVICE_JWT_ALGORITHM: RS256
+    volumes:
+      - ../.local/onboarding-service-artifacts:/app/.artifacts
+    depends_on:
+      onboarding-db:
+        condition: service_healthy
+    labels:
+      - traefik.enable=true
+      - traefik.http.routers.onboarding.rule=Host(`${API_PUBLIC_HOST}`) && PathPrefix(`/api/onboarding`)
+      - traefik.http.routers.onboarding.entrypoints=public
+      - traefik.http.routers.onboarding.middlewares=onboarding-strip,api-cors
+      - traefik.http.middlewares.onboarding-strip.stripprefix.prefixes=/api/onboarding
+      - traefik.http.services.onboarding.loadbalancer.server.port=8000
+
+  agent-service:
+    build: ../../backend/services/agent-service
+    restart: unless-stopped
+    env_file:
+      - ../.env
+    environment:
+      LANGGRAPH_CLI_NO_ANALYTICS: "1"
+      FF_V2_EVENT_STREAMING: "true"
+      JWKS_URL: http://authentik-server:9000/application/o/${AUTHENTIK_CLIENT_ID:-pickle-web}/jwks/
+      JWT_ISSUER: ${AUTH_PUBLIC_ORIGIN}/application/o/${AUTHENTIK_CLIENT_ID:-pickle-web}/
+      JWT_AUDIENCE: ${AUTHENTIK_CLIENT_ID:-pickle-web}
+      JWT_ALGORITHM: RS256
+      CORS_ORIGINS: ${FRONTEND_PUBLIC_ORIGIN}
+      DATABASE_URL: postgresql+asyncpg://${AGENT_DB_USER:-agent}:${AGENT_DB_PASSWORD:-agent}@agent-db:5432/${AGENT_DB_NAME:-agent}
+      DATABASE_ECHO: "false"
+      AUTO_CREATE_SCHEMA: "true"
+      AGENT_SERVER_INTERNAL_URL: http://127.0.0.1:2024
+      ONBOARDING_SERVICE_URL: http://onboarding-service:8000
+      SEARXNG_SEARCH_URL: ${SEARXNG_SEARCH_URL:-}
+      SEARXNG_API_KEY: ${SEARXNG_API_KEY:-}
+      OLLAMA_API_KEY: ${OLLAMA_API_KEY:-}
+      OLLAMA_BASE_URL: ${OLLAMA_BASE_URL:-https://ollama.com}
+      OPENROUTER_API_KEY: ${OPENROUTER_API_KEY:-}
+      OPENROUTER_BASE_URL: ${OPENROUTER_BASE_URL:-https://openrouter.ai/api/v1}
+      OPENCODE_ZEN_API_KEY: ${OPENCODE_ZEN_API_KEY:-}
+      OPENCODE_ZEN_BASE_URL: ${OPENCODE_ZEN_BASE_URL:-https://opencode.ai/zen/v1}
+      GEMINI_API_KEY: ${GEMINI_API_KEY:-}
+    volumes:
+      - ../.env:/app/.env:ro
+      - agent_langgraph_api_data:/app/.langgraph_api
+    depends_on:
+      authentik-server:
+        condition: service_started
+      agent-db:
+        condition: service_healthy
+      onboarding-service:
+        condition: service_started
+    labels:
+      - traefik.enable=true
+      - traefik.http.routers.agent.rule=Host(`${API_PUBLIC_HOST}`) && PathPrefix(`/api/agent`)
+      - traefik.http.routers.agent.entrypoints=public
+      - traefik.http.routers.agent.middlewares=agent-strip,api-cors
+      - traefik.http.middlewares.agent-strip.stripprefix.prefixes=/api/agent
+      - traefik.http.services.agent.loadbalancer.server.port=2024
+
+  community-service:
+    build: ../../backend/services/community-service
+    restart: unless-stopped
+    environment:
+      DB_HOST: community-db
+      REDIS_HOST: redis
+      REDIS_PORT: "6379"
+      REDIS_PASSWORD: ""
+      RABBITMQ_HOST: rabbitmq
+      S3_ENDPOINT: http://minio:8900
+      S3_REGION: ${S3_REGION:-us-east-1}
+      S3_BUCKET: ${S3_BUCKET:-pickle-post-images}
+      S3_ACCESS_KEY: ${MINIO_ROOT_USER:-demo}
+      S3_SECRET_KEY: ${MINIO_ROOT_PASSWORD:-demo12345}
+      S3_PATH_STYLE_ACCESS: "true"
+      S3_PRESIGNED_URL_EXPIRATION_SECONDS: ${S3_PRESIGNED_URL_EXPIRATION_SECONDS:-600}
+      JWKS_URL: http://authentik-server:9000/application/o/${AUTHENTIK_CLIENT_ID:-pickle-web}/jwks/
+      JWT_ISSUER: ${AUTH_PUBLIC_ORIGIN}/application/o/${AUTHENTIK_CLIENT_ID:-pickle-web}/
+      JWT_AUDIENCE: ${AUTHENTIK_CLIENT_ID:-pickle-web}
+      JWT_ALGORITHM: RS256
+    depends_on:
+      community-db:
+        condition: service_healthy
+      redis:
+        condition: service_started
+      rabbitmq:
+        condition: service_started
+      minio-init:
+        condition: service_completed_successfully
+      authentik-server:
+        condition: service_started
+    labels:
+      - traefik.enable=true
+      - traefik.http.routers.community.rule=Host(`${API_PUBLIC_HOST}`) && PathPrefix(`/api/community`)
+      - traefik.http.routers.community.entrypoints=public
+      - traefik.http.routers.community.middlewares=community-strip,api-cors
+      - traefik.http.middlewares.community-strip.stripprefix.prefixes=/api/community
+      - traefik.http.services.community.loadbalancer.server.port=8080
+
+  post-service:
+    build: ../../backend/services/post-service
+    restart: unless-stopped
+    environment:
+      POST_DB_URL: jdbc:postgresql://post-db:5432/${POST_DB_NAME:-post}
+      POST_DB_USERNAME: ${POST_DB_USER:-post}
+      POST_DB_PASSWORD: ${POST_DB_PASSWORD:-post}
+      RABBITMQ_HOST: rabbitmq
+      RABBITMQ_PORT: "5672"
+      RABBITMQ_USERNAME: ${RABBITMQ_DEFAULT_USER:-guest}
+      RABBITMQ_PASSWORD: ${RABBITMQ_DEFAULT_PASS:-guest}
+      JWKS_URL: http://authentik-server:9000/application/o/${AUTHENTIK_CLIENT_ID:-pickle-web}/jwks/
+      JWT_ISSUER: ${AUTH_PUBLIC_ORIGIN}/application/o/${AUTHENTIK_CLIENT_ID:-pickle-web}/
+      JWT_AUDIENCE: ${AUTHENTIK_CLIENT_ID:-pickle-web}
+      POST_NOTIFICATION_MODE: ${POST_NOTIFICATION_MODE:-RABBIT}
+      POST_NOTIFICATION_EXCHANGE: ${POST_NOTIFICATION_EXCHANGE:-pickly.events.exchange}
+      OPENAI_API_KEY: ${OPENAI_API_KEY:-}
+      POST_LLM_PROVIDER: ${POST_LLM_PROVIDER:-OPENAI}
+      POST_LLM_MODEL: ${POST_LLM_MODEL:-gpt-4o-mini}
+      POST_LLM_TIMEOUT_SECONDS: ${POST_LLM_TIMEOUT_SECONDS:-30}
+    depends_on:
+      post-db:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_started
+      authentik-server:
+        condition: service_started
+    labels:
+      - traefik.enable=true
+      - traefik.http.routers.post.rule=Host(`${API_PUBLIC_HOST}`) && PathPrefix(`/api/post`)
+      - traefik.http.routers.post.entrypoints=public
+      - traefik.http.routers.post.middlewares=post-strip,api-cors
+      - traefik.http.middlewares.post-strip.stripprefix.prefixes=/api/post
+      - traefik.http.services.post.loadbalancer.server.port=8080
+
+volumes:
+  authentik_postgres_data:
+  backend_postgres_data:
+  community_postgres_data:
+  onboarding_postgres_data:
+  agent_postgres_data:
+  agent_langgraph_api_data:
+  post_postgres_data:
+  redis_data:
+  minio_data:
