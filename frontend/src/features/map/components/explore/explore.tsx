@@ -8,7 +8,7 @@ export function Explore() {
   const leftPanelMode = useMapStore((state) => state.leftPanelMode)
 
   return (
-    <Card className="h-full gap-0 overflow-hidden py-0">
+    <Card className="h-full gap-0 overflow-hidden rounded-2xl border-border bg-card/95 py-0 shadow-xl backdrop-blur">
       <ExploreHeader />
       {leftPanelMode === "chat" ? (
         <MapChatWidget selectedTradeArea={null} />

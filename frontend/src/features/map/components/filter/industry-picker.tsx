@@ -112,21 +112,24 @@ export function IndustryPicker({
           variant="outline"
           size="sm"
           disabled={isLoading || isError}
-          className="h-8 w-44 shrink-0 justify-between font-normal"
+          className="h-9 w-44 shrink-0 justify-between rounded-lg border-border bg-muted font-normal shadow-none hover:bg-muted/80"
         >
           <span className="truncate">{triggerLabel}</span>
           <ChevronDown className="h-3.5 w-3.5 shrink-0 opacity-60" />
         </Button>
       </PopoverTrigger>
-      <PopoverContent align="start" className="w-[28rem] gap-0 p-0">
-        <div className="border-b p-2">
+      <PopoverContent
+        align="start"
+        className="w-[28rem] overflow-hidden rounded-xl border-border p-0 shadow-xl"
+      >
+        <div className="border-b border-border bg-muted p-2">
           <div className="relative">
             <Search className="pointer-events-none absolute top-1/2 left-2.5 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground" />
             <Input
               value={query}
               onChange={(event) => setQuery(event.target.value)}
               placeholder="업종명 검색 (예: 치킨, 카페)"
-              className="h-8 pl-8 text-xs"
+              className="h-8 border-border bg-card pl-8 text-xs"
               aria-label="업종명 검색"
             />
           </div>
@@ -152,12 +155,12 @@ export function IndustryPicker({
           </div>
         ) : (
           <div className="flex max-h-72">
-            <div className="w-40 shrink-0 overflow-y-auto border-r p-1">
+            <div className="w-40 shrink-0 overflow-y-auto border-r border-border bg-muted p-1">
               <button
                 type="button"
                 onClick={() => handleSelect("all", "all")}
                 className={cn(
-                  "flex w-full cursor-pointer items-center rounded-md px-2 py-1.5 text-left text-xs hover:bg-accent",
+                  "flex w-full cursor-pointer items-center rounded-md px-2 py-1.5 text-left text-xs hover:bg-card",
                   selectedMinorCategory === "all" &&
                     "font-medium text-foreground"
                 )}
@@ -171,9 +174,9 @@ export function IndustryPicker({
                   onMouseEnter={() => setActiveMajorCode(major.code)}
                   onClick={() => setActiveMajorCode(major.code)}
                   className={cn(
-                    "flex w-full cursor-pointer items-center justify-between rounded-md px-2 py-1.5 text-left text-xs hover:bg-accent",
+                    "flex w-full cursor-pointer items-center justify-between rounded-md px-2 py-1.5 text-left text-xs hover:bg-card",
                     activeMajor?.code === major.code &&
-                      "bg-accent font-medium text-foreground"
+                      "bg-card font-medium text-foreground shadow-sm"
                   )}
                 >
                   <span className="truncate">{major.name}</span>

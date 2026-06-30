@@ -20,11 +20,11 @@ export function PreviewEstimatedSalesRanking({
       <p className="mb-3 text-xs text-muted-foreground">
         선택한 상권에서 추정매출이 높은 업종입니다.
       </p>
-      <ol className="flex flex-col gap-2">
+      <ol className="flex flex-col gap-2.5">
         {rankings.slice(0, 3).map((ranking) => (
           <li
             key={ranking.industryCode}
-            className="flex items-center gap-3 rounded-lg border border-border px-3 py-3"
+            className="flex items-center gap-3 rounded-xl border border-border bg-card px-3 py-3"
           >
             <span className="flex size-7 shrink-0 items-center justify-center rounded-full bg-primary text-xs font-semibold text-primary-foreground">
               {ranking.rank}

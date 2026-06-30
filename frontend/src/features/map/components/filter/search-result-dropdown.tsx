@@ -21,8 +21,8 @@ export function SearchResultDropdown({
   onSelectArea,
 }: SearchResultDropdownProps) {
   return (
-    <div className="overflow-hidden rounded-lg border bg-popover text-popover-foreground shadow-lg">
-      <div className="flex items-center justify-between gap-2 border-b px-3 py-2 text-xs font-medium text-muted-foreground">
+    <div className="overflow-hidden rounded-xl border border-border bg-popover/98 text-popover-foreground shadow-xl backdrop-blur">
+      <div className="flex items-center justify-between gap-2 border-b border-border bg-muted px-3 py-2 text-xs font-medium text-muted-foreground">
         <span>검색 결과 {areas.length > 0 ? `${areas.length}개` : ""}</span>
         <Button
           type="button"
@@ -59,13 +59,13 @@ export function SearchResultDropdown({
       ) : null}
 
       {!isLoading && !isError && areas.length > 0 ? (
-        <div className="grid max-h-56 grid-cols-1 gap-1 overflow-y-auto p-1.5 md:grid-cols-2 xl:grid-cols-3">
+        <div className="grid max-h-64 grid-cols-1 gap-2 overflow-y-auto p-2 md:grid-cols-2 xl:grid-cols-3">
           {areas.map((area) => (
             <Button
               key={area.dongCode}
               type="button"
               variant="ghost"
-              className="h-auto w-full justify-start gap-2 rounded-lg px-2 py-2 text-left"
+              className="h-auto w-full justify-start gap-2 rounded-lg border border-transparent px-2.5 py-2.5 text-left hover:border-border hover:bg-muted"
               onClick={() => onSelectArea(area)}
             >
               <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-muted text-muted-foreground">

@@ -46,10 +46,19 @@ export function DetailReportStateCard({ state }: DetailReportStateCardProps) {
   const { description, icon: Icon, title, variant } = stateContent[state]
 
   return (
-    <Card className="lg:col-span-2">
+    <Card className="border-border shadow-sm lg:col-span-2">
       <CardContent>
-        <Alert variant={variant}>
-          <Icon />
+        <Alert
+          variant={variant}
+          className={
+            variant
+              ? ""
+              : "border-border bg-muted text-foreground"
+          }
+        >
+          <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-background text-muted-foreground">
+            <Icon className="h-4 w-4" />
+          </span>
           <AlertTitle>{title}</AlertTitle>
           <AlertDescription>{description}</AlertDescription>
         </Alert>

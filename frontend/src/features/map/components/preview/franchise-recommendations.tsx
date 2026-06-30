@@ -16,11 +16,11 @@ export function PreviewFranchiseRecommendations({
   }
 
   return (
-    <div className="flex flex-col gap-2">
+    <div className="flex flex-col gap-2.5">
       {franchises.map((franchise, index) => (
         <div
           key={`${franchise.brandCode}-${index}`}
-          className="rounded-lg border border-border px-3 py-3"
+          className="rounded-xl border border-border bg-card px-3 py-3"
         >
           <div className="min-w-0">
             <p className="truncate text-sm font-medium text-foreground">

@@ -1,11 +1,11 @@
 import Link from "next/link"
+import Image from "next/image"
 import { HeaderAuthButton } from "@/features/auth/components/header/header-auth-button"
 import {
   HeaderNavButton,
   type HeaderNavButtonProps,
 } from "@/shared/components/layout/header-nav-button"
 import { ThemeToggle } from "@/shared/components/theme-toggle"
-import { Badge } from "@/shared/components/ui/badge"
 
 const NAV_ITEMS: HeaderNavButtonProps[] = [
   {
@@ -33,11 +33,18 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="flex h-16 items-center justify-between">
             <div className="flex items-center gap-2">
-              <Link href="/" className="flex items-center gap-2">
-                <span className="text-lg font-semibold">
-                  Gemini <span className="text-primary">15</span>
+              <Link href="/" className="flex items-center gap-2.5">
+                <Image
+                  src="/logo.svg"
+                  alt=""
+                  aria-hidden="true"
+                  width={32}
+                  height={32}
+                  className="h-8 w-8 shrink-0"
+                />
+                <span className="text-lg font-bold tracking-tight">
+                  어디가게
                 </span>
-                <Badge variant="secondary">Minimal</Badge>
               </Link>
             </div>
 
@@ -58,23 +65,8 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       <main className="flex flex-1 flex-col">{children}</main>
 
       <footer className="w-full border-t border-border bg-background py-8">
-        <div className="mx-auto flex max-w-7xl flex-col items-center justify-between gap-4 px-4 text-xs text-muted-foreground sm:flex-row sm:px-6 lg:px-8">
-          <p>© 2026 Gemini 15. All rights reserved.</p>
-          <div className="flex items-center gap-6">
-            <Link
-              href="/onboarding"
-              className="transition-colors hover:text-foreground"
-            >
-              성향 분석
-            </Link>
-            <span className="text-border">|</span>
-            <Link
-              href="/map"
-              className="transition-colors hover:text-foreground"
-            >
-              상권 지도
-            </Link>
-          </div>
+        <div className="mx-auto flex max-w-7xl items-center px-4 text-xs text-muted-foreground sm:px-6 lg:px-8">
+          <p>© 2026 어디가게. All rights reserved.</p>
         </div>
       </footer>
     </div>

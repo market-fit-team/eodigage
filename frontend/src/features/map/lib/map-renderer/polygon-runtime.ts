@@ -400,6 +400,9 @@ export const syncDongPolygonLayers = ({
   }
 
   const searchResultCodes = searchResultAreas.map((area) => area.dongCode)
+  const hiddenRecommendedLabelCodes = selectedDongCode
+    ? [...searchResultCodes, selectedDongCode]
+    : searchResultCodes
   const recommendedFilter = getLayerFilterByCodes(recommendedDongCodes)
   const hoverFilter = getLayerFilterByCode(hoveredDongCode)
   const selectedFilter = getLayerFilterByCode(selectedDongCode)
@@ -420,12 +423,9 @@ export const syncDongPolygonLayers = ({
   // 동 라벨은 검색 결과 마커의 이름 라벨과 겹치지 않도록 검색 결과 dongCode를 제외한다.
   map.setFilter(
     DONG_RECOMMENDED_LABEL_LAYER_ID,
-    excludeSearchResultCodes(recommendedFilter, searchResultCodes)
+    excludeSearchResultCodes(recommendedFilter, hiddenRecommendedLabelCodes)
   )
-  map.setFilter(
-    DONG_SELECTED_LABEL_LAYER_ID,
-    excludeSearchResultCodes(selectedFilter, searchResultCodes)
-  )
+  map.setFilter(DONG_SELECTED_LABEL_LAYER_ID, getLayerFilterByCode(null))
   map.setFilter(
     DONG_HOVER_LABEL_LAYER_ID,
     excludeSearchResultCodes(hoverLabelFilter, searchResultCodes)

@@ -91,8 +91,8 @@ export function OnboardingResultCategoryExplorer({
                         className={cn(
                           "h-full border transition-all duration-200",
                           isSelected
-                            ? "border-primary/60 bg-primary/5 shadow-lg ring-primary/20"
-                            : "border-border/60 bg-card hover:border-primary/30 hover:bg-primary/[0.03]"
+                            ? "border-primary/30 bg-primary/5 shadow-lg ring-primary/15"
+                            : "border-border/60 bg-card hover:border-primary/30 hover:bg-muted"
                         )}
                       >
                         <CardContent className="space-y-4 py-5">
@@ -108,7 +108,7 @@ export function OnboardingResultCategoryExplorer({
                                 {isSelected ? (
                                   <Badge
                                     variant="outline"
-                                    className="rounded-full border-primary/30 bg-primary/10 px-2 py-0.5 text-[10px] text-primary"
+                                    className="rounded-full border-primary/30 bg-card px-2 py-0.5 text-[10px] text-primary"
                                   >
                                     선택됨
                                   </Badge>
@@ -134,7 +134,7 @@ export function OnboardingResultCategoryExplorer({
                           <div className="space-y-2">
                             <div className="h-2 overflow-hidden rounded-full bg-muted">
                               <div
-                                className="h-full rounded-full bg-linear-to-r from-primary/45 via-primary/70 to-primary"
+                                className="h-full rounded-full bg-primary"
                                 style={{
                                   width: `${Math.round(category.score * 100)}%`,
                                 }}

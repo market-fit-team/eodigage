@@ -121,25 +121,25 @@ export function TrendBannerBlock({
 
   return (
     <div
-      className="rounded-2xl border border-border bg-card p-5 shadow-sm sm:p-6"
+      className="py-2"
       onFocusCapture={() => setIsPaused(true)}
       onBlurCapture={() => setIsPaused(false)}
       onPointerEnter={() => setIsPaused(true)}
       onPointerLeave={() => setIsPaused(false)}
     >
       {/* 헤더: eyebrow + 제목 / 상단 2-탭 토글 */}
-      <div className="mb-5 flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-        <div className="space-y-2">
-          <Badge variant="secondary" className="gap-1.5">
+      <div className="relative mb-6 flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+        <div className="max-w-3xl space-y-2">
+          <Badge className="gap-1.5 border-transparent bg-white/10 text-white">
             <HeaderIcon className="size-3.5" />
             {headerEyebrow}
           </Badge>
-          <h2 className="text-xl font-semibold tracking-tight break-keep text-foreground sm:text-2xl">
+          <h2 className="text-3xl leading-tight font-bold tracking-tight break-keep text-white sm:text-4xl">
             {headerTitle}
           </h2>
         </div>
 
-        <div className="inline-flex shrink-0 rounded-full bg-muted p-1">
+        <div className="inline-flex w-fit shrink-0 rounded-full bg-white/10 p-1">
           {KIND_TABS.map((tab) => (
             <button
               key={tab.key}
@@ -149,8 +149,8 @@ export function TrendBannerBlock({
               className={cn(
                 "rounded-full px-3.5 py-1.5 text-sm font-medium transition focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none",
                 kind === tab.key
-                  ? "bg-background text-foreground shadow-sm"
-                  : "text-muted-foreground hover:text-foreground"
+                  ? "bg-white text-neutral-950 shadow-sm"
+                  : "text-white/65 hover:text-white"
               )}
             >
               {tab.label}
@@ -160,7 +160,7 @@ export function TrendBannerBlock({
       </div>
 
       {/* 세그먼트 탭 */}
-      <div className="mb-5 flex flex-wrap gap-2">
+      <div className="relative mb-5 flex flex-wrap gap-2">
         {themes.map((theme, index) => (
           <button
             key={theme.key}
@@ -168,10 +168,10 @@ export function TrendBannerBlock({
             aria-pressed={index === current}
             onClick={() => api?.scrollTo(index)}
             className={cn(
-              "rounded-full px-3.5 py-1.5 text-sm font-medium transition focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:outline-none",
+              "rounded-full px-3.5 py-1.5 text-sm font-medium transition focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none",
               index === current
-                ? "bg-foreground text-background"
-                : "bg-muted text-muted-foreground hover:bg-muted/70"
+                ? "bg-muted text-foreground"
+                : "bg-white/10 text-white/65 hover:bg-white/15 hover:text-white"
             )}
           >
             {theme.label}
@@ -183,9 +183,9 @@ export function TrendBannerBlock({
       <Carousel
         setApi={setApi}
         opts={{ loop: true, align: "start" }}
-        className="px-10"
+        className="relative px-10"
       >
-        <CarouselContent className="py-1">
+        <CarouselContent className="py-5">
           {themes.map((theme) => (
             <CarouselItem key={theme.key}>
               <div className="grid grid-cols-1 gap-3 sm:grid-cols-3 sm:gap-5">
@@ -197,7 +197,7 @@ export function TrendBannerBlock({
                   return (
                     <Card
                       key={metric.label}
-                      className="h-48 justify-between px-7 py-5 ring-inset"
+                      className="min-h-40 justify-between border-white/20 bg-white text-neutral-950 shadow-[0_24px_54px_rgb(15_23_42/0.30)] transition-[border-color,box-shadow] ring-inset hover:border-border"
                     >
                       <CardHeader className="gap-2 p-0">
                         <CardTitle className="pr-8 text-lg leading-snug font-semibold tracking-tight break-keep sm:text-xl">
@@ -205,20 +205,15 @@ export function TrendBannerBlock({
                         </CardTitle>
                         {cardLabel && (
                           <CardDescription>
-                            <Badge
-                              variant="secondary"
-                              className="mt-2 min-h-7 w-fit px-2.5 py-1 text-[11px] leading-snug break-keep"
-                            >
+                            <Badge className="mt-1.5 w-fit border-transparent bg-muted px-4 py-2 text-sm font-semibold break-keep text-muted-foreground">
                               {cardLabel}
                             </Badge>
                           </CardDescription>
                         )}
                       </CardHeader>
-                      <CardFooter className="min-h-12 min-w-0 p-0 text-xs leading-relaxed text-muted-foreground">
-                        <span className="line-clamp-2 break-keep">
-                          <FooterIcon className="mr-1 inline size-3.5 align-[-2px]" />
-                          {description}
-                        </span>
+                      <CardFooter className="min-w-0 items-start gap-1.5 text-xs leading-relaxed text-neutral-600">
+                        <FooterIcon className="mt-0.5 size-3.5 shrink-0" />
+                        <span className="break-keep">{description}</span>
                       </CardFooter>
                     </Card>
                   )
@@ -232,7 +227,7 @@ export function TrendBannerBlock({
       </Carousel>
 
       {/* 하단 도트(세그먼트 위치) */}
-      <div className="mt-5 flex justify-center gap-2">
+      <div className="relative mt-5 flex justify-center gap-2">
         {themes.map((theme, index) => (
           <button
             key={theme.key}
@@ -243,8 +238,8 @@ export function TrendBannerBlock({
             className={cn(
               "size-2 rounded-full transition focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none",
               index === current
-                ? "bg-foreground"
-                : "bg-muted-foreground/30 hover:bg-muted-foreground/50"
+                ? "w-5 bg-muted"
+                : "bg-white/30 hover:bg-white/50"
             )}
           />
         ))}

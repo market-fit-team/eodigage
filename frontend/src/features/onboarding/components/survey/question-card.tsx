@@ -91,8 +91,8 @@ export function QuestionCard({
               onKeyDown={(event) => handleOptionKeyDown(event, option.code)}
               className={`group relative flex cursor-pointer items-center gap-3 rounded-xl border px-4 py-3 text-left text-sm transition-all duration-200 ease-out select-none ${
                 isSelected
-                  ? "border-primary bg-primary/5 shadow-sm ring-1 ring-primary/20"
-                  : "border-border bg-card hover:border-primary/30 hover:bg-accent/50 hover:shadow-sm"
+                  ? "border-primary bg-primary/5 shadow-sm ring-1 ring-primary/15"
+                  : "border-border bg-card hover:border-primary/30 hover:bg-muted hover:shadow-sm"
               }`}
             >
               {isSingle ? (
@@ -100,7 +100,7 @@ export function QuestionCard({
                   className={`flex h-5 w-5 shrink-0 items-center justify-center rounded-full border-2 transition-colors duration-200 ${
                     isSelected
                       ? "border-primary bg-primary"
-                      : "border-muted-foreground/30 group-hover:border-primary/50"
+                      : "border-muted-foreground/30 group-hover:border-primary/40"
                   }`}
                 >
                   {isSelected ? (
