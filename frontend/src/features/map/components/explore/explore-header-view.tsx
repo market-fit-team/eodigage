@@ -49,7 +49,7 @@ export function ExploreHeaderView({
             value="chat"
             className="!bg-transparent text-primary-foreground/65 hover:text-primary-foreground data-active:!bg-transparent data-active:!text-primary-foreground data-active:after:bg-primary-foreground"
           >
-            AI 상담
+            AI 에이전트
           </TabsTrigger>
         </TabsList>
       </Tabs>

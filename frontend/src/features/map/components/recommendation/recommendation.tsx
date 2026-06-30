@@ -26,6 +26,11 @@ export function Recommendation() {
     focusMapOnDong(dongCode)
   }
 
+  const handleBackToCategories = () => {
+    selectDong(null)
+    queryClient.setQueryData(mapQueryKeys.recommendations, [])
+  }
+
   if (isLoading) {
     return <RecommendationSkeleton />
   }
@@ -46,6 +51,7 @@ export function Recommendation() {
   return (
     <RecommendationList
       areas={areas}
+      onBackToCategories={handleBackToCategories}
       selectedDongCode={selectedDongCode}
       onSelectArea={handleSelect}
     />

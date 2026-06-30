@@ -8,6 +8,7 @@ import { HttpStatusError } from "@/features/auth/lib/fetch-with-auth"
 import { ChatWorkspaceEmptyState } from "@/features/chat/components/workspace/chat-workspace-empty-state"
 import { ChatWorkspaceShell } from "@/features/chat/components/workspace/chat-workspace-shell"
 import { useLocalWorkspaceRuntimeSettings } from "@/features/chat/hooks/workspace/use-local-workspace-runtime-settings"
+import { buildThreadTitle } from "@/features/chat/lib/workspace/build-thread-title"
 import { useChatWorkspace } from "@/features/chat/providers/chat-workspace-provider"
 import type { ChatReasoningEffort } from "@/features/chat/types/chat-model-selection"
 import { useListDocumentsApiV1AgentDocumentsGet } from "@/shared/api/generated/agent/endpoints/agent-documents/agent-documents"
@@ -111,7 +112,7 @@ export function ChatWorkspaceHome() {
       setIsSubmitting(true)
       const thread = await createThread.mutateAsync({
         data: {
-          title: "새 대화",
+          title: buildThreadTitle(message),
         },
       })
 
