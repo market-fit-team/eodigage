@@ -18,10 +18,8 @@ def _current_datetime_context_line() -> str:
     return (
         '<current_datetime '
         f'date="{now_local:%Y-%m-%d}" '
-        f'time="{now_local:%H:%M:%S}" '
-        'timezone="Asia/Seoul" '
-        f'iso="{escape(now_local.isoformat())}" '
-        f'utc_iso="{escape(now_utc.isoformat())}" />'
+        f'hour="{now_local:%H}" '
+        'timezone="Asia/Seoul" />'
     )
 
 

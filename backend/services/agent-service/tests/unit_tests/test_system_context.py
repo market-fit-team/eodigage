@@ -57,14 +57,15 @@ def test_build_system_context_renders_document_metadata_only() -> None:
 
 
 def test_build_system_context_always_renders_current_datetime() -> None:
-    """선택 컨텍스트가 없어도 현재 날짜와 시간이 system_context에 포함된다."""
+    """선택 컨텍스트가 없어도 현재 날짜와 몇시인지 system_context에 포함된다."""
 
     result = build_system_context(None)
 
     assert result is not None
     assert "<current_datetime" in result
+    assert 'hour="' in result
     assert 'timezone="Asia/Seoul"' in result
-    assert 'utc_iso="' in result
+    assert 'utc_iso="' not in result
 
 
 def test_build_system_context_renders_map_surface_instruction() -> None:
