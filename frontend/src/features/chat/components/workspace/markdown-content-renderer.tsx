@@ -12,11 +12,13 @@ import { parseChartBlock } from "@/features/chat/lib/markdown/parse-chart-block"
 type MarkdownContentRendererProps = {
   content: string
   variant?: "compact" | "article"
+  chartAnimationActive?: boolean
 }
 
 export function MarkdownContentRenderer({
   content,
   variant = "compact",
+  chartAnimationActive = true,
 }: MarkdownContentRendererProps) {
   const isArticle = variant === "article"
 
@@ -126,7 +128,12 @@ export function MarkdownContentRenderer({
                 return <MarkdownChartBlockFallback message={result.message} />
               }
 
-              return <MarkdownChartBlock chart={result.chart} />
+              return (
+                <MarkdownChartBlock
+                  chart={result.chart}
+                  isAnimationActive={chartAnimationActive}
+                />
+              )
             }
 
             if (language) {
@@ -145,6 +152,28 @@ export function MarkdownContentRenderer({
               </code>
             )
           },
+          table: ({ children }) => (
+            <div className="my-4 max-w-full overflow-x-auto rounded-lg border border-border/40">
+              <table className="w-full min-w-max border-collapse text-left text-sm">
+                {children}
+              </table>
+            </div>
+          ),
+          thead: ({ children }) => (
+            <thead className="border-b border-border/40 bg-muted/30">
+              {children}
+            </thead>
+          ),
+          th: ({ children }) => (
+            <th className="px-3 py-2 text-xs font-semibold whitespace-nowrap text-foreground">
+              {children}
+            </th>
+          ),
+          td: ({ children }) => (
+            <td className="border-t border-border/30 px-3 py-2 align-top whitespace-nowrap text-muted-foreground">
+              {children}
+            </td>
+          ),
         }}
       >
         {content}

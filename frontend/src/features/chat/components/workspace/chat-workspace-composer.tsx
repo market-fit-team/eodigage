@@ -1,7 +1,7 @@
 "use client"
 
 import * as React from "react"
-import { ArrowUp, X } from "lucide-react"
+import { ArrowUp } from "lucide-react"
 import { ChatModelMenu } from "@/features/chat/components/workspace/chat-model-menu"
 import { ChatSelectionChips } from "@/features/chat/components/workspace/chat-selection-chips"
 import { ChatToolPermissionMenu } from "@/features/chat/components/workspace/chat-tool-permission-menu"
@@ -15,7 +15,6 @@ import type {
   DocumentResponse,
   MarketFavoriteResponse,
 } from "@/shared/api/generated/agent/schemas"
-import { Badge } from "@/shared/components/ui/badge"
 import { Button } from "@/shared/components/ui/button"
 import { cn } from "@/shared/lib/utils"
 
@@ -27,14 +26,11 @@ type ChatWorkspaceComposerProps = {
   disabled?: boolean
   inputDisabled?: boolean
   sendDisabled?: boolean
-  hasOnboardingContext?: boolean
-  isOnboardingContextRemoving?: boolean
   models: ChatModelOption[]
   modelSelection: ChatModelSelectionControls
   toolPolicy: ToolPolicyControls
   onChangeDraft: (value: string) => void
   onSubmit: (message: string) => Promise<boolean | void> | boolean | void
-  onRemoveOnboardingContext?: () => void
   placeholder?: string
   compact?: boolean
 }
@@ -47,14 +43,11 @@ export function ChatWorkspaceComposer({
   disabled = false,
   inputDisabled = false,
   sendDisabled = false,
-  hasOnboardingContext = false,
-  isOnboardingContextRemoving = false,
   models,
   modelSelection,
   toolPolicy,
   onChangeDraft,
   onSubmit,
-  onRemoveOnboardingContext,
   placeholder = "메시지를 입력하세요...",
   compact = false,
 }: ChatWorkspaceComposerProps) {
@@ -107,26 +100,6 @@ export function ChatWorkspaceComposer({
         )}
       >
         <div className={cn("px-3 pt-2.5", compact && "px-2.5 pt-2")}>
-          {hasOnboardingContext && (
-            <div className="mb-1.5 flex flex-wrap gap-1.5">
-              <Badge
-                variant="secondary"
-                className="min-w-0 gap-1 rounded-md px-2 py-0.5 text-xs"
-              >
-                <span className="truncate">창업 성향</span>
-                <Button
-                  variant="ghost"
-                  size="icon-xs"
-                  className="size-4 rounded-full"
-                  disabled={disabled || isOnboardingContextRemoving}
-                  onClick={() => onRemoveOnboardingContext?.()}
-                >
-                  <X className="size-2.5" />
-                  <span className="sr-only">창업 성향 포함 해제</span>
-                </Button>
-              </Badge>
-            </div>
-          )}
           <ChatSelectionChips
             artifacts={artifacts}
             documents={documents}

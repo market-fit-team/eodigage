@@ -232,9 +232,6 @@ function ChatThreadWorkspace({
   const selectedOnboarding = useChatWorkspace(
     (state) => state.selectedOnboarding
   )
-  const setSelectedOnboarding = useChatWorkspace(
-    (state) => state.setSelectedOnboarding
-  )
   const setIsLeftSidebarOpen = useChatWorkspace(
     (state) => state.setIsLeftSidebarOpen
   )
@@ -248,7 +245,6 @@ function ChatThreadWorkspace({
   const documents = documentsQuery.data?.documents
   const marketFavorites = marketFavoritesQuery.data?.favorites
   const artifacts = artifactsQuery.data?.artifacts
-  const hasOnboardingContext = selectedOnboarding !== null
   const resolvedRightPanel = reconcileWorkspaceRightPanel({
     panel: rightPanel,
     documents: documents ?? [],
@@ -379,11 +375,8 @@ function ChatThreadWorkspace({
         artifacts={artifacts ?? []}
         documents={documents ?? []}
         marketFavorites={marketFavorites ?? []}
-        hasOnboardingContext={hasOnboardingContext}
-        isOnboardingContextRemoving={false}
         isRightPanelOpen={Boolean(resolvedRightPanel)}
         isExpanded={isExpanded}
-        onRemoveOnboardingContext={() => setSelectedOnboarding(null)}
         onSetRightPanel={handleSetRightPanel}
         onToggleExpand={handleToggleExpand}
         onToggleRightPanel={() => handleSetRightPanel({ kind: "library" })}

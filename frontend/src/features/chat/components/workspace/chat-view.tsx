@@ -68,11 +68,8 @@ type ChatViewProps = {
   artifacts: ArtifactResponse[]
   documents: DocumentResponse[]
   marketFavorites?: MarketFavoriteResponse[]
-  hasOnboardingContext?: boolean
-  isOnboardingContextRemoving?: boolean
   isRightPanelOpen: boolean
   isExpanded: boolean
-  onRemoveOnboardingContext?: () => void
   onSetRightPanel: (panel: ChatRightPanel) => void
   onToggleExpand: () => void
   onToggleRightPanel: () => void
@@ -84,11 +81,8 @@ export function ChatView({
   artifacts,
   documents,
   marketFavorites = [],
-  hasOnboardingContext = false,
-  isOnboardingContextRemoving = false,
   isRightPanelOpen,
   isExpanded,
-  onRemoveOnboardingContext,
   onSetRightPanel,
   onToggleExpand,
   onToggleRightPanel,
@@ -320,14 +314,11 @@ export function ChatView({
           disabled={disabled}
           inputDisabled={false}
           sendDisabled={isSendDisabled}
-          hasOnboardingContext={hasOnboardingContext}
-          isOnboardingContextRemoving={isOnboardingContextRemoving}
           models={models}
           modelSelection={modelSelection}
           toolPolicy={toolPolicy}
           onChangeDraft={setDraft}
           onSubmit={handleSubmit}
-          onRemoveOnboardingContext={onRemoveOnboardingContext}
           compact={compact}
         />
       </div>
@@ -498,7 +489,7 @@ function UserMessageBubble({ message }: { message: BaseMessage }) {
 function AssistantTextBlock({ text }: { text: string }) {
   return (
     <div className="max-w-full rounded-xl rounded-tl-sm bg-muted/30 px-3.5 py-2.5 break-words text-foreground">
-      <MarkdownContentRenderer content={text} />
+      <MarkdownContentRenderer content={text} chartAnimationActive={false} />
     </div>
   )
 }

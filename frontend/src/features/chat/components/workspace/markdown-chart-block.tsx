@@ -48,8 +48,10 @@ const buildPieConfig = (
 
 export function MarkdownChartBlock({
   chart,
+  isAnimationActive = true,
 }: {
   chart: ChatMarkdownChartBlock
+  isAnimationActive?: boolean
 }) {
   return (
     <div className="my-4 overflow-hidden rounded-xl border border-border/40 bg-background">
@@ -68,9 +70,24 @@ export function MarkdownChartBlock({
         </div>
       )}
       <div className="px-3 py-3">
-        {chart.type === "bar" && <BarMarkdownChart chart={chart} />}
-        {chart.type === "line" && <LineMarkdownChart chart={chart} />}
-        {chart.type === "pie" && <PieMarkdownChart chart={chart} />}
+        {chart.type === "bar" && (
+          <BarMarkdownChart
+            chart={chart}
+            isAnimationActive={isAnimationActive}
+          />
+        )}
+        {chart.type === "line" && (
+          <LineMarkdownChart
+            chart={chart}
+            isAnimationActive={isAnimationActive}
+          />
+        )}
+        {chart.type === "pie" && (
+          <PieMarkdownChart
+            chart={chart}
+            isAnimationActive={isAnimationActive}
+          />
+        )}
       </div>
     </div>
   )
@@ -90,8 +107,10 @@ export function MarkdownChartBlockFallback({ message }: { message: string }) {
 
 function BarMarkdownChart({
   chart,
+  isAnimationActive,
 }: {
   chart: Extract<ChatMarkdownChartBlock, { type: "bar" }>
+  isAnimationActive: boolean
 }) {
   const config = buildCartesianConfig(chart)
 
@@ -109,6 +128,7 @@ function BarMarkdownChart({
             name={series.label}
             fill={`var(--color-${series.key})`}
             radius={4}
+            isAnimationActive={isAnimationActive}
           />
         ))}
       </BarChart>
@@ -118,8 +138,10 @@ function BarMarkdownChart({
 
 function LineMarkdownChart({
   chart,
+  isAnimationActive,
 }: {
   chart: Extract<ChatMarkdownChartBlock, { type: "line" }>
+  isAnimationActive: boolean
 }) {
   const config = buildCartesianConfig(chart)
 
@@ -140,6 +162,7 @@ function LineMarkdownChart({
             strokeWidth={2.25}
             dot={false}
             activeDot={{ r: 4 }}
+            isAnimationActive={isAnimationActive}
           />
         ))}
       </LineChart>
@@ -149,8 +172,10 @@ function LineMarkdownChart({
 
 function PieMarkdownChart({
   chart,
+  isAnimationActive,
 }: {
   chart: Extract<ChatMarkdownChartBlock, { type: "pie" }>
+  isAnimationActive: boolean
 }) {
   const config = buildPieConfig(chart)
   const colors = chart.data.map(
@@ -167,6 +192,7 @@ function PieMarkdownChart({
           innerRadius={46}
           outerRadius={78}
           paddingAngle={4}
+          isAnimationActive={isAnimationActive}
         >
           {chart.data.map((row, index) => (
             <Cell

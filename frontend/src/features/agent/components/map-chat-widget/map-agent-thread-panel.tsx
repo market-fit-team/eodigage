@@ -213,9 +213,6 @@ function MapAgentThreadContent({
   const selectedOnboarding = useChatWorkspace(
     (state) => state.selectedOnboarding
   )
-  const setSelectedOnboarding = useChatWorkspace(
-    (state) => state.setSelectedOnboarding
-  )
   const [rightPanel, setRightPanel] = useState<ChatRightPanel | null>(null)
   const documentsQuery = useListDocumentsApiV1AgentDocumentsGet()
   const marketFavoritesQuery =
@@ -414,11 +411,8 @@ function MapAgentThreadContent({
         artifacts={artifacts}
         documents={documents}
         marketFavorites={marketFavorites}
-        hasOnboardingContext={selectedOnboarding !== null}
-        isOnboardingContextRemoving={false}
         isRightPanelOpen={Boolean(resolvedRightPanel)}
         isExpanded={!resolvedRightPanel}
-        onRemoveOnboardingContext={() => setSelectedOnboarding(null)}
         onSetRightPanel={handleSetRightPanel}
         onToggleExpand={() =>
           handleSetRightPanel(resolvedRightPanel ? null : { kind: "library" })

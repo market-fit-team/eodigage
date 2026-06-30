@@ -41,9 +41,17 @@ const workspaceState = vi.hoisted(() => ({
   current: {
     selectedArtifactIds: ["artifact-1"],
     selectedDocumentIds: ["doc-1"],
+    selectedMarketDongCodes: [] as string[],
+    selectedOnboarding: null as {
+      resultCode: string
+      profileName: string
+      selectedCategoryCode?: string | null
+    } | null,
     setRightPanel: vi.fn(),
     toggleArtifact: vi.fn(),
     toggleDocument: vi.fn(),
+    toggleMarketArea: vi.fn(),
+    setSelectedOnboarding: vi.fn(),
   },
 }))
 
@@ -169,6 +177,8 @@ describe("ChatView", () => {
     vi.clearAllMocks()
     workspaceState.current.selectedArtifactIds = ["artifact-1"]
     workspaceState.current.selectedDocumentIds = ["doc-1"]
+    workspaceState.current.selectedMarketDongCodes = []
+    workspaceState.current.selectedOnboarding = null
   })
 
   it("선택된 문서와 아티팩트 id를 메시지 전송 옵션에 포함한다.", () => {
@@ -192,6 +202,8 @@ describe("ChatView", () => {
     expect(submitMessage).toHaveBeenCalledWith("테스트 메시지", {
       selectedArtifactIds: ["artifact-1"],
       selectedDocumentIds: ["doc-1"],
+      selectedMarketDongCodes: [],
+      selectedOnboarding: null,
     })
   })
 
@@ -235,6 +247,8 @@ describe("ChatView", () => {
     expect(submitMessage).toHaveBeenCalledWith("엔터 전송", {
       selectedArtifactIds: ["artifact-1"],
       selectedDocumentIds: ["doc-1"],
+      selectedMarketDongCodes: [],
+      selectedOnboarding: null,
     })
   })
 
@@ -361,6 +375,8 @@ describe("ChatView", () => {
     expect(submitMessage).toHaveBeenCalledWith("응답 중에도 초안 작성", {
       selectedArtifactIds: ["artifact-1"],
       selectedDocumentIds: ["doc-1"],
+      selectedMarketDongCodes: [],
+      selectedOnboarding: null,
     })
   })
 
@@ -423,7 +439,7 @@ describe("ChatView", () => {
     expect(removeQueuedMessage).toHaveBeenCalledWith("queue-1")
   })
 
-  it("창업 성향이 포함되면 컴포저 칩을 보여주고 제거 버튼을 누를 수 있다.", () => {
+  it("성향 분석이 포함되면 컴포저 칩을 보여주고 제거 버튼을 누를 수 있다.", () => {
     streamState.current = {
       hitlInterrupts: [],
       isBusy: false,
@@ -433,18 +449,20 @@ describe("ChatView", () => {
       queuedMessages: [],
       toolCalls: [],
     }
-    const onRemoveOnboardingContext = vi.fn()
+    workspaceState.current.selectedOnboarding = {
+      resultCode: "onboarding-1",
+      profileName: "탐색형",
+    }
 
-    renderChatView({
-      hasOnboardingContext: true,
-      onRemoveOnboardingContext,
-    })
+    renderChatView()
 
-    expect(screen.getByText("창업 성향")).toBeInTheDocument()
+    expect(screen.getByText("성향 · 탐색형")).toBeInTheDocument()
 
-    fireEvent.click(screen.getByRole("button", { name: "창업 성향 포함 해제" }))
+    fireEvent.click(screen.getByRole("button", { name: "성향 분석 선택 해제" }))
 
-    expect(onRemoveOnboardingContext).toHaveBeenCalledTimes(1)
+    expect(workspaceState.current.setSelectedOnboarding).toHaveBeenCalledWith(
+      null
+    )
   })
 
   it("권한 변경 메뉴에서 프리셋을 선택할 수 있다.", async () => {
