@@ -34,9 +34,11 @@ rounds_dir: rounds
 
 defaults:
   allowed_tools:
+    - before_research
     - web_search
     - web_fetch
   interrupt_on:
+    before_research: false
     web_search: false
     web_fetch: false
     artifact_get:

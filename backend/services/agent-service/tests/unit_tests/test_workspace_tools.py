@@ -10,6 +10,7 @@ def test_workspace_read_tools_are_allowed_by_default() -> None:
     """사용자 데이터를 바꾸지 않는 조회 도구는 승인 없이 실행할 수 있다."""
 
     for tool_name in (
+        "before_research",
         "memory_search",
         "artifact_get",
         "document_search",
@@ -42,6 +43,34 @@ def test_workspace_mutation_tools_are_default_deny() -> None:
         spec = CHAT_TOOL_SPECS_BY_NAME[tool_name]
         assert spec.default_allowed is False
         assert spec.allowed_decisions == ["approve", "edit", "reject", "respond"]
+
+
+def test_before_research_tool_returns_internal_research_guide() -> None:
+    """검색 전 도구는 파라미터 없이 긴 리서치 가이드를 반환해야 한다."""
+
+    spec = CHAT_TOOL_SPECS_BY_NAME["before_research"]
+    tool = spec.tool
+
+    assert spec.default_allowed is True
+    assert tool.args == {}
+    assert "상권 분석 리포트" in tool.description
+    assert "파라미터 없이 호출" in tool.description
+    assert "few-shot" in tool.description
+
+    result = tool.invoke({})
+
+    assert len(result) > 10000
+    assert "내부 리서치 가이드" in result
+    assert "창업 희망 지역" in result
+    assert "총 창업 예산" in result
+    assert "직원 수" in result
+    assert "목표 월 순수익" in result
+    assert "web_search 사용 원칙" in result
+    assert "검색 결과가 부족하거나 부정확할 때" in result
+    assert "차트 작성 규칙" in result
+    assert "few-shot 예시" in result
+    assert "성동구 카페 창업 커머셜 리포트" in result
+    assert "```chart" in result
 
 
 def test_system_context_refresh_flags_follow_memory_and_onboarding_mutations() -> None:
