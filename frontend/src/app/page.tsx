@@ -7,14 +7,16 @@ import { TrendForecastBannerWidget } from "@/features/trend/components/trend-for
 
 export default function HomePage() {
   return (
-    <main className="flex-1 bg-muted/30 pb-20">
+    <main className="flex-1 bg-background pb-20">
       <Suspense fallback={<TrendForecastBannerSkeleton />}>
         <TrendForecastBannerWidget />
       </Suspense>
 
-      <div className="mx-auto mt-12 max-w-7xl space-y-16 px-4 sm:px-6 lg:px-8">
-        <HomeCtaWidget />
-        <MainPostCarouselWidgetContainer />
+      <div className="bg-background py-10">
+        <div className="mx-auto max-w-7xl space-y-9 px-4 sm:px-6 lg:px-8">
+          <MainPostCarouselWidgetContainer />
+          <HomeCtaWidget />
+        </div>
       </div>
     </main>
   )

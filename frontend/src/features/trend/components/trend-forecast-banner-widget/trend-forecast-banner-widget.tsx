@@ -12,7 +12,7 @@ export async function TrendForecastBannerWidget() {
   if (!trendForecastBanner) return null
 
   return (
-    <section className="border-b border-border bg-background py-16 sm:py-20">
+    <section className="bg-primary py-10 text-primary-foreground sm:py-12">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <TrendBannerBlock banner={trendForecastBanner} />
       </div>

@@ -9,9 +9,9 @@ function DetailReportSkeletonCard({
   rows?: number
 }) {
   return (
-    <Card className={className}>
-      <CardHeader>
-        <Skeleton className="h-4 w-36" />
+    <Card className={`overflow-hidden border-border shadow-sm ${className}`}>
+      <CardHeader className="border-b bg-card">
+        <Skeleton className="h-8 w-56 rounded-lg" />
       </CardHeader>
       <CardContent className="space-y-3">
         {Array.from({ length: rows }).map((_, index) => (

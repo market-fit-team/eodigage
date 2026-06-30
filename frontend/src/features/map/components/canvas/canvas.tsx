@@ -65,7 +65,7 @@ export function Canvas() {
   return (
     <div
       data-map-canvas
-      className="relative h-full min-h-0 w-full overflow-hidden bg-background select-none"
+      className="relative h-full min-h-0 w-full overflow-hidden bg-[#f7f8fb] select-none"
     >
       <div ref={mapContainerRef} className="absolute inset-0 h-full w-full" />
       {isAdminAreasLoading ? (

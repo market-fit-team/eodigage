@@ -5,7 +5,7 @@ export function OnboardingResultPredictionPanelSkeleton() {
   return (
     <>
       <div className="flex items-center gap-2">
-        <span className="h-4 w-1 rounded-full bg-primary/30" />
+        <span className="h-4 w-1 rounded-full bg-border" />
         <Skeleton className="h-5 w-36" />
       </div>
 

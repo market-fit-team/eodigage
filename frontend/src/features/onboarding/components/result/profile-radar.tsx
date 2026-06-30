@@ -123,12 +123,12 @@ export function ProfileRadar({ profile }: ProfileRadarProps) {
           >
             <stop
               offset="0%"
-              stopColor="oklch(0.55 0.15 250)"
+              stopColor="var(--chart-2)"
               stopOpacity={0.25}
             />
             <stop
               offset="100%"
-              stopColor="oklch(0.55 0.15 250)"
+              stopColor="var(--chart-2)"
               stopOpacity={0.08}
             />
           </linearGradient>
@@ -137,7 +137,7 @@ export function ProfileRadar({ profile }: ProfileRadarProps) {
         <path
           d={polygonPath}
           fill="url(#onboarding-radar-gradient)"
-          stroke="oklch(0.55 0.15 250)"
+          stroke="var(--chart-2)"
           strokeWidth={2}
         />
 
@@ -147,7 +147,7 @@ export function ProfileRadar({ profile }: ProfileRadarProps) {
             cx={point.x}
             cy={point.y}
             r={3.5}
-            fill="oklch(0.55 0.15 250)"
+            fill="var(--chart-2)"
             stroke="white"
             strokeWidth={1.5}
           />

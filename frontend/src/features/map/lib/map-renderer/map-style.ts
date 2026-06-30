@@ -10,12 +10,19 @@ export const baseMapStyle: StyleSpecification = {
     {
       id: BASE_MAP_BACKGROUND_LAYER_ID,
       paint: {
-        "background-color": "#f8fafc",
+        "background-color": "#f7f8fb",
       },
       type: "background",
     },
     {
       id: BASE_MAP_RASTER_LAYER_ID,
+      paint: {
+        "raster-brightness-max": 1,
+        "raster-brightness-min": 0.08,
+        "raster-contrast": -0.18,
+        "raster-opacity": 1,
+        "raster-saturation": -0.36,
+      },
       source: "osm",
       type: "raster",
     },

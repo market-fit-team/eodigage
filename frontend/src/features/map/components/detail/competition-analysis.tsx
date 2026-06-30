@@ -1,4 +1,4 @@
-import { Store } from "lucide-react"
+import { AlertTriangle, ShieldCheck, Store, TrendingUp } from "lucide-react"
 import { Cell, Pie, PieChart } from "recharts"
 import type {
   CompetitionStats,
@@ -16,17 +16,25 @@ type CompetitionAnalysisProps = {
 
 type CompetitionInsightGroup = {
   description: string
+  icon: typeof ShieldCheck
   items: IndustryCompetitionRank[]
   label: string
+  tone: "default" | "danger" | "positive"
   valueKey: "closeRate" | "openRate"
 }
 
 const formatRate = (value: number) => `${value.toFixed(1)}%`
+const DETAIL_CHART_COLORS = {
+  dark: "var(--chart-1)",
+  mid: "var(--chart-2)",
+} as const
 
 function CompetitionInsightList({
   description,
+  icon: Icon,
   items,
   label,
+  tone,
   valueKey,
 }: CompetitionInsightGroup) {
   if (items.length === 0) {
@@ -34,18 +42,31 @@ function CompetitionInsightList({
   }
 
   return (
-    <div className="rounded-xl border border-border bg-background/70 p-3">
-      <div className="mb-2">
-        <p className="text-xs font-medium text-foreground">{label}</p>
-        <p className="mt-0.5 text-[10px] text-muted-foreground">
-          {description}
-        </p>
+    <div className="rounded-xl border bg-background p-4">
+      <div className="mb-3 flex items-start gap-2">
+        <span
+          className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-lg ${
+            tone === "danger"
+              ? "bg-destructive/10 text-destructive"
+              : tone === "positive"
+                ? "bg-muted text-muted-foreground"
+                : "bg-muted text-muted-foreground"
+          }`}
+        >
+          <Icon className="h-4 w-4" />
+        </span>
+        <div className="min-w-0">
+          <p className="text-xs font-medium text-foreground">{label}</p>
+          <p className="mt-0.5 text-[10px] text-muted-foreground">
+            {description}
+          </p>
+        </div>
       </div>
       <div className="flex flex-wrap gap-1.5">
         {items.slice(0, 3).map((item) => (
           <span
             key={`${label}-${item.industryCode}-${item.rank}`}
-            className="rounded-full bg-muted px-2.5 py-1 text-[11px] text-muted-foreground"
+            className="rounded-full border bg-card px-2.5 py-1 text-[11px] text-muted-foreground"
           >
             <span className="font-medium text-foreground">
               {item.industryName}
@@ -69,12 +90,12 @@ export function CompetitionAnalysisSection({
     {
       name: "프랜차이즈",
       value: competition.franchiseStoreCount,
-      fill: "var(--chart-4)",
+      fill: DETAIL_CHART_COLORS.dark,
     },
     {
       name: "일반 점포",
       value: independentStoreCount,
-      fill: "var(--chart-1)",
+      fill: DETAIL_CHART_COLORS.mid,
     },
   ]
   const maxStoreFlow = Math.max(
@@ -86,20 +107,26 @@ export function CompetitionAnalysisSection({
   const insightGroups: CompetitionInsightGroup[] = [
     {
       description: "폐업 부담이 상대적으로 낮은 업종입니다.",
+      icon: ShieldCheck,
       items: competition.lowClosureRateTop3,
       label: "폐업률 낮은 업종",
+      tone: "positive",
       valueKey: "closeRate",
     },
     {
       description: "폐업률이 높아 진입 리스크를 확인해야 합니다.",
+      icon: AlertTriangle,
       items: competition.highClosureRateTop3,
       label: "폐업률 높은 업종",
+      tone: "danger",
       valueKey: "closeRate",
     },
     {
       description: "신규 점포 진입이 활발한 업종입니다.",
+      icon: TrendingUp,
       items: competition.highOpenRateTop3,
       label: "개업률 높은 업종",
+      tone: "default",
       valueKey: "openRate",
     },
   ]
@@ -110,11 +137,16 @@ export function CompetitionAnalysisSection({
         id="competition-analysis-title"
         className="flex items-center gap-1.5 text-sm font-semibold text-foreground"
       >
-        <Store className="h-4 w-4 text-primary" />
+        <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-muted text-muted-foreground">
+          <Store className="h-4 w-4" />
+        </span>
         경쟁 분석
       </h3>
-      <div className="mt-4 grid gap-6 lg:grid-cols-2 lg:items-center">
-        <section aria-label="점포 구성">
+      <div className="mt-4 grid gap-5 lg:grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)] lg:items-stretch">
+        <section
+          aria-label="점포 구성"
+          className="border-b border-border pb-5 lg:border-r lg:border-b-0 lg:pr-5 lg:pb-0"
+        >
           <div className="relative">
             <ChartContainer
               config={{ value: { label: "점포 수" } }}
@@ -167,7 +199,10 @@ export function CompetitionAnalysisSection({
           </div>
         </section>
 
-        <section className="space-y-5" aria-label="개업 및 폐업 비교">
+        <section
+          className="space-y-5"
+          aria-label="개업 및 폐업 비교"
+        >
           <div>
             <p className="text-xs font-medium text-foreground">개·폐업 흐름</p>
             <p className="mt-1 text-[10px] text-muted-foreground">
@@ -190,7 +225,7 @@ export function CompetitionAnalysisSection({
                 <div
                   className={
                     index === 0
-                      ? "h-full rounded-full bg-foreground"
+                      ? "h-full rounded-full bg-primary"
                       : "h-full rounded-full bg-muted-foreground"
                   }
                   style={{ width: `${(item.value / maxStoreFlow) * 100}%` }}
@@ -199,7 +234,7 @@ export function CompetitionAnalysisSection({
             </div>
           ))}
 
-          <div className="flex items-center justify-between rounded-lg bg-muted/40 px-3 py-3 text-xs">
+          <div className="flex items-center justify-between rounded-xl border border-border bg-muted px-3 py-3 text-xs">
             <div>
               <span className="block text-muted-foreground">점포 순증감</span>
               <span className="text-[10px] text-muted-foreground">

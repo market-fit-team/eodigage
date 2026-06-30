@@ -132,7 +132,7 @@ export function OnboardingSurveyClient() {
   }
 
   return (
-    <div className="min-h-[calc(100dvh-3.5rem)] bg-linear-to-br from-background via-background to-accent/20">
+    <div className="min-h-[calc(100dvh-3.5rem)] bg-background">
       {isSubmitting ? (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-background/80 backdrop-blur-sm">
           <div
@@ -142,7 +142,7 @@ export function OnboardingSurveyClient() {
             }}
           >
             <div className="relative h-12 w-12">
-              <div className="absolute inset-0 rounded-full border-2 border-primary/20" />
+              <div className="absolute inset-0 rounded-full border-2 border-border" />
               <div className="absolute inset-0 animate-spin rounded-full border-2 border-transparent border-t-primary" />
             </div>
             <p className="text-sm text-muted-foreground">

@@ -55,32 +55,32 @@
   --card-foreground: oklch(0.145 0 0);
   --popover: oklch(1 0 0);
   --popover-foreground: oklch(0.145 0 0);
-  --primary: oklch(0.205 0 0);
+  --primary: oklch(0.208 0.042 265.755);
   --primary-foreground: oklch(0.985 0 0);
   --secondary: oklch(0.97 0 0);
   --secondary-foreground: oklch(0.205 0 0);
   --muted: oklch(0.97 0 0);
   --muted-foreground: oklch(0.556 0 0);
-  --accent: oklch(0.97 0 0);
-  --accent-foreground: oklch(0.205 0 0);
+  --accent: oklch(0.968 0.007 247.896);
+  --accent-foreground: oklch(0.279 0.041 260.031);
   --destructive: oklch(0.577 0.245 27.325);
   --border: oklch(0.922 0 0);
   --input: oklch(0.922 0 0);
-  --ring: oklch(0.708 0 0);
-  --chart-1: oklch(0.87 0 0);
-  --chart-2: oklch(0.556 0 0);
-  --chart-3: oklch(0.439 0 0);
-  --chart-4: oklch(0.371 0 0);
-  --chart-5: oklch(0.269 0 0);
+  --ring: oklch(0.446 0.043 257.281);
+  --chart-1: oklch(0.208 0.042 265.755);
+  --chart-2: oklch(0.446 0.043 257.281);
+  --chart-3: oklch(0.554 0.046 257.417);
+  --chart-4: oklch(0.704 0.04 256.788);
+  --chart-5: oklch(0.869 0.022 252.894);
   --radius: 0.625rem;
   --sidebar: oklch(0.985 0 0);
   --sidebar-foreground: oklch(0.145 0 0);
-  --sidebar-primary: oklch(0.205 0 0);
+  --sidebar-primary: oklch(0.208 0.042 265.755);
   --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.97 0 0);
-  --sidebar-accent-foreground: oklch(0.205 0 0);
+  --sidebar-accent: oklch(0.968 0.007 247.896);
+  --sidebar-accent-foreground: oklch(0.279 0.041 260.031);
   --sidebar-border: oklch(0.922 0 0);
-  --sidebar-ring: oklch(0.708 0 0);
+  --sidebar-ring: oklch(0.446 0.043 257.281);
 }
 
 .dark {
@@ -90,31 +90,31 @@
   --card-foreground: oklch(0.985 0 0);
   --popover: oklch(0.205 0 0);
   --popover-foreground: oklch(0.985 0 0);
-  --primary: oklch(0.922 0 0);
-  --primary-foreground: oklch(0.205 0 0);
+  --primary: oklch(0.869 0.022 252.894);
+  --primary-foreground: oklch(0.985 0 0);
   --secondary: oklch(0.269 0 0);
   --secondary-foreground: oklch(0.985 0 0);
   --muted: oklch(0.269 0 0);
   --muted-foreground: oklch(0.708 0 0);
-  --accent: oklch(0.269 0 0);
+  --accent: oklch(0.279 0.041 260.031);
   --accent-foreground: oklch(0.985 0 0);
   --destructive: oklch(0.704 0.191 22.216);
   --border: oklch(1 0 0 / 10%);
   --input: oklch(1 0 0 / 15%);
-  --ring: oklch(0.556 0 0);
-  --chart-1: oklch(0.87 0 0);
-  --chart-2: oklch(0.556 0 0);
-  --chart-3: oklch(0.439 0 0);
-  --chart-4: oklch(0.371 0 0);
-  --chart-5: oklch(0.269 0 0);
+  --ring: oklch(0.704 0.04 256.788);
+  --chart-1: oklch(0.869 0.022 252.894);
+  --chart-2: oklch(0.704 0.04 256.788);
+  --chart-3: oklch(0.554 0.046 257.417);
+  --chart-4: oklch(0.446 0.043 257.281);
+  --chart-5: oklch(0.279 0.041 260.031);
   --sidebar: oklch(0.205 0 0);
   --sidebar-foreground: oklch(0.985 0 0);
-  --sidebar-primary: oklch(0.488 0.243 264.376);
+  --sidebar-primary: oklch(0.869 0.022 252.894);
   --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.269 0 0);
+  --sidebar-accent: oklch(0.279 0.041 260.031);
   --sidebar-accent-foreground: oklch(0.985 0 0);
   --sidebar-border: oklch(1 0 0 / 10%);
-  --sidebar-ring: oklch(0.556 0 0);
+  --sidebar-ring: oklch(0.704 0.04 256.788);
 }
 
 @layer base {
@@ -133,8 +133,58 @@
   display: flex;
   flex-direction: row;
   align-items: flex-end;
+  gap: 8px;
+  right: 18px;
+  bottom: 18px;
+}
+
+[data-map-canvas] .maplibregl-ctrl-group {
+  overflow: hidden;
+  border: 1px solid oklch(0.922 0 0 / 72%);
+  border-radius: 12px;
+  background: oklch(1 0 0 / 92%);
+  box-shadow: 0 12px 30px oklch(0.145 0 0 / 14%);
+}
+
+[data-map-canvas] .maplibregl-ctrl-group button {
+  width: 44px;
+  height: 44px;
+}
+
+[data-map-canvas] .maplibregl-ctrl-group button + button {
+  border-top-color: oklch(0.922 0 0 / 70%);
+}
+
+[data-map-canvas] .maplibregl-ctrl-group button:hover {
+  background-color: oklch(0.97 0 0 / 92%);
 }
 
 [data-map-canvas] .maplibregl-ctrl-attrib {
-  opacity: 0.6;
+  border-radius: 999px;
+  opacity: 0.42;
+}
+
+[data-map-canvas] .map-selected-dong-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 74px;
+  height: 34px;
+  padding: 0 16px;
+  border: 1px solid oklch(1 0 0 / 38%);
+  border-radius: 999px;
+  background: #0f172a;
+  box-shadow:
+    0 12px 24px oklch(0.208 0.042 265.755 / 24%),
+    inset 0 1px 0 oklch(1 0 0 / 22%);
+  color: #ffffff;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 700;
+  line-height: 1;
+  white-space: nowrap;
+}
+
+[data-map-canvas] .map-selected-dong-badge:hover {
+  background: #1e293b;
 }

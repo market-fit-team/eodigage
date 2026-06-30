@@ -45,7 +45,7 @@ const syncBaseMapTheme = (map: Map, isDarkMode: boolean) => {
     map.setPaintProperty(
       BASE_MAP_BACKGROUND_LAYER_ID,
       "background-color",
-      isDarkMode ? "#020617" : "#f8fafc"
+      isDarkMode ? "#020617" : "#f7f8fb"
     )
   }
 
@@ -56,7 +56,7 @@ const syncBaseMapTheme = (map: Map, isDarkMode: boolean) => {
   map.setPaintProperty(
     BASE_MAP_RASTER_LAYER_ID,
     "raster-brightness-min",
-    isDarkMode ? 0.05 : 0
+    isDarkMode ? 0.05 : 0.08
   )
   map.setPaintProperty(
     BASE_MAP_RASTER_LAYER_ID,
@@ -66,12 +66,17 @@ const syncBaseMapTheme = (map: Map, isDarkMode: boolean) => {
   map.setPaintProperty(
     BASE_MAP_RASTER_LAYER_ID,
     "raster-saturation",
-    isDarkMode ? -0.7 : 0
+    isDarkMode ? -0.7 : -0.36
   )
   map.setPaintProperty(
     BASE_MAP_RASTER_LAYER_ID,
     "raster-contrast",
-    isDarkMode ? 0.2 : 0
+    isDarkMode ? 0.2 : -0.18
+  )
+  map.setPaintProperty(
+    BASE_MAP_RASTER_LAYER_ID,
+    "raster-opacity",
+    isDarkMode ? 0.82 : 1
   )
 }
 
@@ -96,6 +101,37 @@ const clampPaddingToCanvas = (
   }
 }
 
+const createSelectedDongBadgeElement = (dongName: string) => {
+  const element = document.createElement("button")
+
+  element.type = "button"
+  element.className = "map-selected-dong-badge"
+  element.textContent = dongName
+  element.setAttribute("aria-label", `${dongName} 선택됨`)
+  Object.assign(element.style, {
+    alignItems: "center",
+    background: "#0f172a",
+    border: "1px solid rgb(255 255 255 / 38%)",
+    borderRadius: "999px",
+    boxShadow:
+      "0 12px 24px rgb(15 23 42 / 24%), inset 0 1px 0 rgb(255 255 255 / 22%)",
+    color: "#ffffff",
+    cursor: "pointer",
+    display: "inline-flex",
+    fontSize: "14px",
+    fontWeight: "700",
+    height: "34px",
+    justifyContent: "center",
+    lineHeight: "1",
+    minWidth: "74px",
+    padding: "0 16px",
+    whiteSpace: "nowrap",
+    zIndex: "5",
+  })
+
+  return element
+}
+
 export function useDongPolygonMap({
   adminAreas,
   containerRef,
@@ -116,6 +152,8 @@ export function useDongPolygonMap({
   const maplibreRef = useRef<typeof MapLibreGl | null>(null)
   // 현재 지도에 떠 있는 검색 결과 마커들. 검색 결과가 바뀔 때마다 통째로 교체한다.
   const searchMarkersRef = useRef<Marker[]>([])
+  // 선택된 행정동 이름은 스크린샷처럼 배경이 있는 badge marker로 표시한다.
+  const selectedDongBadgeMarkerRef = useRef<Marker | null>(null)
   const isMapLoadedRef = useRef(false)
   const arePolygonEventsBoundRef = useRef(false)
   const arePolygonLayersReadyRef = useRef(false)
@@ -168,6 +206,37 @@ export function useDongPolygonMap({
 
       return marker
     })
+  })
+  const syncSelectedDongBadge = useEffectEvent((map: Map) => {
+    const maplibregl = maplibreRef.current
+
+    selectedDongBadgeMarkerRef.current?.remove()
+    selectedDongBadgeMarkerRef.current = null
+
+    if (!maplibregl || !adminAreas || !selectedDongCode) {
+      return
+    }
+
+    const selectedDong = getDongByCode(adminAreas, selectedDongCode)
+
+    if (!selectedDong) {
+      return
+    }
+
+    const element = createSelectedDongBadgeElement(selectedDong.name)
+
+    element.addEventListener("click", (event) => {
+      event.stopPropagation()
+      onSelectDong(selectedDongCode)
+      onFocusMapOnDong(selectedDongCode)
+    })
+
+    selectedDongBadgeMarkerRef.current = new maplibregl.Marker({
+      anchor: "center",
+      element,
+    })
+      .setLngLat([selectedDong.centerLng, selectedDong.centerLat])
+      .addTo(map)
   })
   const syncCurrentBaseMapTheme = useEffectEvent((map: Map) => {
     syncBaseMapTheme(map, isDarkMode)
@@ -337,6 +406,7 @@ export function useDongPolygonMap({
         ensurePolygonLayers(map)
         syncCurrentLayerState(map)
         syncSearchMarkers(map)
+        syncSelectedDongBadge(map)
         fitCurrentRecommendedBounds(map)
         fitCurrentSearchBounds(map)
         if (pendingFocusRequestRef.current) {
@@ -358,6 +428,8 @@ export function useDongPolygonMap({
       }
       searchMarkersRef.current.forEach((marker) => marker.remove())
       searchMarkersRef.current = []
+      selectedDongBadgeMarkerRef.current?.remove()
+      selectedDongBadgeMarkerRef.current = null
       mapRef.current?.remove()
       mapRef.current = null
       maplibreRef.current = null
@@ -394,6 +466,16 @@ export function useDongPolygonMap({
     selectedDongCode,
   ])
 
+  useEffect(() => {
+    const map = mapRef.current
+
+    if (!map || !isMapLoadedRef.current) {
+      return
+    }
+
+    syncSelectedDongBadge(map)
+  }, [adminAreas, selectedDongCode])
+
   // 검색 결과가 바뀌면 마커를 다시 그리고, 결과 영역이 모두 보이도록 카메라를 맞춘다.
   useEffect(() => {
     const map = mapRef.current
@@ -414,6 +496,7 @@ export function useDongPolygonMap({
     }
 
     ensurePolygonLayers(map)
+    syncSelectedDongBadge(map)
     fitCurrentRecommendedBounds(map)
     fitCurrentSearchBounds(map)
     if (pendingFocusRequestRef.current) {

@@ -83,7 +83,7 @@ export function RecommendationCard({
           </div>
           <div className="relative h-2 w-full overflow-hidden rounded-full bg-muted">
             <div
-              className="h-full rounded-full bg-linear-to-r from-primary/60 to-primary transition-all duration-700 ease-out"
+              className="h-full rounded-full bg-primary transition-all duration-700 ease-out"
               style={{ width: scoreBarWidth }}
             />
           </div>

@@ -27,7 +27,7 @@ export function OnboardingResultContent({
   const insights = buildOnboardingInsights(userProfile)
 
   return (
-    <main className="min-h-[calc(100dvh-3.5rem)] bg-linear-to-b from-background via-background to-accent/10 px-5 py-8 md:px-8 md:py-12">
+    <main className="min-h-[calc(100dvh-3.5rem)] bg-background px-5 py-8 md:px-8 md:py-12">
       <div className="mx-auto max-w-6xl">
         <header className="mb-8 md:mb-10">
           <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
@@ -56,10 +56,10 @@ export function OnboardingResultContent({
             </h2>
 
             <div className="flex flex-col gap-5">
-              <Card className="border-primary/15 bg-primary/2">
+              <Card className="border-border bg-card shadow-sm">
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2 text-sm">
-                    <Lightbulb className="h-4 w-4 text-primary/70" />
+                    <Lightbulb className="h-4 w-4 text-primary" />
                     핵심 인사이트
                   </CardTitle>
                 </CardHeader>

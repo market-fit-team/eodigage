@@ -22,7 +22,9 @@ export function IndustrySalesRankingSection({
         id="industry-sales-ranking-title"
         className="flex items-center gap-1.5 text-sm font-semibold text-foreground"
       >
-        <BarChart3 className="h-4 w-4 text-primary" />
+        <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-muted text-muted-foreground">
+          <BarChart3 className="h-4 w-4" />
+        </span>
         업종별 추정매출
       </h3>
       {rankings.length === 0 ? (
@@ -33,7 +35,7 @@ export function IndustrySalesRankingSection({
       {rankings.length > 0 ? (
         <div className="mt-4 overflow-x-auto">
           <Table className="min-w-[720px]">
-            <TableHeader>
+            <TableHeader className="bg-muted/50">
               <TableRow>
                 <TableHead>순위</TableHead>
                 <TableHead>업종</TableHead>
@@ -45,9 +47,11 @@ export function IndustrySalesRankingSection({
             </TableHeader>
             <TableBody>
               {rankings.map((row) => (
-                <TableRow key={row.rank}>
-                  <TableCell className="font-mono font-semibold text-foreground">
-                    {row.rank}
+                <TableRow key={row.rank} className="hover:bg-muted">
+                  <TableCell>
+                    <span className="flex h-7 w-7 items-center justify-center rounded-full bg-muted font-mono text-xs font-semibold text-muted-foreground">
+                      {row.rank}
+                    </span>
                   </TableCell>
                   <TableCell className="font-medium text-foreground">
                     {row.industryName}

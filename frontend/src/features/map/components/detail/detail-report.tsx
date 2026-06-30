@@ -37,6 +37,7 @@ function DetailReportContent({ mode }: { mode: DetailReportMode }) {
       isLoading={isLoading}
       onBack={handleBack}
       report={report}
+      sigunguName={dong?.sigunguName ?? ""}
     />
   )
 }
@@ -45,7 +46,7 @@ export function DetailReport({ mode = "page" }: { mode?: DetailReportMode }) {
   return (
     <Suspense
       fallback={
-        <div className="flex min-h-full items-center justify-center bg-muted/30 text-xs text-muted-foreground">
+        <div className="flex min-h-full items-center justify-center bg-background text-xs text-muted-foreground">
           상권 정보를 불러오는 중...
         </div>
       }

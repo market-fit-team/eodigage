@@ -15,7 +15,7 @@ type DetailReportSectionsProps = {
 
 function MissingDetailSection({ title }: { title: string }) {
   return (
-    <Card className="lg:col-span-2">
+    <Card className="border-border shadow-sm lg:col-span-2">
       <CardContent>
         <Alert>
           <AlertTitle>{title}</AlertTitle>
