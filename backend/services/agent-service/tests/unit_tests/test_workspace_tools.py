@@ -162,11 +162,11 @@ async def test_market_search_tool_returns_map_area_result(
             industry_code: str | None,
         ) -> dict[str, object]:
             assert keyword == "성수"
-            assert industry_code == "CS100001"
+            assert industry_code is None
             return {
                 "keyword": keyword,
-                "industryCode": industry_code,
-                "industryName": "한식음식점",
+                "industryCode": None,
+                "industryName": None,
                 "areas": [
                     {
                         "centerLat": 37.544,
@@ -175,8 +175,8 @@ async def test_market_search_tool_returns_map_area_result(
                         "dongName": "성수2가3동",
                         "sigunguCode": "11200",
                         "sigunguName": "성동구",
-                        "industryCode": industry_code,
-                        "industryName": "한식음식점",
+                        "industryCode": None,
+                        "industryName": None,
                         "rank": 1,
                         "estimatedSalesAmount": 123456,
                     }
@@ -188,7 +188,6 @@ async def test_market_search_tool_returns_map_area_result(
     result = await module.market_search_areas.ainvoke(
         {
             "keyword": "성수",
-            "industry_code": "CS100001",
             "limit": 1,
         }
     )
@@ -196,17 +195,17 @@ async def test_market_search_tool_returns_map_area_result(
     assert result["type"] == "map_area_search_results"
     assert result["success"] is True
     assert result["keyword"] == "성수"
-    assert result["industryCode"] == "CS100001"
+    assert result["industryCode"] is None
     assert result["areas"][0]["dongCode"] == "11200690"
 
 
 @pytest.mark.asyncio
-async def test_market_search_tool_without_condition_returns_silent_error() -> None:
-    """검색 조건이 없으면 예외 대신 실패 결과를 반환한다."""
+async def test_market_search_tool_with_empty_keyword_returns_silent_error() -> None:
+    """키워드가 빈 문자열이면 예외 대신 실패 결과를 반환한다."""
 
     from agent.services.chat.tools.market_tool import market_tool as module
 
-    result = await module.market_search_areas.ainvoke({})
+    result = await module.market_search_areas.ainvoke({"keyword": "   "})
 
     assert result["type"] == "map_area_search_results"
     assert result["success"] is False

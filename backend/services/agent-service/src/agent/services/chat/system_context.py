@@ -37,7 +37,16 @@ def build_system_context(system_context_state: SystemContextState | None) -> str
     lines = ["<system_context>", _current_datetime_context_line()]
 
     if client_surface == "map":
-        lines.append('<client_surface name="map">---- 도구를 최소 2번 이상 호출합니다</client_surface>')
+        lines.append(
+            '<client_surface name="map">'
+            "사용자가 지도 화면에 있습니다. "
+            "사용자가 특정 지역·행정동·상권에 대해 물어보면 market_search_areas 도구를 적극 호출하여 "
+            "지도에 결과를 표시합니다. "
+            "web_serch도 좋지만 먼저 market_search_areas도구 를 우선합니다.  "
+            "지도 화면에서는 before_research 호출을 지양합니다.  "
+            "지도 검색 결과를 우선합니다."
+            "</client_surface>"
+        )
 
     if selected_documents:
         lines.append("<selected_documents>")

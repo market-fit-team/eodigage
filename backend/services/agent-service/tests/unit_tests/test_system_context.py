@@ -82,7 +82,8 @@ def test_build_system_context_renders_map_surface_instruction() -> None:
 
     assert result is not None
     assert '<client_surface name="map">' in result
-    assert "---- 도구를 최소 2번 이상 호출합니다" in result
+    assert "market_search_areas" in result
+    assert "before_research 호출을 지양" in result
 
 
 def test_build_system_context_renders_artifact_metadata_only() -> None:

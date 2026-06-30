@@ -77,21 +77,21 @@ def _error_result(message: str) -> dict[str, Any]:
 
 @tool
 async def market_search_areas(
-    keyword: str | None = None,
-    industry_code: str | None = None,
+    keyword: str,
     limit: int = 5,
 ) -> dict[str, Any]:
     """지도에 표시할 서울 행정동 상권 검색 결과를 조회합니다."""
 
     normalized_keyword = _trim_to_none(keyword)
-    normalized_industry_code = _trim_to_none(industry_code)
-    if normalized_keyword is None and normalized_industry_code is None:
-        return _error_result("keyword 또는 industry_code 중 하나 이상이 필요합니다.")
+    if normalized_keyword is None:
+        return _error_result(
+            "keyword는 필수입니다. 예: 을지로동, 신당동, 왕십리도선동, 성수1가1동"
+        )
 
     try:
         payload = await market_service_client.search_areas(
             keyword=normalized_keyword,
-            industry_code=normalized_industry_code,
+            industry_code=None,
         )
     except httpx.HTTPStatusError as exc:
         return _error_result(
@@ -126,8 +126,9 @@ MARKET_TOOL_SPECS: tuple[ToolSpec, ...] = (
         name="market_search_areas",
         description=(
             "지도 화면에서 지역을 찾거나 지도에 표시할 상권 후보가 필요할 때 호출합니다. "
-            "keyword는 구/행정동/상권명 검색어이고, industry_code는 상권 업종 코드입니다. "
-            "결과는 지도 UI가 사용할 행정동 코드, 이름, 중심좌표, 업종 매출 정보를 반환합니다."
+            "keyword에 행정동 이름을 넣으면 해당 지역의 행정동 목록을 반환합니다. 가령 '성수동'이 아닌 '성수1가1동', '성수' 와 같이 입력해야 합니다."
+            '예: keyword="성수", keyword="을지로", keyword="신당동". '
+            "결과의 areas는 지도 UI가 표시할 행정동 코드·이름·중심좌표입니다."
         ),
         category="rag",
         args_schema=market_search_areas.args_schema,
