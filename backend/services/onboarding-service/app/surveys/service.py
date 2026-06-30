@@ -175,8 +175,21 @@ def _score_question_effects(
 
     for selected_code in selected_codes:
         option = _find_option(question, selected_code)
-        for parameter_name, effect_value in option.get("effects", {}).items():
+        option_effects = option.get("effects", {})
+        handled_parameters: set[str] = set()
+
+        for parameter_name in question_primary:
             if parameter_name not in score_totals:
+                continue
+            applied_weight = PRIMARY_EFFECT_WEIGHT / divisor
+            score_totals[parameter_name] += float(option_effects.get(parameter_name, 0.0)) * applied_weight
+            score_weights[parameter_name] += applied_weight
+            handled_parameters.add(parameter_name)
+
+        for parameter_name, effect_value in option_effects.items():
+            if parameter_name not in score_totals:
+                continue
+            if parameter_name in handled_parameters:
                 continue
             if parameter_name in question_primary:
                 base_weight = PRIMARY_EFFECT_WEIGHT

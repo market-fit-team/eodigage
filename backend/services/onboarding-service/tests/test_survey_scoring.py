@@ -76,7 +76,7 @@ class SurveyScoringTestCase(unittest.TestCase):
         self.assertEqual(scored.answers["q12"], ["A", "C"])
         self.assertAlmostEqual(scored.area_user_profile.subway_dependency_level, 1.0)
         self.assertLess(scored.area_user_profile.budget_level, 0.2)
-        self.assertGreater(scored.area_user_profile.stability_level, 0.8)
+        self.assertGreater(scored.area_user_profile.stability_level, 0.7)
         self.assertGreater(scored.category_user_profile.lunch_preference_level, 0.8)
         self.assertGreater(scored.category_user_profile.female_preference_level, 0.8)
         self.assertLess(scored.category_user_profile.labor_intensity_tolerance, 0.2)
