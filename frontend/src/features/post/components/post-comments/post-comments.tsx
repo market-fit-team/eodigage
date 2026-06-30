@@ -91,10 +91,12 @@ export function PostComments({ postId }: PostCommentsProps) {
   }
 
   return (
-    <section className="mt-6 border-t border-neutral-200 pt-5">
+    <section className="mt-6 border-t border-border pt-5">
       <div className="mb-4 flex items-center justify-between">
-        <h3 className="text-base font-bold text-neutral-950">댓글</h3>
-        <span className="text-xs text-neutral-500">{comments.length}개</span>
+        <h3 className="text-base font-bold text-foreground">댓글</h3>
+        <span className="text-xs text-muted-foreground">
+          {comments.length}개
+        </span>
       </div>
 
       {isPending ? null : session ? (
@@ -111,40 +113,43 @@ export function PostComments({ postId }: PostCommentsProps) {
               size="sm"
               disabled={!content.trim() || isSubmitting}
               onClick={handleCreate}
+              className="dark:bg-accent dark:text-accent-foreground dark:hover:bg-accent/80"
             >
               댓글 등록
             </Button>
           </div>
         </div>
       ) : (
-        <p className="mb-5 rounded-lg bg-neutral-50 px-4 py-3 text-sm text-neutral-600">
+        <p className="mb-5 rounded-lg bg-muted px-4 py-3 text-sm text-muted-foreground">
           로그인하면 댓글을 작성할 수 있습니다.
         </p>
       )}
 
       {isLoading ? (
-        <p className="text-sm text-neutral-500">댓글을 불러오는 중입니다.</p>
+        <p className="text-sm text-muted-foreground">
+          댓글을 불러오는 중입니다.
+        </p>
       ) : error ? (
         <p role="alert" className="text-sm text-red-600">
           {error}
         </p>
       ) : comments.length === 0 ? (
-        <p className="text-sm text-neutral-500">아직 댓글이 없습니다.</p>
+        <p className="text-sm text-muted-foreground">아직 댓글이 없습니다.</p>
       ) : (
         <ul className="space-y-3">
           {comments.map((comment) => (
             <li
               key={comment.id}
-              className="rounded-lg border border-neutral-200 bg-white p-4"
+              className="rounded-lg border border-border bg-card p-4"
             >
               <div className="mb-2 flex items-center justify-between gap-3">
                 <div>
-                  <p className="text-sm font-semibold text-neutral-900">
+                  <p className="text-sm font-semibold text-foreground">
                     {comment.authorName}
                   </p>
                   <time
                     dateTime={comment.createdAt}
-                    className="text-xs text-neutral-500"
+                    className="text-xs text-muted-foreground"
                   >
                     {new Date(comment.createdAt).toLocaleString("ko-KR")}
                   </time>
@@ -200,7 +205,7 @@ export function PostComments({ postId }: PostCommentsProps) {
                   </div>
                 </div>
               ) : (
-                <p className="whitespace-pre-wrap text-sm leading-6 text-neutral-700">
+                <p className="whitespace-pre-wrap text-sm leading-6 text-foreground">
                   {comment.content}
                 </p>
               )}

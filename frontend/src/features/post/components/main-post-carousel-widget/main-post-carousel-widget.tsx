@@ -44,7 +44,7 @@ function LoadingState() {
       role="status"
       aria-label="게시글을 불러오는 중"
     >
-      <div className="flex min-h-[210px] flex-col rounded-2xl border border-border bg-white p-5 shadow-sm">
+      <div className="flex min-h-[210px] flex-col rounded-2xl border border-border bg-card p-5 shadow-sm">
         <Skeleton className="h-6 w-24" />
         <Skeleton className="mt-8 h-8 w-5/6" />
         <Skeleton className="mt-3 h-5 w-full" />
@@ -55,7 +55,7 @@ function LoadingState() {
         {Array.from({ length: 3 }).map((_, index) => (
           <div
             key={index}
-            className="rounded-xl border border-border bg-white p-4"
+            className="rounded-xl border border-border bg-card p-4"
           >
             <Skeleton className="h-4 w-16" />
             <Skeleton className="mt-4 h-5 w-full" />
@@ -72,7 +72,7 @@ const formatDate = (value: string) => new Date(value).toLocaleDateString("ko-KR"
 
 function PostBadge({ post }: { post: MainPostCarouselItem }) {
   return (
-    <span className="rounded-full border border-border bg-white px-2.5 py-1 text-[11px] font-semibold text-muted-foreground">
+    <span className="rounded-full border border-border bg-card px-2.5 py-1 text-[11px] font-semibold text-muted-foreground">
       {getBadgeLabel(post)}
     </span>
   )
@@ -87,7 +87,7 @@ function FeaturedPost({
 }) {
   return (
     <article
-      className="flex min-h-[200px] rounded-xl border border-border bg-white shadow-sm"
+      className="flex min-h-[200px] rounded-xl border border-border bg-card shadow-sm"
     >
       <div className="flex min-w-0 flex-1 flex-col p-5">
         <div className="flex flex-wrap items-center gap-2">
@@ -193,10 +193,10 @@ export function MainPostCarouselWidget({
               {secondaryPosts.map((post) => (
                 <article
                   key={post.id}
-                  className="group rounded-lg border border-border bg-white p-4 shadow-sm transition-[border-color,box-shadow] hover:border-border hover:shadow-md"
+                  className="group rounded-lg border border-border bg-card p-4 shadow-sm transition-[border-color,box-shadow] hover:border-border hover:shadow-md"
                 >
                   <div className="flex items-center justify-between gap-3">
-                    <span className="rounded-full border border-border bg-white px-2.5 py-1 text-[11px] font-semibold text-muted-foreground">
+                    <span className="rounded-full border border-border bg-card px-2.5 py-1 text-[11px] font-semibold text-muted-foreground">
                       {getBadgeLabel(post)}
                     </span>
                     <time

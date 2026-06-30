@@ -125,7 +125,7 @@ export function MainPostCarouselWidgetContainer({
       >
         <DialogContent className="max-h-[85vh] overflow-y-auto sm:max-w-3xl">
           <DialogHeader>
-            <DialogTitle className="pr-8 text-lg font-bold text-neutral-950">
+            <DialogTitle className="pr-8 text-lg font-bold text-foreground">
               {detail?.title ?? "칼럼 전문"}
             </DialogTitle>
             <DialogDescription>
@@ -151,7 +151,7 @@ export function MainPostCarouselWidgetContainer({
             </div>
           ) : detail ? (
             <article>
-              <div className="rounded-lg border border-neutral-200 bg-white p-5">
+              <div className="rounded-lg border border-border bg-card p-5">
                 <MarkdownContentRenderer
                   content={getReportBody(detail)}
                   variant="article"
