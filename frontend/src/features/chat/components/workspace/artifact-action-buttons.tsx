@@ -19,7 +19,6 @@ import { cn } from "@/shared/lib/utils"
 
 type ArtifactActionButtonsProps = {
   artifactId: string
-  canInteract: boolean
   size?: React.ComponentProps<typeof Button>["size"]
   className?: string
 }
@@ -40,33 +39,47 @@ const normalizeSaveErrorMessage = (error: unknown) => {
   return "라이브러리에 저장하지 못했습니다."
 }
 
+const shouldRetrySave = (failureCount: number, error: unknown) => {
+  if (failureCount >= 2) {
+    return false
+  }
+
+  if (error instanceof HttpStatusError) {
+    return (
+      error.status === 404 ||
+      error.status === 409 ||
+      error.status === 425 ||
+      error.status === 429 ||
+      error.status >= 500
+    )
+  }
+
+  return false
+}
+
 export function ArtifactActionButtons({
   artifactId,
-  canInteract,
   size = "icon-xs",
   className,
 }: ArtifactActionButtonsProps) {
   const queryClient = useQueryClient()
-  const isSelectionLocked = useChatWorkspace((state) => state.isSelectionLocked)
   const selectedArtifactIds = useChatWorkspace(
     (state) => state.selectedArtifactIds
   )
   const toggleArtifact = useChatWorkspace((state) => state.toggleArtifact)
   const saveArtifactAsDocument =
-    useSaveArtifactAsDocumentApiV1AgentArtifactsArtifactIdSaveAsDocumentPost()
+    useSaveArtifactAsDocumentApiV1AgentArtifactsArtifactIdSaveAsDocumentPost({
+      mutation: {
+        retry: shouldRetrySave,
+        retryDelay: (attemptIndex) => Math.min(500 * 2 ** attemptIndex, 1500),
+      },
+    })
   const isSelected = selectedArtifactIds.includes(artifactId)
-  const isSaveDisabled = !canInteract || saveArtifactAsDocument.isPending
-  const isContextDisabled = !canInteract || isSelectionLocked
-  const saveTooltip = !canInteract
-    ? "아티팩트 동기화 후 저장할 수 있습니다"
-    : saveArtifactAsDocument.isPending
-      ? "라이브러리에 저장 중"
-      : "라이브러리에 저장"
-  const contextTooltip = !canInteract
-    ? "아티팩트 동기화 후 추가할 수 있습니다"
-    : isSelected
-      ? "채팅에서 제거"
-      : "채팅에 추가"
+  const isSaveDisabled = saveArtifactAsDocument.isPending
+  const saveTooltip = saveArtifactAsDocument.isPending
+    ? "라이브러리에 저장 중"
+    : "라이브러리에 저장"
+  const contextTooltip = isSelected ? "채팅에서 제거" : "채팅에 추가"
 
   const stopPropagation = (event: React.MouseEvent<HTMLElement>) => {
     event.preventDefault()
@@ -97,9 +110,6 @@ export function ArtifactActionButtons({
 
   const handleToggleContext = (event: React.MouseEvent<HTMLButtonElement>) => {
     stopPropagation(event)
-    if (isContextDisabled) {
-      return
-    }
 
     toggleArtifact(artifactId)
   }
@@ -138,7 +148,6 @@ export function ArtifactActionButtons({
                 variant={isSelected ? "secondary" : "outline"}
                 size={size}
                 onClick={handleToggleContext}
-                disabled={isContextDisabled}
                 aria-label={contextTooltip}
                 className="cursor-pointer"
               >

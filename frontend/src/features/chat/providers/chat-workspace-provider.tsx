@@ -11,7 +11,6 @@ type ChatWorkspaceState = {
   activeLeftTab: ChatLeftTab
   detailDialog: ChatDetailDialogState | null
   isLeftSidebarOpen: boolean
-  isSelectionLocked: boolean
   selectedArtifactIds: string[]
   selectedDocumentIds: string[]
 }
@@ -20,7 +19,6 @@ type ChatWorkspaceActions = {
   setDetailDialog: (dialog: ChatDetailDialogState | null) => void
   setActiveLeftTab: (tab: ChatLeftTab) => void
   setIsLeftSidebarOpen: (open: boolean) => void
-  setIsSelectionLocked: (locked: boolean) => void
   replaceSelections: (next: {
     documentIds: string[]
     artifactIds: string[]
@@ -43,13 +41,11 @@ const createChatWorkspaceStore = () =>
     activeLeftTab: "threads",
     detailDialog: null,
     isLeftSidebarOpen: true,
-    isSelectionLocked: false,
     selectedDocumentIds: [],
     selectedArtifactIds: [],
     setDetailDialog: (detailDialog) => set({ detailDialog }),
     setActiveLeftTab: (activeLeftTab) => set({ activeLeftTab }),
     setIsLeftSidebarOpen: (isLeftSidebarOpen) => set({ isLeftSidebarOpen }),
-    setIsSelectionLocked: (isSelectionLocked) => set({ isSelectionLocked }),
     replaceSelections: ({ documentIds, artifactIds }) =>
       set({
         selectedDocumentIds: documentIds,

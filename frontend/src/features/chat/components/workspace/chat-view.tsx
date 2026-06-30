@@ -111,9 +111,6 @@ export function ChatView({
   const selectedDocumentIds = useChatWorkspace(
     (state) => state.selectedDocumentIds
   )
-  const setIsSelectionLocked = useChatWorkspace(
-    (state) => state.setIsSelectionLocked
-  )
   const { viewportRef, onScroll, scrollToBottom } = useAutoScroll()
   const disabled = isBusy || isHydrating || hitlInterrupts.length > 0
   const isSendDisabled =
@@ -128,11 +125,6 @@ export function ChatView({
       }),
     [messages, toolCalls]
   )
-  React.useEffect(() => {
-    setIsSelectionLocked(disabled)
-    return () => setIsSelectionLocked(false)
-  }, [disabled, setIsSelectionLocked])
-
   React.useEffect(() => {
     scrollToBottom(true)
   }, [
@@ -906,19 +898,13 @@ function ArtifactTimelineCard({
   onOpenArtifact: (artifact: ArtifactResponse) => void
 }) {
   const displayArtifact = liveArtifact ?? artifact
-  const canInteract = liveArtifact != null
 
   return (
     <div className="flex items-start gap-2 rounded-xl border border-border/30 bg-muted/15 p-3">
       <button
         type="button"
-        onClick={() => {
-          if (liveArtifact) {
-            onOpenArtifact(liveArtifact)
-          }
-        }}
-        disabled={!canInteract}
-        className="flex min-w-0 flex-1 cursor-pointer items-start gap-3 text-left disabled:cursor-default"
+        onClick={() => onOpenArtifact(displayArtifact)}
+        className="flex min-w-0 flex-1 cursor-pointer items-start gap-3 text-left"
       >
         <span className="mt-0.5">{getArtifactIcon(displayArtifact.type)}</span>
         <span className="min-w-0 flex-1">
@@ -934,10 +920,7 @@ function ArtifactTimelineCard({
         <Badge variant="outline" className="h-5 text-[10px]">
           v{displayArtifact.version}
         </Badge>
-        <ArtifactActionButtons
-          artifactId={displayArtifact.id}
-          canInteract={canInteract}
-        />
+        <ArtifactActionButtons artifactId={displayArtifact.id} />
       </div>
     </div>
   )
@@ -953,19 +936,13 @@ function DocumentTimelineCard({
   onOpenDocument: (document: DocumentResponse) => void
 }) {
   const displayDocument = liveDocument ?? document
-  const canInteract = liveDocument != null
 
   return (
     <button
       type="button"
       key={displayDocument.id}
-      onClick={() => {
-        if (liveDocument) {
-          onOpenDocument(liveDocument)
-        }
-      }}
-      disabled={!canInteract}
-      className="flex w-full cursor-pointer items-start gap-3 rounded-xl border border-border/30 bg-background/60 p-3 text-left transition-colors hover:bg-muted/20 disabled:cursor-default disabled:hover:bg-background/60"
+      onClick={() => onOpenDocument(displayDocument)}
+      className="flex w-full cursor-pointer items-start gap-3 rounded-xl border border-border/30 bg-background/60 p-3 text-left transition-colors hover:bg-muted/20"
     >
       <span className="mt-0.5">{getDocumentIcon(displayDocument.type)}</span>
       <span className="min-w-0 flex-1">

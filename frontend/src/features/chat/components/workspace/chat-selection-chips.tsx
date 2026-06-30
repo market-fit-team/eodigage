@@ -22,7 +22,6 @@ export function ChatSelectionChips({
   artifacts,
   documents,
 }: ChatSelectionChipsProps) {
-  const isSelectionLocked = useChatWorkspace((state) => state.isSelectionLocked)
   const selectedArtifactIds = useChatWorkspace(
     (state) => state.selectedArtifactIds
   )
@@ -56,7 +55,6 @@ export function ChatSelectionChips({
             variant="ghost"
             size="icon-xs"
             className="size-4 rounded-full"
-            disabled={isSelectionLocked}
             onClick={() => toggleDocument(document.id)}
           >
             <X className="size-2.5" />
@@ -76,7 +74,6 @@ export function ChatSelectionChips({
             variant="ghost"
             size="icon-xs"
             className="size-4 rounded-full"
-            disabled={isSelectionLocked}
             onClick={() => toggleArtifact(artifact.id)}
           >
             <X className="size-2.5" />

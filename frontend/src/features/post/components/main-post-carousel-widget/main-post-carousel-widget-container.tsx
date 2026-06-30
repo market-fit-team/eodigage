@@ -1,11 +1,11 @@
 "use client"
 
 import { useCallback, useEffect, useState } from "react"
+import { MarkdownContentRenderer } from "@/features/chat/components/workspace/markdown-content-renderer"
 import { getPost } from "@/features/post/api/post-api"
 import { CommentNotificationBell } from "@/features/post/components/comment-notification-bell/comment-notification-bell"
 import { MainPostCarouselWidget } from "@/features/post/components/main-post-carousel-widget/main-post-carousel-widget"
 import { PostComments } from "@/features/post/components/post-comments/post-comments"
-import { PublicPostReportBell } from "@/features/post/components/public-post-report-bell/public-post-report-bell"
 import { useCommentNotifications } from "@/features/post/hooks/use-comment-notifications"
 import { useMainPosts } from "@/features/post/hooks/use-main-posts"
 import type { PostDetail } from "@/features/post/types/post"
@@ -113,7 +113,6 @@ export function MainPostCarouselWidgetContainer({
         onPostClick={handlePostClick}
         headerActions={
           <div className="flex items-center gap-2">
-            <PublicPostReportBell />
             <CommentNotificationBell onOpenPost={openPostDetail} />
           </div>
         }
@@ -152,8 +151,11 @@ export function MainPostCarouselWidgetContainer({
             </div>
           ) : detail ? (
             <article>
-              <div className="rounded-lg border border-neutral-200 bg-neutral-50 p-4 text-sm leading-7 whitespace-pre-wrap text-neutral-800">
-                {getReportBody(detail)}
+              <div className="rounded-lg border border-neutral-200 bg-white p-5">
+                <MarkdownContentRenderer
+                  content={getReportBody(detail)}
+                  variant="article"
+                />
               </div>
               <PostComments postId={detail.id} />
             </article>

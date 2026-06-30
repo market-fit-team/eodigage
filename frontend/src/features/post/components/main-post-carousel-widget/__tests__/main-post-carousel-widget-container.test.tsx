@@ -26,13 +26,6 @@ vi.mock(
   })
 )
 
-vi.mock(
-  "@/features/post/components/public-post-report-bell/public-post-report-bell",
-  () => ({
-    PublicPostReportBell: () => <div data-testid="public-notification-bell" />,
-  })
-)
-
 vi.mock("@/features/post/api/post-api", () => ({
   getPost: vi.fn(),
 }))
@@ -71,7 +64,7 @@ describe("MainPostCarouselWidgetContainer", () => {
       authorName: "user-1",
       title: "AI 상권 리포트",
       summary: "요약입니다.",
-      content: "본문 1문단\n\n본문 2문단",
+      content: "## 핵심 인사이트\n본문 1문단\n\n본문 2문단",
       category: "TREND",
       readTimeMinutes: 3,
       sourceType: "LLM_REPORT",
@@ -98,7 +91,12 @@ describe("MainPostCarouselWidgetContainer", () => {
         "9d68f1d4-514f-4f37-8a73-8ed43a15eb11"
       )
     )
-    expect(await screen.findByText(/본문 1문단\s+본문 2문단/)).toBeInTheDocument()
+    expect(
+      await screen.findByRole("heading", { name: "핵심 인사이트" })
+    ).toBeInTheDocument()
+    expect(screen.queryByText("## 핵심 인사이트")).not.toBeInTheDocument()
+    expect(screen.getByText("본문 1문단")).toBeInTheDocument()
+    expect(screen.getByText("본문 2문단")).toBeInTheDocument()
     expect(screen.getByTestId("post-comments")).toHaveTextContent(
       "9d68f1d4-514f-4f37-8a73-8ed43a15eb11"
     )
@@ -118,6 +116,9 @@ describe("MainPostCarouselWidgetContainer", () => {
     expect(
       screen.queryByRole("button", { name: /AI 칼럼 생성/ })
     ).not.toBeInTheDocument()
-    expect(screen.getByTestId("public-notification-bell")).toBeInTheDocument()
+    expect(
+      screen.queryByTestId("public-notification-bell")
+    ).not.toBeInTheDocument()
+    expect(screen.getByTestId("notification-bell")).toBeInTheDocument()
   })
 })

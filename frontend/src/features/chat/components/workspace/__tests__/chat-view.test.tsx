@@ -41,7 +41,6 @@ const workspaceState = vi.hoisted(() => ({
   current: {
     selectedArtifactIds: ["artifact-1"],
     selectedDocumentIds: ["doc-1"],
-    setIsSelectionLocked: vi.fn(),
     setRightPanel: vi.fn(),
     toggleArtifact: vi.fn(),
     toggleDocument: vi.fn(),
@@ -168,6 +167,8 @@ const renderChatView = (props?: Partial<ComponentProps<typeof ChatView>>) => {
 describe("ChatView", () => {
   beforeEach(() => {
     vi.clearAllMocks()
+    workspaceState.current.selectedArtifactIds = ["artifact-1"]
+    workspaceState.current.selectedDocumentIds = ["doc-1"]
   })
 
   it("선택된 문서와 아티팩트 id를 메시지 전송 옵션에 포함한다.", () => {
@@ -663,5 +664,58 @@ describe("ChatView", () => {
         results_count: 2,
       }),
     })
+  })
+
+  it("목록 동기화 전의 아티팩트도 바로 저장할 수 있다.", async () => {
+    workspaceState.current.selectedArtifactIds = []
+    streamState.current = {
+      hitlInterrupts: [],
+      isBusy: false,
+      isHydrating: false,
+      localNotice: null,
+      messages: [
+        new AIMessage({
+          id: "ai-1",
+          content: "초안을 만들었습니다.",
+          tool_calls: [
+            {
+              id: "tool-1",
+              name: "artifact_create",
+              args: { artifact_type: "markdown" },
+            },
+          ],
+        }),
+        new ToolMessage({
+          id: "tool-message-1",
+          content: JSON.stringify({
+            id: "artifact-unsynced",
+            thread_id: "thread-1",
+            type: "markdown",
+            title: "동기화 전 초안",
+            summary: "목록 쿼리 전에도 저장해야 합니다.",
+            raw_text: "초안 본문",
+            version: 1,
+            source_message_id: null,
+            source_tool_call_id: "tool-1",
+          }),
+          tool_call_id: "tool-1",
+        }),
+      ],
+      queuedMessages: [],
+      toolCalls: [],
+    }
+    const user = userEvent.setup()
+
+    renderChatView({ artifacts: [] })
+
+    await user.click(screen.getByRole("button", { name: "라이브러리에 저장" }))
+
+    expect(saveArtifactAsDocument).toHaveBeenCalledWith(
+      { artifactId: "artifact-unsynced" },
+      expect.objectContaining({
+        onError: expect.any(Function),
+        onSuccess: expect.any(Function),
+      })
+    )
   })
 })

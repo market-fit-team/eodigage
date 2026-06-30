@@ -79,7 +79,7 @@ export function WorkspaceDetailDialog({
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
       <DialogContent
-        className="max-h-[90dvh] w-[min(1200px,calc(100vw-2rem))] max-w-none gap-0 overflow-hidden p-0 sm:w-[min(1200px,calc(100vw-3rem))]"
+        className="max-h-[90dvh] w-[min(1200px,calc(100vw-2rem))] gap-0 overflow-hidden p-0 sm:max-w-7xl"
         showCloseButton
       >
         {dialog?.kind === "library-document" ? (
@@ -107,7 +107,6 @@ function DocumentDialogBody({
   document: DocumentResponse
   onClose: () => void
 }) {
-  const isSelectionLocked = useChatWorkspace((state) => state.isSelectionLocked)
   const selectedDocumentIds = useChatWorkspace(
     (state) => state.selectedDocumentIds
   )
@@ -138,7 +137,6 @@ function DocumentDialogBody({
             type="button"
             variant={isSelected ? "secondary" : "outline"}
             size="sm"
-            disabled={isSelectionLocked}
             onClick={() => {
               toggleDocument(document.id)
               onClose()
@@ -270,7 +268,7 @@ function OnboardingResultDialogBody({
                   <Link2 className="size-3.5 text-muted-foreground" />
                   <h3 className="text-sm font-semibold">추천 업종</h3>
                 </div>
-                <div className="grid gap-2 md:grid-cols-2">
+                <div className="grid gap-2 md:grid-cols-2 xl:grid-cols-3">
                   {detail.category_recommendations.slice(0, 6).map((item) => (
                     <div
                       key={item.service_category_code}

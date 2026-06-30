@@ -185,7 +185,6 @@ function LibraryIndex({
 }
 
 function DocumentViewer({ document }: { document: DocumentResponse }) {
-  const isSelectionLocked = useChatWorkspace((state) => state.isSelectionLocked)
   const selectedDocumentIds = useChatWorkspace(
     (state) => state.selectedDocumentIds
   )
@@ -205,7 +204,6 @@ function DocumentViewer({ document }: { document: DocumentResponse }) {
       </div>
       <SelectionToggleButton
         isSelected={isSelected}
-        disabled={isSelectionLocked}
         onClick={() => toggleDocument(document.id)}
       />
       {isMarkdownRenderableType(document.type) ? (
@@ -235,7 +233,6 @@ function ArtifactViewer({ artifact }: { artifact: ArtifactResponse }) {
       </div>
       <ArtifactActionButtons
         artifactId={artifact.id}
-        canInteract
         size="icon-sm"
       />
       {isMarkdownRenderableType(artifact.type) ? (
@@ -459,11 +456,9 @@ function RawTextBlock({ value }: { value: string }) {
 }
 
 function SelectionToggleButton({
-  disabled,
   isSelected,
   onClick,
 }: {
-  disabled: boolean
   isSelected: boolean
   onClick: () => void
 }) {
@@ -472,7 +467,6 @@ function SelectionToggleButton({
       type="button"
       variant={isSelected ? "secondary" : "outline"}
       size="sm"
-      disabled={disabled}
       onClick={onClick}
       className="h-7 cursor-pointer text-xs"
     >

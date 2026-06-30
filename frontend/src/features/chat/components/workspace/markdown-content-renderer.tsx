@@ -9,40 +9,92 @@ import {
 } from "@/features/chat/components/workspace/markdown-chart-block"
 import { parseChartBlock } from "@/features/chat/lib/markdown/parse-chart-block"
 
-export function MarkdownContentRenderer({ content }: { content: string }) {
+type MarkdownContentRendererProps = {
+  content: string
+  variant?: "compact" | "article"
+}
+
+export function MarkdownContentRenderer({
+  content,
+  variant = "compact",
+}: MarkdownContentRendererProps) {
+  const isArticle = variant === "article"
+
   return (
-    <div className="min-w-0 text-sm leading-7 text-foreground">
+    <div
+      className={
+        isArticle
+          ? "min-w-0 text-[15px] leading-8 text-foreground"
+          : "min-w-0 text-sm leading-7 text-foreground"
+      }
+    >
       <ReactMarkdown
         remarkPlugins={[remarkGfm]}
         rehypePlugins={[rehypeSanitize]}
         components={{
           h1: ({ children }) => (
-            <h1 className="mt-5 mb-3 text-base font-semibold text-foreground first:mt-0">
+            <h1
+              className={
+                isArticle
+                  ? "mt-7 mb-4 text-2xl font-bold break-keep text-foreground first:mt-0"
+                  : "mt-5 mb-3 text-base font-semibold text-foreground first:mt-0"
+              }
+            >
               {children}
             </h1>
           ),
           h2: ({ children }) => (
-            <h2 className="mt-5 mb-3 text-sm font-semibold text-foreground first:mt-0">
+            <h2
+              className={
+                isArticle
+                  ? "mt-7 mb-3 text-lg font-bold break-keep text-foreground first:mt-0"
+                  : "mt-5 mb-3 text-sm font-semibold text-foreground first:mt-0"
+              }
+            >
               {children}
             </h2>
           ),
           h3: ({ children }) => (
-            <h3 className="mt-4 mb-2 text-sm font-medium text-foreground">
+            <h3
+              className={
+                isArticle
+                  ? "mt-5 mb-2 text-base font-semibold break-keep text-foreground"
+                  : "mt-4 mb-2 text-sm font-medium text-foreground"
+              }
+            >
               {children}
             </h3>
           ),
           p: ({ children }) => (
-            <p className="my-3 text-sm leading-7 break-words text-foreground first:mt-0 last:mb-0">
+            <p
+              className={
+                isArticle
+                  ? "my-3.5 leading-8 break-words text-foreground first:mt-0 last:mb-0"
+                  : "my-3 text-sm leading-7 break-words text-foreground first:mt-0 last:mb-0"
+              }
+            >
               {children}
             </p>
           ),
           ul: ({ children }) => (
-            <ul className="my-3 list-disc space-y-1.5 pl-5 text-sm text-muted-foreground">
+            <ul
+              className={
+                isArticle
+                  ? "my-4 list-disc space-y-2 pl-5 text-muted-foreground"
+                  : "my-3 list-disc space-y-1.5 pl-5 text-sm text-muted-foreground"
+              }
+            >
               {children}
             </ul>
           ),
           ol: ({ children }) => (
-            <ol className="my-3 list-decimal space-y-1.5 pl-5 text-sm text-muted-foreground">
+            <ol
+              className={
+                isArticle
+                  ? "my-4 list-decimal space-y-2 pl-5 text-muted-foreground"
+                  : "my-3 list-decimal space-y-1.5 pl-5 text-sm text-muted-foreground"
+              }
+            >
               {children}
             </ol>
           ),
