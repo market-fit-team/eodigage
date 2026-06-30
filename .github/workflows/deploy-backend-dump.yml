@@ -23,6 +23,7 @@ jobs:
       branch: ${{ inputs.branch }}
       copy_dumps: true
       copy_trend_assets: true
+      install_trend_refresh_cron: true
       # DB 복원과 모델 후처리 타깃만 순서대로 수행한다.
       # train-models는 온보딩 학습과 trend 배치를 함께 실행한다.
       deploy_command: make restore-db train-models

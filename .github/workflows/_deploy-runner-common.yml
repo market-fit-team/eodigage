@@ -21,6 +21,11 @@ on:
         required: false
         type: boolean
         default: false
+      # 백엔드 배포 후 trend-service 주기 갱신 cron을 설치할지 결정한다.
+      install_trend_refresh_cron:
+        required: false
+        type: boolean
+        default: false
       # 실제 배포 단계에서 실행할 명령이다.
       deploy_command:
         required: true
@@ -146,6 +151,14 @@ jobs:
         run: |
           set -euo pipefail
           ${{ inputs.deploy_command }}
+
+      # 배포용 clone 경로 기준으로 trend-service 자동 갱신 cron을 중복 없이 설치한다.
+      - name: trend 자동 갱신 cron 설치
+        if: ${{ inputs.install_trend_refresh_cron }}
+        working-directory: /home/ubuntu/code-server/volumes/home/project/market-fit-deploy/deploy
+        run: |
+          set -euo pipefail
+          make install-trend-refresh-cron
 
       # 마지막으로 현재 compose 상태를 출력해 배포 결과를 빠르게 확인한다.
       - name: 배포 상태 확인

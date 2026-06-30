@@ -23,6 +23,7 @@ jobs:
       branch: ${{ inputs.branch }}
       copy_dumps: true
       copy_trend_assets: true
+      install_trend_refresh_cron: true
       # reset-backend는 frontend를 남기고 backend 컨테이너, compose 볼륨, 로컬 backend 이미지를 먼저 제거한다.
       # make up은 gateway -> data -> restore-db -> services -> train-models 순서를 모두 수행한다.
       # train-models는 온보딩 학습과 trend 배치를 함께 실행한다.

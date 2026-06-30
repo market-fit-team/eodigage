@@ -1,6 +1,6 @@
 SHELL := /bin/bash
 
-.PHONY: validate-env reset-backend reset-hard reset-frontend gateway data restore-db services frontend-codegen frontend train-onboarding-models train-trend-models train-models up up-mac ps logs status down clean
+.PHONY: validate-env reset-backend reset-hard reset-frontend gateway data restore-db services frontend-codegen frontend train-onboarding-models train-trend-models train-models install-trend-refresh-cron up up-mac ps logs status down clean
 
 COMPOSE := docker compose --env-file .env -f compose/backend-public-stack.yml
 MAC_COMPOSE := docker compose --env-file .env -f compose/backend-public-stack.yml -f compose/backend-public-stack.mac.yml
@@ -11,6 +11,7 @@ RESTORE_SCRIPT := ./scripts/restore-backend-db-market-franchise.sh
 POST_RESTORE_SCRIPT := ./scripts/restore-post-db.sh
 ONBOARDING_TRAIN_SCRIPT := ./scripts/train-onboarding-models.sh
 TREND_TRAIN_SCRIPT := ./scripts/train-trend-models.sh
+TREND_REFRESH_CRON_SCRIPT := ./scripts/install-trend-refresh-cron.sh
 FRONTEND_API_GEN_SCRIPT := ./scripts/generate-frontend-api-clients.sh
 AUTHENTIK_BLUEPRINT_REFRESH_SCRIPT := ./scripts/refresh-authentik-blueprint.sh
 
@@ -104,6 +105,10 @@ train-onboarding-models: validate-env
 train-trend-models: validate-env
 	@echo "트렌드 배치를 실행합니다..."
 	@bash $(TREND_TRAIN_SCRIPT)
+
+install-trend-refresh-cron: validate-env
+	@echo "트렌드 자동 갱신 cron을 설치합니다..."
+	@bash $(TREND_REFRESH_CRON_SCRIPT) install
 
 # 배포 기준 모델 후처리는 온보딩 학습과 trend 배치를 함께 묶어 다룬다.
 train-models:
