@@ -11,6 +11,7 @@ import type {
   ArtifactResponse,
   DocumentResponse,
 } from "@/shared/api/generated/agent/schemas"
+import { cn } from "@/shared/lib/utils"
 
 type ChatWorkspaceEmptyStateProps = {
   documents: DocumentResponse[]
@@ -21,6 +22,7 @@ type ChatWorkspaceEmptyStateProps = {
   toolPolicy: ToolPolicyControls
   onChangeDraft: (value: string) => void
   onSubmit: (message: string) => Promise<void> | void
+  compact?: boolean
 }
 
 const EMPTY_ARTIFACTS: ArtifactResponse[] = []
@@ -34,16 +36,30 @@ export function ChatWorkspaceEmptyState({
   toolPolicy,
   onChangeDraft,
   onSubmit,
+  compact = false,
 }: ChatWorkspaceEmptyStateProps) {
   return (
     <div className="flex h-full min-h-0 flex-1 flex-col overflow-hidden bg-background">
-      <div className="flex min-h-0 flex-1 items-center justify-center px-4 py-10">
+      <div
+        className={cn(
+          "flex min-h-0 flex-1 items-center justify-center px-4 py-10",
+          compact && "px-3 py-6"
+        )}
+      >
         <div className="w-full max-w-2xl">
-          <ChatWelcomeScreen onSelectSuggestion={onChangeDraft} />
+          <ChatWelcomeScreen
+            onSelectSuggestion={onChangeDraft}
+            compact={compact}
+          />
         </div>
       </div>
 
-      <div className="shrink-0 border-t border-border/15 bg-background px-6 py-4">
+      <div
+        className={cn(
+          "shrink-0 border-t border-border/15 bg-background px-6 py-4",
+          compact && "px-3 py-3"
+        )}
+      >
         <ChatWorkspaceComposer
           artifacts={EMPTY_ARTIFACTS}
           documents={documents}
@@ -54,6 +70,7 @@ export function ChatWorkspaceEmptyState({
           toolPolicy={toolPolicy}
           onChangeDraft={onChangeDraft}
           onSubmit={onSubmit}
+          compact={compact}
         />
       </div>
     </div>

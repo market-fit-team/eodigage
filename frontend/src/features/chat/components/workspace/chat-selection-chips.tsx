@@ -12,15 +12,18 @@ import type {
 } from "@/shared/api/generated/agent/schemas"
 import { Badge } from "@/shared/components/ui/badge"
 import { Button } from "@/shared/components/ui/button"
+import { cn } from "@/shared/lib/utils"
 
 type ChatSelectionChipsProps = {
   artifacts: ArtifactResponse[]
   documents: DocumentResponse[]
+  compact?: boolean
 }
 
 export function ChatSelectionChips({
   artifacts,
   documents,
+  compact = false,
 }: ChatSelectionChipsProps) {
   const selectedArtifactIds = useChatWorkspace(
     (state) => state.selectedArtifactIds
@@ -48,9 +51,14 @@ export function ChatSelectionChips({
         <Badge
           key={document.id}
           variant="secondary"
-          className="gap-1 rounded-md px-2 py-0.5 text-xs"
+          className={cn(
+            "min-w-0 gap-1 rounded-md px-2 py-0.5 text-xs",
+            compact && "max-w-full"
+          )}
         >
-          문서 · {getDocumentTitle(document)}
+          <span className="min-w-0 truncate">
+            문서 · {getDocumentTitle(document)}
+          </span>
           <Button
             variant="ghost"
             size="icon-xs"
@@ -67,9 +75,14 @@ export function ChatSelectionChips({
         <Badge
           key={artifact.id}
           variant="secondary"
-          className="gap-1 rounded-md px-2 py-0.5 text-xs"
+          className={cn(
+            "min-w-0 gap-1 rounded-md px-2 py-0.5 text-xs",
+            compact && "max-w-full"
+          )}
         >
-          아티팩트 · {getArtifactTitle(artifact)}
+          <span className="min-w-0 truncate">
+            아티팩트 · {getArtifactTitle(artifact)}
+          </span>
           <Button
             variant="ghost"
             size="icon-xs"

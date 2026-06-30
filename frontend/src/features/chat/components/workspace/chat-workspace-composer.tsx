@@ -34,6 +34,7 @@ type ChatWorkspaceComposerProps = {
   onSubmit: (message: string) => Promise<boolean | void> | boolean | void
   onRemoveOnboardingContext?: () => void
   placeholder?: string
+  compact?: boolean
 }
 
 export function ChatWorkspaceComposer({
@@ -52,6 +53,7 @@ export function ChatWorkspaceComposer({
   onSubmit,
   onRemoveOnboardingContext,
   placeholder = "메시지를 입력하세요...",
+  compact = false,
 }: ChatWorkspaceComposerProps) {
   const textareaRef = React.useRef<HTMLTextAreaElement>(null)
   const isComposingRef = React.useRef(false)
@@ -94,21 +96,21 @@ export function ChatWorkspaceComposer({
   }
 
   return (
-    <div className="mx-auto max-w-2xl">
+    <div className={cn("mx-auto min-w-0 max-w-2xl", compact && "w-full")}>
       <div
         className={cn(
           "relative rounded-xl border bg-muted/20 transition-all",
           "border-border/30 focus-within:border-border/50 focus-within:bg-muted/30"
         )}
       >
-        <div className="px-3 pt-2.5">
+        <div className={cn("px-3 pt-2.5", compact && "px-2.5 pt-2")}>
           {hasOnboardingContext && (
             <div className="mb-1.5 flex flex-wrap gap-1.5">
               <Badge
                 variant="secondary"
-                className="gap-1 rounded-md px-2 py-0.5 text-xs"
+                className="min-w-0 gap-1 rounded-md px-2 py-0.5 text-xs"
               >
-                창업 성향
+                <span className="truncate">창업 성향</span>
                 <Button
                   variant="ghost"
                   size="icon-xs"
@@ -122,7 +124,11 @@ export function ChatWorkspaceComposer({
               </Badge>
             </div>
           )}
-          <ChatSelectionChips artifacts={artifacts} documents={documents} />
+          <ChatSelectionChips
+            artifacts={artifacts}
+            documents={documents}
+            compact={compact}
+          />
         </div>
         <textarea
           ref={textareaRef}
@@ -154,7 +160,10 @@ export function ChatWorkspaceComposer({
           placeholder={placeholder}
           rows={1}
           disabled={inputDisabled}
-          className="w-full resize-none bg-transparent px-4 pt-3 pb-10 text-sm leading-relaxed text-foreground outline-none placeholder:text-muted-foreground disabled:cursor-not-allowed disabled:opacity-60"
+          className={cn(
+            "w-full resize-none bg-transparent px-4 pt-3 pb-10 text-sm leading-relaxed text-foreground outline-none placeholder:text-muted-foreground disabled:cursor-not-allowed disabled:opacity-60",
+            compact && "px-3 pt-2.5 pb-9"
+          )}
           id="chat-input-textarea"
         />
         <div className="absolute right-2 bottom-2 left-2 flex items-center justify-between gap-2">
@@ -165,12 +174,14 @@ export function ChatWorkspaceComposer({
             onSelectModel={modelSelection.selectModel}
             onSelectReasoningEffort={modelSelection.selectReasoningEffort}
             disabled={disabled}
+            compact={compact}
           />
           <div className="flex items-center gap-1.5">
             <ChatToolPermissionMenu
               selectedPreset={toolPolicy.selectedPreset}
               onSelectPreset={toolPolicy.selectPreset}
               disabled={disabled}
+              compact={compact}
             />
             <Button
               size="icon-xs"
@@ -190,7 +201,12 @@ export function ChatWorkspaceComposer({
           </div>
         </div>
       </div>
-      <p className="mt-2 text-center text-xs text-muted-foreground">
+      <p
+        className={cn(
+          "mt-2 text-center text-xs text-muted-foreground",
+          compact && "hidden sm:block"
+        )}
+      >
         AI 에이전트는 실수할 수 있습니다. 중요한 내용은 반드시 직접 확인하세요.
       </p>
     </div>

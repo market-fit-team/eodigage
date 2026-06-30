@@ -11,6 +11,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/shared/components/ui/select"
+import { cn } from "@/shared/lib/utils"
 
 type ChatModelMenuProps = {
   models: ChatModelOption[]
@@ -19,6 +20,7 @@ type ChatModelMenuProps = {
   onSelectModel: (modelId: string) => void
   onSelectReasoningEffort: (reasoningEffort: ChatReasoningEffort) => void
   disabled?: boolean
+  compact?: boolean
 }
 
 const reasoningEffortLabel: Record<ChatReasoningEffort, string> = {
@@ -35,6 +37,7 @@ export function ChatModelMenu({
   onSelectModel,
   onSelectReasoningEffort,
   disabled,
+  compact = false,
 }: ChatModelMenuProps) {
   return (
     <div className="flex min-w-0 items-center gap-1.5">
@@ -46,7 +49,10 @@ export function ChatModelMenu({
         <SelectTrigger
           size="default"
           aria-label="모델 선택"
-          className="h-7 max-w-[11rem] gap-1 rounded-lg border-transparent bg-transparent px-2.5 text-xs text-muted-foreground hover:bg-muted hover:text-foreground dark:hover:bg-muted/50"
+          className={cn(
+            "h-7 gap-1 rounded-lg border-transparent bg-transparent px-2.5 text-xs text-muted-foreground hover:bg-muted hover:text-foreground dark:hover:bg-muted/50",
+            compact ? "max-w-20 sm:max-w-[11rem]" : "max-w-[11rem]"
+          )}
         >
           <SelectValue placeholder="모델 선택" />
         </SelectTrigger>
@@ -69,7 +75,10 @@ export function ChatModelMenu({
         <SelectTrigger
           size="default"
           aria-label="추론 수준 선택"
-          className="h-7 max-w-[9rem] gap-1 rounded-lg border-transparent bg-transparent px-2.5 text-xs text-muted-foreground hover:bg-muted hover:text-foreground dark:hover:bg-muted/50"
+          className={cn(
+            "h-7 gap-1 rounded-lg border-transparent bg-transparent px-2.5 text-xs text-muted-foreground hover:bg-muted hover:text-foreground dark:hover:bg-muted/50",
+            compact ? "max-w-16 sm:max-w-[9rem]" : "max-w-[9rem]"
+          )}
         >
           <SelectValue placeholder="추론 수준 선택" />
         </SelectTrigger>

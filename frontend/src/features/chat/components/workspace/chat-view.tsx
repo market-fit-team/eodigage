@@ -73,6 +73,7 @@ type ChatViewProps = {
   onSetRightPanel: (panel: ChatRightPanel) => void
   onToggleExpand: () => void
   onToggleRightPanel: () => void
+  compact?: boolean
 }
 
 export function ChatView({
@@ -87,6 +88,7 @@ export function ChatView({
   onSetRightPanel,
   onToggleExpand,
   onToggleRightPanel,
+  compact = false,
 }: ChatViewProps) {
   const [draft, setDraft] = React.useState("")
   const {
@@ -143,7 +145,12 @@ export function ChatView({
 
   return (
     <div className="flex h-full min-h-0 flex-1 flex-col overflow-hidden bg-background">
-      <header className="flex h-12 shrink-0 items-center justify-between border-b border-border/20 px-4 md:px-6">
+      <header
+        className={cn(
+          "flex h-12 shrink-0 items-center justify-between border-b border-border/20 px-4 md:px-6",
+          compact && "px-3 md:px-4"
+        )}
+      >
         <div className="flex min-w-0 items-center gap-2">
           <Sparkles className="size-3.5 shrink-0 text-foreground" />
           <span className="truncate text-sm font-medium text-foreground">
@@ -202,7 +209,12 @@ export function ChatView({
         onScroll={onScroll}
         className="min-h-0 flex-1 [&_[data-slot=scroll-area-viewport]>div]:!block [&_[data-slot=scroll-area-viewport]>div]:!w-full [&_[data-slot=scroll-area-viewport]>div]:!min-w-0"
       >
-        <div className="mx-auto max-w-2xl min-w-0 px-4 py-6 sm:px-6">
+        <div
+          className={cn(
+            "mx-auto max-w-2xl min-w-0 px-4 py-6 sm:px-6",
+            compact && "px-3 py-4 sm:px-4"
+          )}
+        >
           {isHydrating ? (
             <TypingIndicator label="대화를 불러오는 중" />
           ) : (
@@ -277,7 +289,12 @@ export function ChatView({
         </div>
       </ScrollArea>
 
-      <div className="shrink-0 border-t border-border/15 bg-background px-6 py-4">
+      <div
+        className={cn(
+          "shrink-0 border-t border-border/15 bg-background px-6 py-4",
+          compact && "px-3 py-3"
+        )}
+      >
         <QueuedMessageList
           queuedMessages={queuedMessages}
           queueLimit={queueLimit}
@@ -298,6 +315,7 @@ export function ChatView({
           onChangeDraft={setDraft}
           onSubmit={handleSubmit}
           onRemoveOnboardingContext={onRemoveOnboardingContext}
+          compact={compact}
         />
       </div>
     </div>

@@ -8,11 +8,13 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/shared/components/ui/select"
+import { cn } from "@/shared/lib/utils"
 
 type ChatToolPermissionMenuProps = {
   disabled?: boolean
   selectedPreset: ToolPermissionPreset | null
   onSelectPreset: (preset: ToolPermissionPreset) => void
+  compact?: boolean
 }
 
 const permissionPresetItems: {
@@ -28,6 +30,7 @@ export function ChatToolPermissionMenu({
   disabled,
   selectedPreset,
   onSelectPreset,
+  compact = false,
 }: ChatToolPermissionMenuProps) {
   return (
     <Select
@@ -38,7 +41,10 @@ export function ChatToolPermissionMenu({
       <SelectTrigger
         size="default"
         aria-label="권한 변경"
-        className="h-7 shrink-0 gap-1 rounded-lg border-transparent bg-transparent px-2.5 text-xs text-muted-foreground hover:bg-muted hover:text-foreground dark:hover:bg-muted/50"
+        className={cn(
+          "h-7 shrink-0 gap-1 rounded-lg border-transparent bg-transparent px-2.5 text-xs text-muted-foreground hover:bg-muted hover:text-foreground dark:hover:bg-muted/50",
+          compact && "max-w-16 sm:max-w-none"
+        )}
       >
         <SelectValue placeholder="권한 변경" />
       </SelectTrigger>
