@@ -6,6 +6,7 @@ import { ToolMessage } from "@langchain/core/messages"
 import { useQuery, useQueryClient } from "@tanstack/react-query"
 import { HttpStatusError } from "@/features/auth/lib/fetch-with-auth"
 import { ChatView } from "@/features/chat/components/workspace/chat-view"
+import type { ToolPolicyControls } from "@/features/chat/hooks/langgraph-chat-stream-context"
 import { LangGraphChatStreamProvider } from "@/features/chat/hooks/langgraph-chat-stream-provider"
 import { useLangGraphChatStream } from "@/features/chat/hooks/use-langgraph-chat-stream"
 import { useWorkspaceRuntimeSettings } from "@/features/chat/hooks/workspace/use-workspace-runtime-settings"
@@ -125,7 +126,7 @@ export function MapAgentThreadPanel({
     tools: toolsQuery.data ?? [],
     models: modelsQuery.data ?? [],
   })
-  const mapToolPolicy = useMemo(() => {
+  const mapToolPolicy = useMemo<ToolPolicyControls | undefined>(() => {
     const toolPolicy = runtimeSettings.controls?.toolPolicy
     const hasMapSearchTool = (toolsQuery.data ?? []).some(
       (tool) => tool.name === MAP_SEARCH_TOOL_NAME
